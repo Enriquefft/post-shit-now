@@ -1,14 +1,22 @@
 import { and, eq, gt } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
 import { type EditPattern, editHistory, postMetrics, preferenceModel } from "../core/db/schema.ts";
+import { getKilledIdeasSince } from "../ideas/bank.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
+
+export interface KilledIdeaPatterns {
+	rejectedPillars: Record<string, number>;
+	commonReasons: string[];
+	recentKills: number;
+}
 
 export interface WeeklyUpdateSummary {
 	formatsUpdated: boolean;
 	pillarsUpdated: boolean;
 	timesUpdated: boolean;
 	editPatternsUpdated: boolean;
+	killedIdeasProcessed: number;
 }
 
 // ─── CRUD ───────────────────────────────────────────────────────────────────
@@ -67,6 +75,11 @@ export async function updatePreferenceModel(
 			value: unknown;
 			lockedAt: string;
 		}>;
+		killedIdeaPatterns: {
+			rejectedPillars: Record<string, number>;
+			commonReasons: string[];
+			recentKills: number;
+		};
 		followerHistory: Array<{ count: number; date: string }>;
 	}>,
 ) {
@@ -89,6 +102,7 @@ export async function computeWeeklyUpdate(db: HubDb, userId: string): Promise<We
 		pillarsUpdated: false,
 		timesUpdated: false,
 		editPatternsUpdated: false,
+		killedIdeasProcessed: 0,
 	};
 
 	// Ensure preference model exists
@@ -229,6 +243,50 @@ export async function computeWeeklyUpdate(db: HubDb, userId: string): Promise<We
 			commonEditPatterns,
 		});
 		summary.editPatternsUpdated = true;
+	}
+
+	// ── 3. Killed idea feedback ─────────────────────────────────────────
+
+	try {
+		const killedIdeas = await getKilledIdeasSince(db, userId, sevenDaysAgo);
+
+		if (killedIdeas.length > 0) {
+			// Group by pillar to identify rejected content areas
+			const rejectedPillars: Record<string, number> = {};
+			for (const idea of killedIdeas) {
+				if (idea.pillar) {
+					rejectedPillars[idea.pillar] = (rejectedPillars[idea.pillar] ?? 0) + 1;
+				}
+			}
+
+			// Group by killReason to identify common rejection patterns
+			const reasonCounts = new Map<string, number>();
+			for (const idea of killedIdeas) {
+				if (idea.killReason) {
+					reasonCounts.set(
+						idea.killReason,
+						(reasonCounts.get(idea.killReason) ?? 0) + 1,
+					);
+				}
+			}
+
+			// Sort reasons by frequency and take top entries
+			const commonReasons = [...reasonCounts.entries()]
+				.sort((a, b) => b[1] - a[1])
+				.map(([reason]) => reason);
+
+			const killedIdeaPatterns = {
+				rejectedPillars,
+				commonReasons,
+				recentKills: killedIdeas.length,
+			};
+
+			await updatePreferenceModel(db, userId, { killedIdeaPatterns });
+			summary.killedIdeasProcessed = killedIdeas.length;
+		}
+	} catch (_err) {
+		// Gracefully handle case where ideas table doesn't exist yet
+		summary.killedIdeasProcessed = 0;
 	}
 
 	return summary;

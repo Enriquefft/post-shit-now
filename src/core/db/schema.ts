@@ -229,6 +229,14 @@ export const preferenceModel = pgTable(
 		lockedSettings:
 			jsonb("locked_settings").$type<Array<{ field: string; value: unknown; lockedAt: string }>>(),
 
+		// Killed idea feedback (rejection patterns from idea bank)
+		killedIdeaPatterns:
+			jsonb("killed_idea_patterns").$type<{
+				rejectedPillars: Record<string, number>;
+				commonReasons: string[];
+				recentKills: number;
+			}>(),
+
 		// Follower tracking (weekly/monthly trend)
 		followerHistory: jsonb("follower_history").$type<Array<{ count: number; date: string }>>(),
 
