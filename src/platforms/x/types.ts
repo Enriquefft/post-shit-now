@@ -37,6 +37,69 @@ export const MediaUploadResponseSchema = z.object({
 
 export type MediaUploadResponse = z.infer<typeof MediaUploadResponseSchema>;
 
+// ─── Tweet Metrics Schemas (GET /2/tweets) ─────────────────────────────────
+
+/** Public metrics available on any tweet via X API v2 */
+export const TweetPublicMetricsSchema = z.object({
+	retweet_count: z.number(),
+	reply_count: z.number(),
+	like_count: z.number(),
+	quote_count: z.number(),
+	bookmark_count: z.number(),
+	impression_count: z.number(),
+});
+
+export type TweetPublicMetrics = z.infer<typeof TweetPublicMetricsSchema>;
+
+/** Non-public metrics (only available to tweet author, 30-day window) */
+export const TweetNonPublicMetricsSchema = z.object({
+	url_link_clicks: z.number().optional(),
+	user_profile_clicks: z.number().optional(),
+});
+
+export type TweetNonPublicMetrics = z.infer<typeof TweetNonPublicMetricsSchema>;
+
+/** Single tweet with metrics from GET /2/tweets lookup */
+export const TweetWithMetricsSchema = z.object({
+	id: z.string(),
+	text: z.string(),
+	public_metrics: TweetPublicMetricsSchema,
+	non_public_metrics: TweetNonPublicMetricsSchema.optional(),
+});
+
+export type TweetWithMetrics = z.infer<typeof TweetWithMetricsSchema>;
+
+/** Batch tweet lookup response from GET /2/tweets?ids=... */
+export const TweetsLookupResponseSchema = z.object({
+	data: z.array(TweetWithMetricsSchema),
+});
+
+export type TweetsLookupResponse = z.infer<typeof TweetsLookupResponseSchema>;
+
+// ─── User Metrics Schemas (GET /2/users/me) ────────────────────────────────
+
+/** Public metrics on a user profile */
+export const UserPublicMetricsSchema = z.object({
+	followers_count: z.number(),
+	following_count: z.number(),
+	tweet_count: z.number(),
+	listed_count: z.number(),
+});
+
+export type UserPublicMetrics = z.infer<typeof UserPublicMetricsSchema>;
+
+/** User lookup response from GET /2/users/me */
+export const UserLookupResponseSchema = z.object({
+	data: z.object({
+		id: z.string(),
+		name: z.string(),
+		username: z.string(),
+		public_metrics: UserPublicMetricsSchema.optional(),
+	}),
+});
+
+export type UserLookupResponse = z.infer<typeof UserLookupResponseSchema>;
+
 // ─── Rate Limit Types ───────────────────────────────────────────────────────
 
 export interface RateLimitInfo {

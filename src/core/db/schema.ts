@@ -147,3 +147,125 @@ export const editHistory = pgTable(
 		}),
 	],
 );
+
+// ─── Post Metrics ──────────────────────────────────────────────────────────
+
+export const postMetrics = pgTable(
+	"post_metrics",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		postId: uuid("post_id").notNull(),
+		platform: text("platform").notNull(),
+		externalPostId: text("external_post_id").notNull(),
+
+		// Raw metrics snapshot
+		impressionCount: integer("impression_count").default(0).notNull(),
+		likeCount: integer("like_count").default(0).notNull(),
+		retweetCount: integer("retweet_count").default(0).notNull(),
+		quoteCount: integer("quote_count").default(0).notNull(),
+		replyCount: integer("reply_count").default(0).notNull(),
+		bookmarkCount: integer("bookmark_count").default(0).notNull(),
+		urlLinkClicks: integer("url_link_clicks"),
+		userProfileClicks: integer("user_profile_clicks"),
+
+		// Computed scores
+		engagementScore: integer("engagement_score").default(0).notNull(),
+		engagementRateBps: integer("engagement_rate_bps").default(0).notNull(), // basis points (1 bps = 0.01%)
+
+		// Context for fatigue tracking and cross-pillar analysis
+		postFormat: text("post_format"),
+		postTopic: text("post_topic"),
+		postPillar: text("post_pillar"),
+
+		collectedAt: timestamp("collected_at", { withTimezone: true }).defaultNow().notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		pgPolicy("post_metrics_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── Preference Model ──────────────────────────────────────────────────────
+
+export const preferenceModel = pgTable(
+	"preference_model",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull().unique(),
+
+		// Engagement learnings
+		topFormats: jsonb("top_formats").$type<Array<{ format: string; avgScore: number }>>(),
+		topPillars: jsonb("top_pillars").$type<Array<{ pillar: string; avgScore: number }>>(),
+		bestPostingTimes: jsonb("best_posting_times").$type<
+			Array<{ hour: number; dayOfWeek: number; avgScore: number }>
+		>(),
+		hookPatterns: jsonb("hook_patterns").$type<string[]>(),
+
+		// Edit learnings
+		commonEditPatterns: jsonb("common_edit_patterns").$type<
+			Array<{ type: string; frequency: number }>
+		>(),
+		avgEditRatio: integer("avg_edit_ratio"),
+
+		// Fatigue tracking
+		fatiguedTopics: jsonb("fatigued_topics").$type<
+			Array<{ topic: string; cooldownUntil: string; lastScores: number[] }>
+		>(),
+
+		// Locked settings (user overrides — permanent until explicitly unlocked)
+		lockedSettings: jsonb("locked_settings").$type<
+			Array<{ field: string; value: unknown; lockedAt: string }>
+		>(),
+
+		// Follower tracking (weekly/monthly trend)
+		followerHistory: jsonb("follower_history").$type<Array<{ count: number; date: string }>>(),
+
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		pgPolicy("preference_model_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── Strategy Adjustments ──────────────────────────────────────────────────
+
+export const strategyAdjustments = pgTable(
+	"strategy_adjustments",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		adjustmentType: text("adjustment_type").notNull(), // pillar_weight, posting_time, format_preference, frequency, new_pillar, drop_format
+		field: text("field").notNull(),
+		oldValue: jsonb("old_value"),
+		newValue: jsonb("new_value"),
+		reason: text("reason").notNull(),
+		evidence: jsonb("evidence").$type<string[]>(), // post IDs supporting this adjustment
+		tier: text("tier").notNull(), // "auto" | "approval"
+		status: text("status").notNull().default("pending"), // "pending" | "applied" | "approved" | "rejected"
+		appliedAt: timestamp("applied_at", { withTimezone: true }),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		pgPolicy("strategy_adjustments_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);

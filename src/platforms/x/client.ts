@@ -1,8 +1,12 @@
 import type { ZodType } from "zod/v4";
 import {
-	type RateLimitInfo,
 	RateLimitError,
+	type RateLimitInfo,
 	TweetResponseSchema,
+	TweetsLookupResponseSchema,
+	type TweetsLookupResponse,
+	UserLookupResponseSchema,
+	type UserLookupResponse,
 	XApiError,
 } from "./types.ts";
 
@@ -120,6 +124,64 @@ export class XClient {
 		}
 
 		return { tweetIds, rateLimits };
+	}
+
+	/**
+	 * Batch-fetch tweets by ID with optional field expansion.
+	 * Chunks into batches of 100 (X API limit) and aggregates results.
+	 */
+	async getTweets(
+		ids: string[],
+		fields?: { tweetFields?: string[] },
+	): Promise<{ data: TweetsLookupResponse; rateLimit: RateLimitInfo }> {
+		if (ids.length === 0) {
+			return {
+				data: { data: [] },
+				rateLimit: { limit: 0, remaining: 0, resetAt: new Date() },
+			};
+		}
+
+		const allTweets: TweetsLookupResponse["data"] = [];
+		let lastRateLimit: RateLimitInfo = { limit: 0, remaining: 0, resetAt: new Date() };
+
+		// Chunk IDs into batches of 100
+		const chunkSize = 100;
+		for (let i = 0; i < ids.length; i += chunkSize) {
+			const chunk = ids.slice(i, i + chunkSize);
+			const params = new URLSearchParams();
+			params.set("ids", chunk.join(","));
+			if (fields?.tweetFields) {
+				params.set("tweet.fields", fields.tweetFields.join(","));
+			}
+
+			const { data, rateLimit } = await this.request(
+				`/2/tweets?${params.toString()}`,
+				{ method: "GET" },
+				TweetsLookupResponseSchema,
+			);
+
+			allTweets.push(...data.data);
+			lastRateLimit = rateLimit;
+		}
+
+		return { data: { data: allTweets }, rateLimit: lastRateLimit };
+	}
+
+	/**
+	 * Get the authenticated user's profile with optional field expansion.
+	 */
+	async getMe(
+		fields?: { userFields?: string[] },
+	): Promise<{ data: UserLookupResponse; rateLimit: RateLimitInfo }> {
+		const params = new URLSearchParams();
+		if (fields?.userFields) {
+			params.set("user.fields", fields.userFields.join(","));
+		}
+
+		const queryString = params.toString();
+		const endpoint = queryString ? `/2/users/me?${queryString}` : "/2/users/me";
+
+		return this.request(endpoint, { method: "GET" }, UserLookupResponseSchema);
 	}
 
 	/**
