@@ -245,13 +245,155 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (Populated during roadmap creation) | | |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Pending |
+| INFRA-05 | Phase 1 | Pending |
+| INFRA-06 | Phase 1 | Pending |
+| INFRA-07 | Phase 1 | Pending |
+| CONFIG-01 | Phase 1 | Pending |
+| CONFIG-04 | Phase 1 | Pending |
+| CONFIG-07 | Phase 1 | Pending |
+| AUTH-01 | Phase 2 | Pending |
+| AUTH-05 | Phase 2 | Pending |
+| AUTH-06 | Phase 2 | Pending |
+| AUTH-07 | Phase 2 | Pending |
+| AUTH-08 | Phase 2 | Pending |
+| PLAT-01 | Phase 2 | Pending |
+| PLAT-05 | Phase 2 | Pending |
+| SCHED-01 | Phase 2 | Pending |
+| SCHED-02 | Phase 2 | Pending |
+| SCHED-03 | Phase 2 | Pending |
+| SCHED-04 | Phase 2 | Pending |
+| SCHED-05 | Phase 2 | Pending |
+| CONTENT-05 | Phase 2 | Pending |
+| VOICE-01 | Phase 3 | Pending |
+| VOICE-02 | Phase 3 | Pending |
+| VOICE-03 | Phase 3 | Pending |
+| VOICE-04 | Phase 3 | Pending |
+| VOICE-05 | Phase 3 | Pending |
+| VOICE-06 | Phase 3 | Pending |
+| VOICE-07 | Phase 3 | Pending |
+| VOICE-08 | Phase 3 | Pending |
+| VOICE-09 | Phase 3 | Pending |
+| VOICE-10 | Phase 3 | Pending |
+| POST-01 | Phase 3 | Pending |
+| POST-05 | Phase 3 | Pending |
+| POST-06 | Phase 3 | Pending |
+| POST-09 | Phase 3 | Pending |
+| POST-10 | Phase 3 | Pending |
+| POST-11 | Phase 3 | Pending |
+| POST-12 | Phase 3 | Pending |
+| POST-14 | Phase 3 | Pending |
+| IMG-01 | Phase 3 | Pending |
+| IMG-02 | Phase 3 | Pending |
+| IMG-03 | Phase 3 | Pending |
+| IMG-04 | Phase 3 | Pending |
+| IMG-05 | Phase 3 | Pending |
+| CONTENT-01 | Phase 3 | Pending |
+| CONTENT-02 | Phase 3 | Pending |
+| CONFIG-02 | Phase 3 | Pending |
+| CONFIG-03 | Phase 3 | Pending |
+| ANLYT-01 | Phase 4 | Pending |
+| ANLYT-05 | Phase 4 | Pending |
+| ANLYT-06 | Phase 4 | Pending |
+| ANLYT-07 | Phase 4 | Pending |
+| ANLYT-08 | Phase 4 | Pending |
+| ANLYT-09 | Phase 4 | Pending |
+| LEARN-01 | Phase 4 | Pending |
+| LEARN-02 | Phase 4 | Pending |
+| LEARN-03 | Phase 4 | Pending |
+| LEARN-04 | Phase 4 | Pending |
+| LEARN-05 | Phase 4 | Pending |
+| LEARN-06 | Phase 4 | Pending |
+| LEARN-07 | Phase 4 | Pending |
+| LEARN-08 | Phase 4 | Pending |
+| POST-13 | Phase 4 | Pending |
+| SCHED-06 | Phase 4 | Pending |
+| INTEL-01 | Phase 5 | Pending |
+| INTEL-02 | Phase 5 | Pending |
+| INTEL-03 | Phase 5 | Pending |
+| INTEL-04 | Phase 5 | Pending |
+| INTEL-05 | Phase 5 | Pending |
+| INTEL-06 | Phase 5 | Pending |
+| IDEA-01 | Phase 5 | Pending |
+| IDEA-02 | Phase 5 | Pending |
+| IDEA-03 | Phase 5 | Pending |
+| IDEA-04 | Phase 5 | Pending |
+| IDEA-05 | Phase 5 | Pending |
+| IDEA-06 | Phase 5 | Pending |
+| IDEA-07 | Phase 5 | Pending |
+| IDEA-08 | Phase 5 | Pending |
+| PLAN-01 | Phase 5 | Pending |
+| PLAN-02 | Phase 5 | Pending |
+| PLAN-03 | Phase 5 | Pending |
+| PLAN-04 | Phase 5 | Pending |
+| PLAN-05 | Phase 5 | Pending |
+| PLAN-06 | Phase 5 | Pending |
+| PLAN-07 | Phase 5 | Pending |
+| PLAN-08 | Phase 5 | Pending |
+| PLAN-09 | Phase 5 | Pending |
+| PLAN-10 | Phase 5 | Pending |
+| SERIES-01 | Phase 5 | Pending |
+| SERIES-02 | Phase 5 | Pending |
+| SERIES-03 | Phase 5 | Pending |
+| SERIES-04 | Phase 5 | Pending |
+| SERIES-05 | Phase 5 | Pending |
+| SERIES-06 | Phase 5 | Pending |
+| POST-07 | Phase 5 | Pending |
+| POST-08 | Phase 5 | Pending |
+| ANLYT-10 | Phase 5 | Pending |
+| CONTENT-03 | Phase 5 | Pending |
+| CONTENT-04 | Phase 5 | Pending |
+| AUTH-02 | Phase 6 | Pending |
+| PLAT-02 | Phase 6 | Pending |
+| PLAT-06 | Phase 6 | Pending |
+| PLAT-07 | Phase 6 | Pending |
+| ANLYT-02 | Phase 6 | Pending |
+| POST-02 | Phase 6 | Pending |
+| TEAM-01 | Phase 7 | Pending |
+| TEAM-02 | Phase 7 | Pending |
+| TEAM-03 | Phase 7 | Pending |
+| TEAM-04 | Phase 7 | Pending |
+| TEAM-05 | Phase 7 | Pending |
+| TEAM-06 | Phase 7 | Pending |
+| TEAM-07 | Phase 7 | Pending |
+| TEAM-08 | Phase 7 | Pending |
+| TEAM-09 | Phase 7 | Pending |
+| NOTIF-01 | Phase 7 | Pending |
+| NOTIF-02 | Phase 7 | Pending |
+| NOTIF-03 | Phase 7 | Pending |
+| NOTIF-04 | Phase 7 | Pending |
+| NOTIF-05 | Phase 7 | Pending |
+| NOTIF-06 | Phase 7 | Pending |
+| NOTIF-07 | Phase 7 | Pending |
+| NOTIF-08 | Phase 7 | Pending |
+| LEARN-09 | Phase 7 | Pending |
+| SERIES-07 | Phase 7 | Pending |
+| CONFIG-05 | Phase 7 | Pending |
+| CONFIG-06 | Phase 7 | Pending |
+| AUTH-03 | Phase 8 | Pending |
+| AUTH-04 | Phase 8 | Pending |
+| PLAT-03 | Phase 8 | Pending |
+| PLAT-04 | Phase 8 | Pending |
+| ANLYT-03 | Phase 8 | Pending |
+| ANLYT-04 | Phase 8 | Pending |
+| POST-03 | Phase 8 | Pending |
+| POST-04 | Phase 8 | Pending |
+| ENGAGE-01 | Phase 8 | Pending |
+| ENGAGE-02 | Phase 8 | Pending |
+| ENGAGE-03 | Phase 8 | Pending |
+| ENGAGE-04 | Phase 8 | Pending |
+| ENGAGE-05 | Phase 8 | Pending |
+| ENGAGE-06 | Phase 8 | Pending |
+| ENGAGE-07 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 108 total
-- Mapped to phases: 0
-- Unmapped: 108
+- v1 requirements: 143 total
+- Mapped to phases: 143
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-18*
-*Last updated: 2026-02-18 after initial definition*
+*Last updated: 2026-02-18 after roadmap creation*
