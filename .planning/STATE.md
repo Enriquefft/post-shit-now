@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 ## Current Position
 
-Phase: 2 of 8 (X Platform Pipeline) - COMPLETE
-Plan: 4 of 4 in current phase (all done)
-Status: Completed 02-04 (Post Scheduling & Publishing Pipeline)
-Last activity: 2026-02-19 - Completed 02-04: Full publish pipeline, post CLI, slash command, watchdog re-trigger
+Phase: 3 of 8 (Voice Profiling and Content Generation)
+Plan: 2 of 7 in current phase (03-02 complete)
+Status: Completed 03-02 (Image Generation)
+Last activity: 2026-02-19 - Completed 03-02: Three image providers, smart selection, platform processing
 
-Progress: [███░░░░░░░] 26%
+Progress: [████░░░░░░] 32%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: ~12min
-- Total execution time: ~1h 21min
+- Total plans completed: 9
+- Average duration: ~10min
+- Total execution time: ~1h 31min
 
 **By Phase:**
 
@@ -29,9 +29,10 @@ Progress: [███░░░░░░░] 26%
 |-------|-------|-------|----------|
 | 1 | 3/3 | ~60min | ~20min |
 | 2 | 4/4 | ~12min | ~3min |
+| 3 | 2/7 | ~10min | ~5min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (~10min), 02-01 (~3min), 02-02 (~3min), 02-03 (~2min), 02-04 (~4min)
+- Last 5 plans: 02-02 (~3min), 02-03 (~2min), 02-04 (~4min), 03-01 (~5min), 03-02 (~5min)
 - Trend: Consistently fast (clear specs + existing patterns)
 
 *Updated after each plan completion*
@@ -63,6 +64,10 @@ Recent decisions affecting current work:
 - [02-04]: Rate limit backoff uses Trigger.dev wait.until() for zero compute cost
 - [02-04]: Partial thread failures tracked in metadata.threadProgress for resume on retry
 - [02-04]: Watchdog max 3 retries before marking failed (SCHED-04 compliance)
+- [03-01]: YAML as source of truth for voice profiles (file-based, not DB)
+- [03-01]: Atomic write via .tmp + rename prevents profile corruption
+- [03-01]: Zod v4 schemas with inferred types for zero schema/type drift
+- [03-01]: VoiceTweak discriminated union for surgical profile edits
 
 ### Pending Todos
 
@@ -84,5 +89,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Phase 2 complete, ready to plan Phase 3
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None

@@ -32,13 +32,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **VOICE-01**: User can complete a voice profiling interview that captures identity, voice patterns, boundaries, and platform preferences
 - [ ] **VOICE-02**: User can import existing content (X history, LinkedIn posts, blog posts) to bootstrap voice patterns
-- [ ] **VOICE-03**: System generates a `personal.yaml` voice profile with language-agnostic traits and language-specific sections
+- [x] **VOICE-03**: System generates a `personal.yaml` voice profile with language-agnostic traits and language-specific sections
 - [ ] **VOICE-04**: Calibration mode tracks edit rates over first 10-15 posts and presents calibration reports
 - [ ] **VOICE-05**: Blank-slate users (no existing content) get a shorter personality-first interview with starter archetypes
 - [ ] **VOICE-06**: Bilingual users complete voice interview in both English and Spanish with language-specific voice sections
 - [ ] **VOICE-07**: User can create brand-operator voice profiles per connected company
 - [ ] **VOICE-08**: User can create brand-ambassador voice profiles that inherit from personal with company guardrails
-- [ ] **VOICE-09**: User can do quick voice tweaks via `/psn:config voice` (add banned words, adjust formality)
+- [x] **VOICE-09**: User can do quick voice tweaks via `/psn:config voice` (add banned words, adjust formality)
 - [ ] **VOICE-10**: User can trigger full voice recalibration via `/psn:setup voice`
 
 ### Content Creation
@@ -197,7 +197,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Configuration & Setup
 
 - [ ] **CONFIG-01**: `/psn:setup` walks through full onboarding: Hub creation, OAuth, API keys, voice profiling, preferences
-- [ ] **CONFIG-02**: Strategy.yaml auto-generated from voice interview with content pillars, platform config, posting frequency
+- [x] **CONFIG-02**: Strategy.yaml auto-generated from voice interview with content pillars, platform config, posting frequency
 - [ ] **CONFIG-03**: `/psn:config` allows manual overrides for notifications, engagement, language, frequency, pillars, voice tweaks
 - [ ] **CONFIG-04**: BYOK model: user provides all API keys (platform APIs, image gen, intelligence, Trigger.dev, Neon)
 - [ ] **CONFIG-05**: `/psn:setup join` connects to Company Hub; `/psn:setup hub` creates Company Hub
@@ -278,13 +278,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONTENT-05 | Phase 2 | Complete |
 | VOICE-01 | Phase 3 | Pending |
 | VOICE-02 | Phase 3 | Pending |
-| VOICE-03 | Phase 3 | Pending |
+| VOICE-03 | Phase 3 | Complete |
 | VOICE-04 | Phase 3 | Pending |
 | VOICE-05 | Phase 3 | Pending |
 | VOICE-06 | Phase 3 | Pending |
 | VOICE-07 | Phase 3 | Pending |
 | VOICE-08 | Phase 3 | Pending |
-| VOICE-09 | Phase 3 | Pending |
+| VOICE-09 | Phase 3 | Complete |
 | VOICE-10 | Phase 3 | Pending |
 | POST-01 | Phase 3 | Pending |
 | POST-05 | Phase 3 | Pending |
@@ -306,7 +306,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VID-05 | Phase 3 | Pending |
 | CONTENT-01 | Phase 3 | Pending |
 | CONTENT-02 | Phase 3 | Pending |
-| CONFIG-02 | Phase 3 | Pending |
+| CONFIG-02 | Phase 3 | Complete |
 | CONFIG-03 | Phase 3 | Pending |
 | ANLYT-01 | Phase 4 | Pending |
 | ANLYT-05 | Phase 4 | Pending |
