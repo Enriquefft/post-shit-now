@@ -5,6 +5,16 @@ import { oauthTokens, posts, preferenceModel } from "../core/db/schema.ts";
 import type { Platform, PlatformPublishResult } from "../core/types/index.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { splitIntoThread } from "../core/utils/thread-splitter.ts";
+import { InstagramClient } from "../platforms/instagram/client.ts";
+import {
+	createCarouselContainers,
+	createImageContainer,
+	createReelsContainer,
+	publishContainer,
+	waitForContainerReady,
+} from "../platforms/instagram/media.ts";
+import { refreshInstagramToken } from "../platforms/instagram/oauth.ts";
+import { InstagramRateLimitError, MAX_POSTS_PER_DAY } from "../platforms/instagram/types.ts";
 import { LinkedInClient } from "../platforms/linkedin/client.ts";
 import {
 	initializeDocumentUpload,
@@ -18,6 +28,18 @@ import {
 	refreshAccessToken as refreshLinkedInToken,
 } from "../platforms/linkedin/oauth.ts";
 import { LinkedInRateLimitError } from "../platforms/linkedin/types.ts";
+import { TikTokClient } from "../platforms/tiktok/client.ts";
+import {
+	checkPublishStatus,
+	initVideoUpload,
+	postPhotos,
+	uploadVideoChunks,
+} from "../platforms/tiktok/media.ts";
+import {
+	createTikTokOAuthClient,
+	refreshTikTokToken,
+} from "../platforms/tiktok/oauth.ts";
+import { TikTokRateLimitError } from "../platforms/tiktok/types.ts";
 import { XClient } from "../platforms/x/client.ts";
 import { uploadMedia } from "../platforms/x/media.ts";
 import {
@@ -229,12 +251,10 @@ async function publishToPlatform(
 			return publishToX(db, post, encKey);
 		case "linkedin":
 			return publishToLinkedIn(db, post, encKey);
-		default:
-			return {
-				platform,
-				status: "skipped",
-				error: `Platform ${platform} not yet supported`,
-			};
+		case "instagram":
+			return publishToInstagram(db, post, encKey);
+		case "tiktok":
+			return publishToTikTok(db, post, encKey);
 	}
 }
 
@@ -624,6 +644,388 @@ async function publishToLinkedIn(
 	} catch (error) {
 		if (error instanceof LinkedInRateLimitError && error.rateLimit) {
 			logger.warn("LinkedIn rate limited, waiting", {
+				postId,
+				resetAt: error.rateLimit.resetAt.toISOString(),
+			});
+			await wait.until({ date: error.rateLimit.resetAt });
+			throw error;
+		}
+		throw error;
+	}
+}
+
+// ─── Instagram Publishing ────────────────────────────────────────────────────
+
+async function publishToInstagram(
+	db: ReturnType<typeof createHubConnection>,
+	post: Record<string, unknown>,
+	encKey: Buffer,
+): Promise<PlatformPublishResult> {
+	const postId = post.id as string;
+	const userId = post.userId as string;
+	const content = post.content as string;
+	const mediaUrls = post.mediaUrls as string[] | null;
+	const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+
+	const instagramAppId = process.env.INSTAGRAM_APP_ID;
+	const instagramAppSecret = process.env.INSTAGRAM_APP_SECRET;
+
+	if (!instagramAppId || !instagramAppSecret) {
+		return { platform: "instagram", status: "failed", error: "INSTAGRAM_APP_ID or INSTAGRAM_APP_SECRET not set" };
+	}
+
+	// Fetch OAuth token
+	const [token] = await db
+		.select()
+		.from(oauthTokens)
+		.where(sql`${oauthTokens.userId} = ${userId} AND ${oauthTokens.platform} = 'instagram'`)
+		.limit(1);
+
+	if (!token) {
+		return { platform: "instagram", status: "failed", error: "no_instagram_oauth_token" };
+	}
+
+	// Check token expiry and refresh if needed
+	let accessTokenEncrypted = token.accessToken;
+
+	if (token.expiresAt && token.expiresAt < new Date()) {
+		const decryptedAccess = decrypt(token.accessToken, encKey);
+
+		try {
+			const refreshed = await refreshInstagramToken(decryptedAccess);
+			const encryptedAccess = encrypt(refreshed.accessToken, encKey);
+			const expiresAt = new Date(Date.now() + refreshed.expiresIn * 1000);
+
+			await db.execute(sql`
+				UPDATE oauth_tokens
+				SET access_token = ${encryptedAccess},
+				    expires_at = ${expiresAt},
+				    updated_at = NOW(),
+				    metadata = jsonb_set(
+				      COALESCE(metadata, '{}'::jsonb),
+				      '{lastRefreshAt}',
+				      ${JSON.stringify(new Date().toISOString())}::jsonb
+				    )
+				WHERE id = ${token.id}
+			`);
+
+			accessTokenEncrypted = encryptedAccess;
+			logger.info("Instagram token refreshed inline during publish", { postId });
+		} catch (error) {
+			return {
+				platform: "instagram",
+				status: "failed",
+				error: `instagram_token_refresh_failed: ${error instanceof Error ? error.message : String(error)}`,
+			};
+		}
+	}
+
+	const accessToken = decrypt(accessTokenEncrypted, encKey);
+
+	// Get account ID from token metadata
+	const tokenMetadata = (token.metadata ?? {}) as Record<string, unknown>;
+	const accountId = tokenMetadata.accountId as string | undefined;
+
+	if (!accountId) {
+		return { platform: "instagram", status: "failed", error: "instagram_account_id_not_in_token_metadata" };
+	}
+
+	// Check daily post count limit (25 posts/day)
+	const todayStart = new Date();
+	todayStart.setHours(0, 0, 0, 0);
+	const todayPosts = await db
+		.select()
+		.from(posts)
+		.where(
+			sql`${posts.userId} = ${userId}
+			AND ${posts.platform} = 'instagram'
+			AND ${posts.status} = 'published'
+			AND ${posts.publishedAt} >= ${todayStart}`,
+		);
+
+	if (todayPosts.length >= MAX_POSTS_PER_DAY) {
+		return { platform: "instagram", status: "failed", error: `instagram_daily_limit_reached_${MAX_POSTS_PER_DAY}` };
+	}
+
+	const client = new InstagramClient(accessToken, accountId);
+
+	// Extract caption from content
+	let caption: string;
+	try {
+		const parsed = JSON.parse(content);
+		caption = Array.isArray(parsed) ? (parsed as string[]).join("\n\n") : content;
+	} catch {
+		caption = content;
+	}
+
+	// Determine Instagram format from metadata
+	const instagramFormat = (metadata.instagramFormat as string) ?? (metadata.format as string) ?? "image-post";
+
+	try {
+		let publishedMediaId: string;
+
+		switch (instagramFormat) {
+			case "reel-script":
+			case "reel":
+			case "video-post": {
+				// Reel: requires video URL (publicly accessible)
+				if (!mediaUrls || mediaUrls.length === 0) {
+					return { platform: "instagram", status: "failed", error: "reel_requires_video_url" };
+				}
+
+				const videoUrl = mediaUrls[0] as string;
+				const container = await createReelsContainer(client, videoUrl, caption);
+				await waitForContainerReady(client, container.id);
+				const published = await publishContainer(client, container.id);
+				publishedMediaId = published.id;
+				break;
+			}
+
+			case "carousel": {
+				// Carousel: requires 2-10 image URLs (publicly accessible)
+				if (!mediaUrls || mediaUrls.length < 2) {
+					// Fall back to single image if only 1 media
+					if (mediaUrls && mediaUrls.length === 1) {
+						const container = await createImageContainer(client, mediaUrls[0] as string, caption);
+						await waitForContainerReady(client, container.id);
+						const published = await publishContainer(client, container.id);
+						publishedMediaId = published.id;
+					} else {
+						return { platform: "instagram", status: "failed", error: "carousel_requires_2_or_more_images" };
+					}
+					break;
+				}
+
+				const carouselContainer = await createCarouselContainers(client, mediaUrls, caption);
+				await waitForContainerReady(client, carouselContainer.id);
+				const carouselPublished = await publishContainer(client, carouselContainer.id);
+				publishedMediaId = carouselPublished.id;
+				break;
+			}
+
+			case "image-post":
+			case "quote-image":
+			default: {
+				// Feed image: requires image URL (publicly accessible)
+				if (!mediaUrls || mediaUrls.length === 0) {
+					return { platform: "instagram", status: "failed", error: "instagram_requires_media_url" };
+				}
+
+				const imageUrl = mediaUrls[0] as string;
+				const container = await createImageContainer(client, imageUrl, caption);
+				await waitForContainerReady(client, container.id);
+				const published = await publishContainer(client, container.id);
+				publishedMediaId = published.id;
+				break;
+			}
+		}
+
+		logger.info("Instagram post published", {
+			postId,
+			publishedMediaId,
+			format: instagramFormat,
+		});
+
+		return { platform: "instagram", status: "published", externalPostId: publishedMediaId };
+	} catch (error) {
+		if (error instanceof InstagramRateLimitError && error.rateLimit) {
+			logger.warn("Instagram rate limited, waiting", {
+				postId,
+				resetAt: error.rateLimit.resetAt.toISOString(),
+			});
+			await wait.until({ date: error.rateLimit.resetAt });
+			throw error;
+		}
+		throw error;
+	}
+}
+
+// ─── TikTok Publishing ──────────────────────────────────────────────────────
+
+async function publishToTikTok(
+	db: ReturnType<typeof createHubConnection>,
+	post: Record<string, unknown>,
+	encKey: Buffer,
+): Promise<PlatformPublishResult> {
+	const postId = post.id as string;
+	const userId = post.userId as string;
+	const content = post.content as string;
+	const mediaUrls = post.mediaUrls as string[] | null;
+	const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+
+	const tiktokClientKey = process.env.TIKTOK_CLIENT_KEY;
+	const tiktokClientSecret = process.env.TIKTOK_CLIENT_SECRET;
+
+	if (!tiktokClientKey || !tiktokClientSecret) {
+		return { platform: "tiktok", status: "failed", error: "TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET not set" };
+	}
+
+	// Fetch OAuth token
+	const [token] = await db
+		.select()
+		.from(oauthTokens)
+		.where(sql`${oauthTokens.userId} = ${userId} AND ${oauthTokens.platform} = 'tiktok'`)
+		.limit(1);
+
+	if (!token) {
+		return { platform: "tiktok", status: "failed", error: "no_tiktok_oauth_token" };
+	}
+
+	// Check token expiry and refresh if needed
+	let accessTokenEncrypted = token.accessToken;
+
+	if (token.expiresAt && token.expiresAt < new Date()) {
+		if (!token.refreshToken) {
+			return { platform: "tiktok", status: "failed", error: "tiktok_token_expired_no_refresh" };
+		}
+
+		const tiktokOAuthClient = createTikTokOAuthClient({
+			clientKey: tiktokClientKey,
+			clientSecret: tiktokClientSecret,
+			callbackUrl: "https://example.com/callback",
+		});
+
+		const decryptedRefresh = decrypt(token.refreshToken, encKey);
+		const newTokens = await refreshTikTokToken(tiktokOAuthClient, decryptedRefresh);
+
+		// TikTok rotates BOTH tokens on refresh
+		const encryptedAccess = encrypt(newTokens.accessToken, encKey);
+		const encryptedRefresh = encrypt(newTokens.refreshToken, encKey);
+
+		await db.execute(sql`
+			UPDATE oauth_tokens
+			SET access_token = ${encryptedAccess},
+			    refresh_token = ${encryptedRefresh},
+			    expires_at = ${newTokens.expiresAt},
+			    updated_at = NOW(),
+			    metadata = jsonb_set(
+			      COALESCE(metadata, '{}'::jsonb),
+			      '{lastRefreshAt}',
+			      ${JSON.stringify(new Date().toISOString())}::jsonb
+			    )
+			WHERE id = ${token.id}
+		`);
+
+		accessTokenEncrypted = encryptedAccess;
+		logger.info("TikTok token refreshed inline during publish", { postId });
+	}
+
+	const accessToken = decrypt(accessTokenEncrypted, encKey);
+
+	// Get audit status from token metadata
+	const tokenMetadata = (token.metadata ?? {}) as Record<string, unknown>;
+	const auditStatus = (tokenMetadata.auditStatus as "unaudited" | "audited") ?? "unaudited";
+
+	const client = new TikTokClient(accessToken, { auditStatus });
+
+	// Extract caption/description from content
+	let description: string;
+	try {
+		const parsed = JSON.parse(content);
+		description = Array.isArray(parsed) ? (parsed as string[]).join("\n\n") : content;
+	} catch {
+		description = content;
+	}
+
+	// Extract title from metadata or first 90 chars of description
+	const title = (metadata.tiktokTitle as string) ?? description.slice(0, 90);
+
+	// Determine TikTok format
+	const tiktokFormat = (metadata.tiktokFormat as string) ?? (metadata.format as string) ?? "video-post";
+
+	try {
+		let publishId: string;
+
+		switch (tiktokFormat) {
+			case "reel-script":
+			case "video-post":
+			case "video": {
+				// Video: chunked upload from local file
+				if (!mediaUrls || mediaUrls.length === 0) {
+					return { platform: "tiktok", status: "failed", error: "tiktok_video_requires_media" };
+				}
+
+				const videoPath = mediaUrls[0] as string;
+				const videoFile = Bun.file(videoPath);
+				const videoBuffer = Buffer.from(await videoFile.arrayBuffer());
+
+				await db
+					.update(posts)
+					.set({ subStatus: "media_uploading", updatedAt: new Date() })
+					.where(eq(posts.id, postId));
+
+				const upload = await initVideoUpload(client, videoBuffer.length);
+
+				await uploadVideoChunks(upload.uploadUrl, videoBuffer, upload.chunkSize);
+
+				await db
+					.update(posts)
+					.set({ subStatus: "media_uploaded", updatedAt: new Date() })
+					.where(eq(posts.id, postId));
+
+				// Poll for publish completion
+				const status = await checkPublishStatus(client, upload.publishId);
+				publishId = status.publicPostId ?? upload.publishId;
+
+				if (auditStatus === "unaudited") {
+					logger.info("TikTok video uploaded as SELF_ONLY draft (unaudited app)", {
+						postId,
+						publishId,
+					});
+				}
+				break;
+			}
+
+			case "photo": {
+				// Photo post: URLs must be publicly accessible
+				if (!mediaUrls || mediaUrls.length === 0) {
+					return { platform: "tiktok", status: "failed", error: "tiktok_photo_requires_media_urls" };
+				}
+
+				publishId = await postPhotos(client, {
+					title,
+					description,
+					photoUrls: mediaUrls,
+				});
+
+				if (auditStatus === "unaudited") {
+					logger.info("TikTok photo posted as SELF_ONLY draft (unaudited app)", {
+						postId,
+						publishId,
+					});
+				}
+				break;
+			}
+
+			default: {
+				// Default to video
+				if (!mediaUrls || mediaUrls.length === 0) {
+					return { platform: "tiktok", status: "failed", error: "tiktok_requires_media" };
+				}
+
+				const defaultVideoPath = mediaUrls[0] as string;
+				const defaultVideoFile = Bun.file(defaultVideoPath);
+				const defaultVideoBuffer = Buffer.from(await defaultVideoFile.arrayBuffer());
+
+				const defaultUpload = await initVideoUpload(client, defaultVideoBuffer.length);
+				await uploadVideoChunks(defaultUpload.uploadUrl, defaultVideoBuffer, defaultUpload.chunkSize);
+				const defaultStatus = await checkPublishStatus(client, defaultUpload.publishId);
+				publishId = defaultStatus.publicPostId ?? defaultUpload.publishId;
+				break;
+			}
+		}
+
+		logger.info("TikTok post published", {
+			postId,
+			publishId,
+			format: tiktokFormat,
+			auditStatus,
+		});
+
+		return { platform: "tiktok", status: "published", externalPostId: publishId };
+	} catch (error) {
+		if (error instanceof TikTokRateLimitError && error.rateLimit) {
+			logger.warn("TikTok rate limited, waiting", {
 				postId,
 				resetAt: error.rateLimit.resetAt.toISOString(),
 			});

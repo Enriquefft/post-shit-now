@@ -249,6 +249,20 @@ function pickFormatLinkedIn(
 	};
 }
 
+// ─── Instagram Format Keywords ───────────────────────────────────────────────
+
+const IG_REEL_KEYWORDS = [
+	"tutorial", "how to", "behind the scenes", "behind-the-scenes", "day in the life",
+	"trending", "challenge", "reaction", "transformation", "before and after",
+	"storytelling", "vlog", "grwm", "routine", "process",
+];
+const IG_CAROUSEL_KEYWORDS = [
+	"list", "steps", "framework", "comparison", "educational", "tips",
+	"guide", "ranking", "myths", "mistakes", "lessons", "facts",
+	"swipe", "slide", "part 1",
+];
+const IG_QUOTE_KEYWORDS = ["quote", "motivation", "inspiration", "wisdom", "mindset"];
+
 function pickFormatInstagram(
 	type: string,
 	_hasMedia?: boolean,
@@ -262,31 +276,71 @@ function pickFormatInstagram(
 		};
 	}
 
-	if (hasKeywords(type, HOWTO_KEYWORDS) || hasKeywords(type, DATA_KEYWORDS)) {
-		return {
-			recommended: "carousel",
-			alternatives: [{ format: "reel-script", reason: "Short tutorial reel" }],
-			reasoning: "Educational content works well as Instagram carousels",
-		};
-	}
-
-	if (hasKeywords(type, TREND_KEYWORDS)) {
+	// Reels: tutorials, how-to, behind-scenes, storytelling, trending
+	if (hasKeywords(type, IG_REEL_KEYWORDS) || hasKeywords(type, TREND_KEYWORDS)) {
 		return {
 			recommended: "reel-script",
-			alternatives: [{ format: "image-post", reason: "Static hot take post" }],
-			reasoning: "Trending content gets maximum reach as Reels (30.81% reach rate)",
+			alternatives: [
+				{ format: "carousel", reason: "Step-by-step visual alternative" },
+				{ format: "image-post", reason: "Static post version" },
+			],
+			reasoning: "Reels dominate Instagram reach (30.81%) — best for tutorials, trends, and storytelling",
 		};
 	}
 
+	// Carousel: lists, steps, frameworks, comparisons, educational
+	if (hasKeywords(type, IG_CAROUSEL_KEYWORDS) || hasKeywords(type, DATA_KEYWORDS)) {
+		return {
+			recommended: "carousel",
+			alternatives: [
+				{ format: "reel-script", reason: "Video walkthrough for higher reach" },
+				{ format: "image-post", reason: "Single summary image" },
+			],
+			reasoning: "Carousel posts drive saves and shares — ideal for educational/list content on Instagram",
+		};
+	}
+
+	// Quotes, announcements -> feed image
+	if (hasKeywords(type, IG_QUOTE_KEYWORDS) || hasKeywords(type, QUOTE_KEYWORDS)) {
+		return {
+			recommended: "quote-image",
+			alternatives: [
+				{ format: "carousel", reason: "Quote collection carousel" },
+				{ format: "reel-script", reason: "Animated quote reel" },
+			],
+			reasoning: "Quote content works well as visual images on Instagram",
+		};
+	}
+
+	// Story/experience content -> Reel (bias toward Reels when ambiguous)
+	if (hasKeywords(type, STORY_KEYWORDS)) {
+		return {
+			recommended: "reel-script",
+			alternatives: [
+				{ format: "carousel", reason: "Story as visual slides" },
+				{ format: "image-post", reason: "Key moment as single image" },
+			],
+			reasoning: "Story content performs best as Reels on Instagram — biasing toward video for reach",
+		};
+	}
+
+	// Default: bias toward Reels (30.81% reach rate beats static posts)
 	return {
-		recommended: "image-post",
+		recommended: "reel-script",
 		alternatives: [
+			{ format: "image-post", reason: "Static visual for simpler content" },
 			{ format: "carousel", reason: "Multi-slide for deeper content" },
-			{ format: "reel-script", reason: "Video for maximum reach" },
 		],
-		reasoning: "Visual content is core to Instagram engagement",
+		reasoning: "Default to Reels on Instagram for maximum reach (30.81% reach rate, 55% views from non-followers)",
 	};
 }
+
+// ─── TikTok Format Keywords ─────────────────────────────────────────────────
+
+const TT_PHOTO_KEYWORDS = [
+	"gallery", "photo dump", "outfit", "aesthetic", "collection",
+	"before and after photos", "screenshot",
+];
 
 function pickFormatTikTok(type: string, prefFormat?: PostFormat): FormatSuggestion {
 	if (prefFormat && (prefFormat === "video-post" || prefFormat === "reel-script")) {
@@ -297,6 +351,16 @@ function pickFormatTikTok(type: string, prefFormat?: PostFormat): FormatSuggesti
 		};
 	}
 
+	// Photo: purely visual gallery content (rare — most content should be video)
+	if (hasKeywords(type, TT_PHOTO_KEYWORDS)) {
+		return {
+			recommended: "video-post",
+			alternatives: [{ format: "reel-script", reason: "Short clip instead of photos" }],
+			reasoning: "Photo content on TikTok — consider video slideshow for better algorithm reach",
+		};
+	}
+
+	// How-to -> short-form video (reel-script)
 	if (hasKeywords(type, HOWTO_KEYWORDS)) {
 		return {
 			recommended: "reel-script",
@@ -305,9 +369,19 @@ function pickFormatTikTok(type: string, prefFormat?: PostFormat): FormatSuggesti
 		};
 	}
 
+	// Trending/controversy -> short-form video
+	if (hasKeywords(type, TREND_KEYWORDS)) {
+		return {
+			recommended: "reel-script",
+			alternatives: [{ format: "video-post", reason: "Extended take format" }],
+			reasoning: "Trending content as quick-take short video for TikTok algorithm",
+		};
+	}
+
+	// Default: video (TikTok strongly favors video)
 	return {
 		recommended: "video-post",
 		alternatives: [{ format: "reel-script", reason: "Shorter clip version" }],
-		reasoning: "TikTok is video-first — all content should be video",
+		reasoning: "TikTok is video-first — all content should default to video",
 	};
 }

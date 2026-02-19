@@ -124,6 +124,28 @@ export function buildVoicePromptContext(
 		}
 	}
 
+	// Platform-specific content guidance
+	if (platform === "instagram") {
+		sections.push("\n## Instagram Content Guidance");
+		sections.push(`- Max caption: ${INSTAGRAM_CONTENT_GUIDANCE.maxCaptionLength} chars`);
+		sections.push(`- ${INSTAGRAM_CONTENT_GUIDANCE.hashtagStrategy}`);
+		for (const pattern of INSTAGRAM_CONTENT_GUIDANCE.patterns) {
+			sections.push(`- ${pattern}`);
+		}
+	}
+
+	if (platform === "tiktok") {
+		sections.push("\n## TikTok Content Guidance");
+		sections.push(`- Max title: ${TIKTOK_CONTENT_GUIDANCE.maxTitleLength} chars`);
+		sections.push(`- Max description: ${TIKTOK_CONTENT_GUIDANCE.maxDescriptionLength} chars`);
+		sections.push(`- Video script: Hook (${TIKTOK_CONTENT_GUIDANCE.videoScriptFormat.hook})`);
+		sections.push(`- Video script: Body (${TIKTOK_CONTENT_GUIDANCE.videoScriptFormat.body})`);
+		sections.push(`- Video script: CTA (${TIKTOK_CONTENT_GUIDANCE.videoScriptFormat.cta})`);
+		for (const pattern of TIKTOK_CONTENT_GUIDANCE.patterns) {
+			sections.push(`- ${pattern}`);
+		}
+	}
+
 	// Calibration status
 	sections.push(`\n## Calibration`);
 	sections.push(`- Status: ${profile.calibration.status}`);
@@ -205,6 +227,41 @@ export const X_CONTENT_GUIDANCE = {
 	],
 } as const;
 
+export const INSTAGRAM_CONTENT_GUIDANCE = {
+	maxCaptionLength: 2200,
+	defaultHashtagCount: 15,
+	maxHashtags: 30,
+	patterns: [
+		"Instagram favors visual storytelling — Reels get 30.81% reach rate",
+		"Caption should complement the visual, not duplicate it",
+		"Use a strong hook in the first line (shown before 'more' button)",
+		"Add line breaks for readability (Instagram truncates at ~125 chars)",
+		"End with a CTA (save this, share with someone, comment your thoughts)",
+		"Hashtags: append at end of caption or first comment",
+		"Carousel: each slide should tell part of a story or list item",
+	],
+	hashtagStrategy: "Append 10-15 relevant hashtags at end of caption from hashtag pool",
+} as const;
+
+export const TIKTOK_CONTENT_GUIDANCE = {
+	maxTitleLength: 90,
+	maxDescriptionLength: 4000,
+	patterns: [
+		"TikTok algorithm strongly favors video — default to video content",
+		"Hook viewers in the first 3 seconds (critical for retention)",
+		"Video script format: Hook (0-3s) -> Body (value delivery) -> CTA (end)",
+		"Keep it authentic and conversational — polished corporate content underperforms",
+		"Trending sounds and formats boost discoverability",
+		"Description: use keywords for search, hashtags for discovery",
+		"Short-form (15-60s) gets highest completion rates",
+	],
+	videoScriptFormat: {
+		hook: "First 3 seconds: surprising fact, bold statement, or visual hook",
+		body: "Core value: tutorial steps, story beats, or key points",
+		cta: "End with clear action: follow, comment, save, or try this",
+	},
+} as const;
+
 // ─── Content Adaptation ─────────────────────────────────────────────────────
 
 /**
@@ -242,6 +299,30 @@ export function adaptContentForPlatform(
 		// Strip hashtags from the condensed version
 		const condensed = hook.replace(/#\w+/g, "").trim();
 		return condensed.length > 280 ? `${condensed.slice(0, 277)}...` : condensed;
+	}
+
+	// X/LinkedIn -> Instagram: visual focus, add hashtags
+	if (toPlatform === "instagram") {
+		const lines = content.split("\n").filter((l) => l.trim());
+		const caption = lines.join("\n\n");
+		// Truncate to Instagram max caption length
+		return caption.length > 2200 ? `${caption.slice(0, 2197)}...` : caption;
+	}
+
+	// Any -> TikTok: condense to video script format with hook/body/CTA
+	if (toPlatform === "tiktok") {
+		const lines = content.split("\n").filter((l) => l.trim());
+		const hook = lines[0] ?? content;
+		const body = lines.slice(1, -1).join("\n");
+		const cta = lines[lines.length - 1] ?? "";
+		const script = [
+			`[HOOK - 0-3s] ${hook}`,
+			body ? `[BODY] ${body}` : "",
+			cta ? `[CTA] ${cta}` : "",
+		]
+			.filter(Boolean)
+			.join("\n\n");
+		return script.length > 4000 ? `${script.slice(0, 3997)}...` : script;
 	}
 
 	// Default: return as-is
