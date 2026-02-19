@@ -25,7 +25,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AUTH-04**: User can authenticate with TikTok via OAuth 2.0 flow using Arctic library
 - [x] **AUTH-05**: Token refresher task runs daily and proactively refreshes tokens within 7 days of expiry
 - [x] **AUTH-06**: OAuth token refresh uses Postgres row-level locking (`SELECT FOR UPDATE SKIP LOCKED`) to prevent race conditions
-- [ ] **AUTH-07**: User is notified when token refresh fails and manual re-authorization is needed
+- [x] **AUTH-07**: User is notified when token refresh fails and manual re-authorization is needed
 - [x] **AUTH-08**: OAuth tokens are stored encrypted in Hub DB `oauth_tokens` table, not in environment variables
 
 ### Voice Profiling
@@ -155,7 +155,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **ENGAGE-01**: Engagement monitor task checks for viral/trending posts in user's niche every 2-4 hours (locked decision — supersedes original 5-15 min for cost/rate-limit reasons)
 - [x] **ENGAGE-02**: Opportunities scored: relevance × author influence × post velocity × time window remaining
-- [ ] **ENGAGE-03**: Scores 60+: draft 2-3 reply options using voice profile's reply_style; 70+: push notify; 60-69: digest
+- [x] **ENGAGE-03**: Scores 60+: draft 2-3 reply options using voice profile's reply_style; 70+: push notify; 60-69: digest
 - [x] **ENGAGE-04**: User can run `/psn:engage` for proactive 15-minute engagement sessions
 - [x] **ENGAGE-05**: Human approves every reply — never auto-post
 - [x] **ENGAGE-06**: Daily caps, cooldowns, and blocklists per platform enforced
@@ -163,14 +163,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Notifications
 
-- [ ] **NOTIF-01**: WhatsApp notifications via WAHA (self-hosted) with Twilio as configurable fallback
-- [ ] **NOTIF-02**: Tier 1 push notifications: trending topics (70+), engagement opportunities, content going viral, timely ideas expiring, approvals needed
-- [ ] **NOTIF-03**: Tier 2 morning digest at configurable time with adaptive content based on user journey stage
-- [ ] **NOTIF-04**: Tier 3 standard notifications: post scheduled/published, approval results, weekly digest, token expiring
-- [ ] **NOTIF-05**: WhatsApp structured commands: R1/R2/R3 (reply selection), skip, approve, reject, edit, post, time, list, help
-- [ ] **NOTIF-06**: Conversation state machine tracks active notification context per user in `whatsapp_sessions` table
-- [ ] **NOTIF-07**: Notification fatigue prevention: hard caps (3 push/day), cooldowns (2hr), dedup, feedback loop, quiet hours
-- [ ] **NOTIF-08**: Company-level notification routing based on team member expertise
+- [x] **NOTIF-01**: WhatsApp notifications via WAHA (self-hosted) with Twilio as configurable fallback
+- [x] **NOTIF-02**: Tier 1 push notifications: trending topics (70+), engagement opportunities, content going viral, timely ideas expiring, approvals needed
+- [x] **NOTIF-03**: Tier 2 morning digest at configurable time with adaptive content based on user journey stage
+- [x] **NOTIF-04**: Tier 3 standard notifications: post scheduled/published, approval results, weekly digest, token expiring
+- [x] **NOTIF-05**: WhatsApp structured commands: R1/R2/R3 (reply selection), skip, approve, reject, edit, post, time, list, help
+- [x] **NOTIF-06**: Conversation state machine tracks active notification context per user in `whatsapp_sessions` table
+- [x] **NOTIF-07**: Notification fatigue prevention: hard caps (3 push/day), cooldowns (2hr), dedup, feedback loop, quiet hours
+- [x] **NOTIF-08**: Company-level notification routing based on team member expertise
 
 ### Company Coordination
 
@@ -178,7 +178,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TEAM-02**: Admin can generate one-time invite codes (7-day expiry) for team members
 - [x] **TEAM-03**: Team member can join a Company Hub via `/psn:setup join` with invite code
 - [x] **TEAM-04**: Postgres RLS enforces per-user data isolation in Company Hub
-- [ ] **TEAM-05**: Company posts follow approval workflow: submit → notify approvers → approve/reject → schedule/cancel
+- [x] **TEAM-05**: Company posts follow approval workflow: submit → notify approvers → approve/reject → schedule/cancel
 - [x] **TEAM-06**: `/psn:approve` shows pending posts with calendar context and related ideas
 - [x] **TEAM-07**: Team member leaving = delete connection file; personal data unaffected
 - [x] **TEAM-08**: `/psn:calendar` merges Personal Hub + all connected Company Hubs into unified view
@@ -266,7 +266,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-01 | Phase 2 | Complete |
 | AUTH-05 | Phase 2 | Complete |
 | AUTH-06 | Phase 2 | Complete |
-| AUTH-07 | Phase 9 | Pending |
+| AUTH-07 | Phase 9 | Complete |
 | AUTH-08 | Phase 2 | Complete |
 | PLAT-01 | Phase 2 | Complete |
 | PLAT-05 | Phase 2 | Complete |
@@ -369,19 +369,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEAM-02 | Phase 7 | Complete |
 | TEAM-03 | Phase 7 | Complete |
 | TEAM-04 | Phase 7 | Complete |
-| TEAM-05 | Phase 9 | Pending |
+| TEAM-05 | Phase 9 | Complete |
 | TEAM-06 | Phase 7 | Complete |
-| TEAM-07 | Phase 9 | Pending |
+| TEAM-07 | Phase 9 | Complete |
 | TEAM-08 | Phase 9 | Complete |
 | TEAM-09 | Phase 7 | Complete |
-| NOTIF-01 | Phase 9 | Pending |
-| NOTIF-02 | Phase 9 | Pending |
-| NOTIF-03 | Phase 9 | Pending |
-| NOTIF-04 | Phase 9 | Pending |
-| NOTIF-05 | Phase 9 | Pending |
-| NOTIF-06 | Phase 9 | Pending |
-| NOTIF-07 | Phase 9 | Pending |
-| NOTIF-08 | Phase 9 | Pending |
+| NOTIF-01 | Phase 9 | Complete |
+| NOTIF-02 | Phase 9 | Complete |
+| NOTIF-03 | Phase 9 | Complete |
+| NOTIF-04 | Phase 9 | Complete |
+| NOTIF-05 | Phase 9 | Complete |
+| NOTIF-06 | Phase 9 | Complete |
+| NOTIF-07 | Phase 9 | Complete |
+| NOTIF-08 | Phase 9 | Complete |
 | LEARN-09 | Phase 7 | Complete |
 | SERIES-07 | Phase 7 | Complete |
 | CONFIG-05 | Phase 7 | Complete |
@@ -396,7 +396,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | POST-04 | Phase 8 | Complete |
 | ENGAGE-01 | Phase 8 | Complete |
 | ENGAGE-02 | Phase 8 | Complete |
-| ENGAGE-03 | Phase 9 | Pending |
+| ENGAGE-03 | Phase 9 | Complete |
 | ENGAGE-04 | Phase 8 | Complete |
 | ENGAGE-05 | Phase 8 | Complete |
 | ENGAGE-06 | Phase 8 | Complete |
