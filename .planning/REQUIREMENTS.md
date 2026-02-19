@@ -23,9 +23,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **AUTH-02**: User can authenticate with LinkedIn via OAuth 2.0 3-legged flow using Arctic library
 - [ ] **AUTH-03**: User can authenticate with Instagram via Facebook OAuth flow using Arctic library
 - [ ] **AUTH-04**: User can authenticate with TikTok via OAuth 2.0 flow using Arctic library
-- [ ] **AUTH-05**: Token refresher task runs daily and proactively refreshes tokens within 7 days of expiry
-- [ ] **AUTH-06**: OAuth token refresh uses Postgres row-level locking (`SELECT FOR UPDATE SKIP LOCKED`) to prevent race conditions
-- [ ] **AUTH-07**: User is notified when token refresh fails and manual re-authorization is needed
+- [x] **AUTH-05**: Token refresher task runs daily and proactively refreshes tokens within 7 days of expiry
+- [x] **AUTH-06**: OAuth token refresh uses Postgres row-level locking (`SELECT FOR UPDATE SKIP LOCKED`) to prevent race conditions
+- [x] **AUTH-07**: User is notified when token refresh fails and manual re-authorization is needed
 - [x] **AUTH-08**: OAuth tokens are stored encrypted in Hub DB `oauth_tokens` table, not in environment variables
 
 ### Voice Profiling
@@ -62,7 +62,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **SCHED-01**: User can schedule a post for a specific date and time
 - [ ] **SCHED-02**: Post scheduler task publishes content at scheduled time via Trigger.dev delayed run
-- [ ] **SCHED-03**: Scheduler handles multi-step media upload (register → upload → attach) per platform
+- [x] **SCHED-03**: Scheduler handles multi-step media upload (register → upload → attach) per platform
 - [ ] **SCHED-04**: Scheduler retries 3x with exponential backoff on failure; respects platform rate limit windows
 - [ ] **SCHED-05**: Failed posts notify the user and are tagged `status:failed`
 - [ ] **SCHED-06**: Personal posts write to Personal Hub content queue; company posts write to Company Hub
@@ -190,7 +190,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **PLAT-02**: LinkedIn posting: text posts, carousels (PDF), images, scheduling
 - [ ] **PLAT-03**: Instagram posting: feed images, carousels (up to 10), Reels, scheduling
 - [ ] **PLAT-04**: TikTok posting: video, photos, scheduling
-- [ ] **PLAT-05**: Each platform has its own typed API client with rate limit awareness
+- [x] **PLAT-05**: Each platform has its own typed API client with rate limit awareness
 - [ ] **PLAT-06**: Platform-specific content adaptation (thread structure for X, carousel for LinkedIn, reel script for IG)
 - [ ] **PLAT-07**: Multi-platform posting with partial failure isolation (one platform failure doesn't block others)
 
@@ -264,15 +264,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONFIG-04 | Phase 1 | Pending |
 | CONFIG-07 | Phase 1 | Pending |
 | AUTH-01 | Phase 2 | Complete |
-| AUTH-05 | Phase 2 | Pending |
-| AUTH-06 | Phase 2 | Pending |
-| AUTH-07 | Phase 2 | Pending |
+| AUTH-05 | Phase 2 | Complete |
+| AUTH-06 | Phase 2 | Complete |
+| AUTH-07 | Phase 2 | Complete |
 | AUTH-08 | Phase 2 | Complete |
 | PLAT-01 | Phase 2 | Complete |
-| PLAT-05 | Phase 2 | Pending |
+| PLAT-05 | Phase 2 | Complete |
 | SCHED-01 | Phase 2 | Pending |
 | SCHED-02 | Phase 2 | Pending |
-| SCHED-03 | Phase 2 | Pending |
+| SCHED-03 | Phase 2 | Complete |
 | SCHED-04 | Phase 2 | Pending |
 | SCHED-05 | Phase 2 | Pending |
 | CONTENT-05 | Phase 2 | Pending |

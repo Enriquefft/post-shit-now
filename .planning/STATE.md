@@ -10,29 +10,29 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 ## Current Position
 
 Phase: 2 of 8 (X Platform Pipeline)
-Plan: 2 of 4 in current phase
-Status: Completed 02-01 (Schema Expansion & X OAuth) and 02-02 (Thread Splitter & Timezone Utilities)
-Last activity: 2026-02-19 - Completed 02-01: Schema expansion, X OAuth PKCE module, API types, setup integration
+Plan: 3 of 4 in current phase
+Status: Completed 02-03 (X API Client & Token Refresher)
+Last activity: 2026-02-19 - Completed 02-03: X API client with rate limits, media upload, token refresh cron
 
-Progress: [██░░░░░░░░] 18%
+Progress: [██░░░░░░░░] 22%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: ~15min
-- Total execution time: ~1h 15min
+- Total plans completed: 6
+- Average duration: ~13min
+- Total execution time: ~1h 17min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 3/3 | ~60min | ~20min |
-| 2 | 2/4 | ~6min | ~3min |
+| 2 | 3/4 | ~8min | ~3min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (~35min), 01-02 (~15min), 01-03 (~10min), 02-01 (~3min), 02-02 (~3min)
-- Trend: Accelerating (TDD pure logic modules very fast)
+- Last 5 plans: 01-02 (~15min), 01-03 (~10min), 02-01 (~3min), 02-02 (~3min), 02-03 (~2min)
+- Trend: Accelerating (API client + cron tasks fast with clear specs)
 
 *Updated after each plan completion*
 
@@ -56,6 +56,9 @@ Recent decisions affecting current work:
 - [02-01]: X callback URL set to https://example.com/callback for CLI-based OAuth flows
 - [02-01]: userId 'default' for single-user setup, RLS handles multi-user when needed
 - [02-02]: Built-in Intl.DateTimeFormat for timezone operations (zero external dependencies)
+- [02-03]: Raw fetch over SDK for X API client — minimal dependencies, full control over rate limit headers
+- [02-03]: Token refresh at 1-day-before-expiry window catches all X tokens (2hr lifetime)
+- [02-03]: jsonb_set for metadata updates preserves existing metadata fields
 
 ### Pending Todos
 
@@ -78,5 +81,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 02-01-PLAN.md (schema expansion, X OAuth, API types)
+Stopped at: Completed 02-03-PLAN.md (X API client, media upload, token refresher)
 Resume file: None
