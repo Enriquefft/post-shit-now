@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Core value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
-**Current focus:** Phase 6 - LinkedIn and Multi-Platform
+**Current focus:** Phase 7 - Team Coordination and Notifications
 
 ## Current Position
 
-Phase: 6 of 8 (LinkedIn and Multi-Platform)
-Plan: 0 of 2 in current phase
-Status: Not started — needs discuss-phase
-Last activity: 2026-02-19 - Phase 5 verified and completed (5/5 truths, 35/35 requirements)
+Phase: 7 of 8 (Team Coordination and Notifications)
+Plan: 0 of 3 in current phase
+Status: Not started — needs plan-phase
+Last activity: 2026-02-19 - Phase 6 completed (2/2 plans, 10/10 truths, 6/6 requirements)
 
-Progress: [████████░░] 75%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
+- Total plans completed: 25
 - Average duration: ~6min
-- Total execution time: ~2h 12min
+- Total execution time: ~2h 27min
 
 **By Phase:**
 
@@ -32,10 +32,11 @@ Progress: [████████░░] 75%
 | 3 | 7/7 | ~21min | ~3min |
 | 4 | 5/5 | ~25min | ~5min |
 | 5 | 6/6 | ~20min | ~3min |
+| 6 | 2/2 | ~15min | ~7min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (~2min), 05-03 (~4min), 05-04 (~2min), 05-05 (~3min), 05-06 (~7min)
-- Trend: Phase 5 complete, capstone plan took slightly longer as expected
+- Last 5 plans: 05-05 (~3min), 05-06 (~7min), 06-01 (~8min), 06-02 (~7min)
+- Trend: Phase 6 multi-platform plans slightly longer due to cross-platform wiring
 
 *Updated after each plan completion*
 
@@ -134,6 +135,18 @@ Recent decisions affecting current work:
 - [05-06]: Series state advancement in publish-post.ts wrapped in try/catch to never roll back publishes
 - [05-06]: checkIdeaBank backward-compatible: returns empty when no DB provided
 
+- [06-01]: Arctic LinkedIn provider uses state param only (no PKCE unlike X)
+- [06-01]: LinkedIn tokens expire in 60 days; 7-day warning window for proactive refresh
+- [06-01]: Organic carousels are document posts (PDF pages via pdf-lib), NOT the sponsored Carousel API
+- [06-01]: Person URN fetched from OpenID Connect userinfo and stored in token metadata
+- [06-01]: LinkedIn setup optional -- skips gracefully if no credentials provided
+- [06-02]: Multi-platform dispatch publishes independently per platform with try/catch isolation
+- [06-02]: Overall post status "published" if ANY platform succeeded; subStatus "partial_failure" if some failed
+- [06-02]: Per-platform status tracked in post.metadata.platformStatus field
+- [06-02]: LinkedIn format picker auto-suggests carousel for list/step/framework content (11.2x impressions)
+- [06-02]: LinkedIn engagement weights: reshares(4) > comments(3) > reactions(1)
+- [06-02]: Analytics collector handles both platforms independently -- LinkedIn failure does not crash X collection
+
 ### Pending Todos
 
 None yet.
@@ -154,5 +167,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-linkedin-and-multi-platform/06-CONTEXT.md
+Stopped at: Phase 6 completed, Phase 7 ready for planning
+Resume file: .planning/ROADMAP.md

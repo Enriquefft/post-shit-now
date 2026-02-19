@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Voice Profiling and Content Generation** - Voice interviews, content import, calibration, post generation in user's voice, image generation, draft management (completed 2026-02-19)
 - [x] **Phase 4: Analytics and Learning Loop** - X analytics collection, engagement scoring, performance review, 3-channel learning loop, preference model
 - [x] **Phase 5: Intelligence, Ideation, and Planning** - Trend collection, idea bank, weekly batch planning, content series, bilingual support, content recycling (completed 2026-02-19)
-- [ ] **Phase 6: LinkedIn and Multi-Platform** - LinkedIn OAuth and posting, multi-platform content adaptation, partial failure isolation
+- [x] **Phase 6: LinkedIn and Multi-Platform** - LinkedIn OAuth and posting, multi-platform content adaptation, partial failure isolation (completed 2026-02-19)
 - [ ] **Phase 7: Team Coordination and Notifications** - Company Hub provisioning, invite codes, approval workflows, WhatsApp notifications, brand personas
 - [ ] **Phase 8: Instagram, TikTok, and Engagement** - Instagram and TikTok posting, engagement engine with semi-automated replies
 
@@ -130,8 +130,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — LinkedIn OAuth, typed API client, image/document media upload, carousel PDF generation, token-refresher extension
-- [ ] 06-02-PLAN.md — Multi-platform publish dispatch with partial failure isolation, LinkedIn format picker, content adaptation, LinkedIn analytics collection
+- [x] 06-01-PLAN.md — LinkedIn OAuth, typed API client, image/document media upload, carousel PDF generation, token-refresher extension
+- [x] 06-02-PLAN.md — Multi-platform publish dispatch with partial failure isolation, LinkedIn format picker, content adaptation, LinkedIn analytics collection
 
 ### Phase 7: Team Coordination and Notifications
 **Goal**: Teams can coordinate content through Company Hubs with approval workflows and WhatsApp notifications
@@ -180,6 +180,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 3. Voice Profiling and Content Generation | 7/7 | Complete | 2026-02-19 |
 | 4. Analytics and Learning Loop | 5/5 | Complete | 2026-02-19 |
 | 5. Intelligence, Ideation, and Planning | 6/6 | Complete | 2026-02-19 |
-| 6. LinkedIn and Multi-Platform | 0/2 | Not started | - |
+| 6. LinkedIn and Multi-Platform | 2/2 | Complete | 2026-02-19 |
 | 7. Team Coordination and Notifications | 0/3 | Not started | - |
 | 8. Instagram, TikTok, and Engagement | 0/3 | Not started | - |
