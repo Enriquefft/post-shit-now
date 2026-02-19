@@ -49,7 +49,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **POST-04**: User can generate a post for TikTok in their voice using `/psn:post`
 - [x] **POST-05**: Content brain picks optimal format per platform (text, thread, carousel, reel script, TikTok concept)
 - [x] **POST-06**: User can choose posting persona (personal, brand operator, brand ambassador) per post
-- [ ] **POST-07**: User can choose language (en, es, both) per post with platform-specific defaults
+- [x] **POST-07**: User can choose language (en, es, both) per post with platform-specific defaults
 - [ ] **POST-08**: Bilingual posts (`both`) are independently crafted per language, not translated
 - [x] **POST-09**: User reviews and edits every generated post before scheduling (human-in-the-loop)
 - [x] **POST-10**: Every edit is tracked with edit distance and edit patterns for the learning loop
@@ -94,7 +94,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **ANLYT-07**: Weekly review includes per-platform performance, per-post breakdown, and recommendations
 - [x] **ANLYT-08**: Monthly deep analysis auto-escalates: voice drift detection, audience model update, risk budget recalibration
 - [x] **ANLYT-09**: Reports saved to `analytics/reports/` for reference
-- [ ] **ANLYT-10**: Per-language performance tracking (engagement by en/es/both)
+- [x] **ANLYT-10**: Per-language performance tracking (engagement by en/es/both)
 
 ### Learning Loop
 
@@ -111,10 +111,10 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Idea Bank
 
 - [ ] **IDEA-01**: User can capture ideas via `/psn:capture` in under 30 seconds (URL, screenshot, text, raw thought)
-- [ ] **IDEA-02**: Ideas flow through maturity pipeline: spark → seed → ready → claimed → developed → used/killed
-- [ ] **IDEA-03**: Ideas have urgency classification: timely (24-48h), seasonal (event-tied), evergreen (no expiry)
+- [x] **IDEA-02**: Ideas flow through maturity pipeline: spark → seed → ready → claimed → developed → used/killed
+- [x] **IDEA-03**: Ideas have urgency classification: timely (24-48h), seasonal (event-tied), evergreen (no expiry)
 - [ ] **IDEA-04**: Timely ideas that expire without being claimed are auto-killed
-- [ ] **IDEA-05**: Personal ideas live in Personal Hub DB; company ideas live in Company Hub DB
+- [x] **IDEA-05**: Personal ideas live in Personal Hub DB; company ideas live in Company Hub DB
 - [ ] **IDEA-06**: Team members can claim company ideas (status: ready → claimed, locked to prevent duplicates)
 - [ ] **IDEA-07**: `/psn:capture` distinguishes timely vs evergreen and routes accordingly
 - [ ] **IDEA-08**: Killed ideas record reasoning and feed back into preference model
@@ -135,7 +135,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Content Series
 
 - [ ] **SERIES-01**: User can create a content series via `/psn:series create` with format, cadence, branding
-- [ ] **SERIES-02**: Series have YAML config defining format structure, platform, cadence, and branding
+- [x] **SERIES-02**: Series have YAML config defining format structure, platform, cadence, and branding
 - [ ] **SERIES-03**: Series installments auto-slot into weekly plans and surface in `/psn:post`
 - [ ] **SERIES-04**: User can pause, resume, and retire series via `/psn:series`
 - [ ] **SERIES-05**: Per-series analytics tracked separately in `/psn:review`
@@ -144,12 +144,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Intelligence
 
-- [ ] **INTEL-01**: Trend collector task runs daily at 6 AM pulling from HN, Reddit, Product Hunt, Google Trends RSS, RSS feeds
-- [ ] **INTEL-02**: Lighter poll every 2-4 hours during business hours checks HN front page + X trending for breaking news
-- [ ] **INTEL-03**: Trends scored by relevance to user's content pillars and stored in Hub DB
-- [ ] **INTEL-04**: On-demand research during `/psn:plan` fires Perplexity, Exa, Tavily, Brave searches
-- [ ] **INTEL-05**: Competitive intelligence tracks monitored accounts and surfaces gaps
-- [ ] **INTEL-06**: Trend alerter generates 2-3 suggested angles for push-worthy trends (score 70+)
+- [x] **INTEL-01**: Trend collector task runs daily at 6 AM pulling from HN, Reddit, Product Hunt, Google Trends RSS, RSS feeds
+- [x] **INTEL-02**: Lighter poll every 2-4 hours during business hours checks HN front page + X trending for breaking news
+- [x] **INTEL-03**: Trends scored by relevance to user's content pillars and stored in Hub DB
+- [x] **INTEL-04**: On-demand research during `/psn:plan` fires Perplexity, Exa, Tavily, Brave searches
+- [x] **INTEL-05**: Competitive intelligence tracks monitored accounts and surfaces gaps
+- [x] **INTEL-06**: Trend alerter generates 2-3 suggested angles for push-worthy trends (score 70+)
 
 ### Engagement Engine
 
@@ -324,17 +324,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LEARN-08 | Phase 4 | Complete |
 | POST-13 | Phase 4 | Complete |
 | SCHED-06 | Phase 4 | Complete |
-| INTEL-01 | Phase 5 | Pending |
-| INTEL-02 | Phase 5 | Pending |
-| INTEL-03 | Phase 5 | Pending |
-| INTEL-04 | Phase 5 | Pending |
-| INTEL-05 | Phase 5 | Pending |
-| INTEL-06 | Phase 5 | Pending |
+| INTEL-01 | Phase 5 | Complete |
+| INTEL-02 | Phase 5 | Complete |
+| INTEL-03 | Phase 5 | Complete |
+| INTEL-04 | Phase 5 | Complete |
+| INTEL-05 | Phase 5 | Complete |
+| INTEL-06 | Phase 5 | Complete |
 | IDEA-01 | Phase 5 | Pending |
-| IDEA-02 | Phase 5 | Pending |
-| IDEA-03 | Phase 5 | Pending |
+| IDEA-02 | Phase 5 | Complete |
+| IDEA-03 | Phase 5 | Complete |
 | IDEA-04 | Phase 5 | Pending |
-| IDEA-05 | Phase 5 | Pending |
+| IDEA-05 | Phase 5 | Complete |
 | IDEA-06 | Phase 5 | Pending |
 | IDEA-07 | Phase 5 | Pending |
 | IDEA-08 | Phase 5 | Pending |
@@ -349,14 +349,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLAN-09 | Phase 5 | Pending |
 | PLAN-10 | Phase 5 | Pending |
 | SERIES-01 | Phase 5 | Pending |
-| SERIES-02 | Phase 5 | Pending |
+| SERIES-02 | Phase 5 | Complete |
 | SERIES-03 | Phase 5 | Pending |
 | SERIES-04 | Phase 5 | Pending |
 | SERIES-05 | Phase 5 | Pending |
 | SERIES-06 | Phase 5 | Pending |
-| POST-07 | Phase 5 | Pending |
+| POST-07 | Phase 5 | Complete |
 | POST-08 | Phase 5 | Pending |
-| ANLYT-10 | Phase 5 | Pending |
+| ANLYT-10 | Phase 5 | Complete |
 | CONTENT-03 | Phase 5 | Pending |
 | CONTENT-04 | Phase 5 | Pending |
 | AUTH-02 | Phase 6 | Pending |
