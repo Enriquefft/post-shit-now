@@ -3,10 +3,10 @@ import {
 	RateLimitError,
 	type RateLimitInfo,
 	TweetResponseSchema,
-	TweetsLookupResponseSchema,
 	type TweetsLookupResponse,
-	UserLookupResponseSchema,
+	TweetsLookupResponseSchema,
 	type UserLookupResponse,
+	UserLookupResponseSchema,
 	XApiError,
 } from "./types.ts";
 
@@ -170,9 +170,9 @@ export class XClient {
 	/**
 	 * Get the authenticated user's profile with optional field expansion.
 	 */
-	async getMe(
-		fields?: { userFields?: string[] },
-	): Promise<{ data: UserLookupResponse; rateLimit: RateLimitInfo }> {
+	async getMe(fields?: {
+		userFields?: string[];
+	}): Promise<{ data: UserLookupResponse; rateLimit: RateLimitInfo }> {
 		const params = new URLSearchParams();
 		if (fields?.userFields) {
 			params.set("user.fields", fields.userFields.join(","));

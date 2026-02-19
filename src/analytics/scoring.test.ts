@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { TweetPublicMetrics } from "./types.ts";
 import {
-	ENGAGEMENT_WEIGHTS,
 	aggregateThreadMetrics,
 	computeEngagementRate,
 	computeEngagementRateBps,
 	computeEngagementScore,
+	ENGAGEMENT_WEIGHTS,
 } from "./scoring.ts";
+import type { TweetPublicMetrics } from "./types.ts";
 
 describe("computeEngagementScore", () => {
 	it("computes weighted score from all metric types", () => {

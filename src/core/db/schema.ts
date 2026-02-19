@@ -203,26 +203,26 @@ export const preferenceModel = pgTable(
 		// Engagement learnings
 		topFormats: jsonb("top_formats").$type<Array<{ format: string; avgScore: number }>>(),
 		topPillars: jsonb("top_pillars").$type<Array<{ pillar: string; avgScore: number }>>(),
-		bestPostingTimes: jsonb("best_posting_times").$type<
-			Array<{ hour: number; dayOfWeek: number; avgScore: number }>
-		>(),
+		bestPostingTimes:
+			jsonb("best_posting_times").$type<
+				Array<{ hour: number; dayOfWeek: number; avgScore: number }>
+			>(),
 		hookPatterns: jsonb("hook_patterns").$type<string[]>(),
 
 		// Edit learnings
-		commonEditPatterns: jsonb("common_edit_patterns").$type<
-			Array<{ type: string; frequency: number }>
-		>(),
+		commonEditPatterns:
+			jsonb("common_edit_patterns").$type<Array<{ type: string; frequency: number }>>(),
 		avgEditRatio: integer("avg_edit_ratio"),
 
 		// Fatigue tracking
-		fatiguedTopics: jsonb("fatigued_topics").$type<
-			Array<{ topic: string; cooldownUntil: string; lastScores: number[] }>
-		>(),
+		fatiguedTopics:
+			jsonb("fatigued_topics").$type<
+				Array<{ topic: string; cooldownUntil: string; lastScores: number[] }>
+			>(),
 
 		// Locked settings (user overrides — permanent until explicitly unlocked)
-		lockedSettings: jsonb("locked_settings").$type<
-			Array<{ field: string; value: unknown; lockedAt: string }>
-		>(),
+		lockedSettings:
+			jsonb("locked_settings").$type<Array<{ field: string; value: unknown; lockedAt: string }>>(),
 
 		// Follower tracking (weekly/monthly trend)
 		followerHistory: jsonb("follower_history").$type<Array<{ count: number; date: string }>>(),

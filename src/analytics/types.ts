@@ -1,17 +1,17 @@
 // Re-export metric types from X platform types for use by analytics modules
 export {
-	TweetPublicMetricsSchema,
-	type TweetPublicMetrics,
-	TweetNonPublicMetricsSchema,
 	type TweetNonPublicMetrics,
-	TweetWithMetricsSchema,
-	type TweetWithMetrics,
-	TweetsLookupResponseSchema,
+	TweetNonPublicMetricsSchema,
+	type TweetPublicMetrics,
+	TweetPublicMetricsSchema,
 	type TweetsLookupResponse,
-	UserPublicMetricsSchema,
-	type UserPublicMetrics,
-	UserLookupResponseSchema,
+	TweetsLookupResponseSchema,
+	type TweetWithMetrics,
+	TweetWithMetricsSchema,
 	type UserLookupResponse,
+	UserLookupResponseSchema,
+	type UserPublicMetrics,
+	UserPublicMetricsSchema,
 } from "../platforms/x/types.ts";
 
 // ─── Analytics-specific types ──────────────────────────────────────────────
