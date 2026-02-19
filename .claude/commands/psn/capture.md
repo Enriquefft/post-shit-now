@@ -1,3 +1,7 @@
+---
+description: Fast idea capture and management for the idea bank
+---
+
 # /psn:capture -- Fast idea capture and management
 
 ## What this does

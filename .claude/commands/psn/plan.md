@@ -1,3 +1,7 @@
+---
+description: Weekly content planning engine with trend-informed ideation
+---
+
 # /psn:plan -- Weekly content planning engine
 
 ## What this does

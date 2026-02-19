@@ -1,3 +1,7 @@
+---
+description: Create and schedule voice-matched posts
+---
+
 # /psn:post — Create and schedule voice-matched posts
 
 ## What this does

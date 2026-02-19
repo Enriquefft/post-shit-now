@@ -1,3 +1,7 @@
+---
+description: Content performance review and learning loop updates
+---
+
 # /psn:review -- Review content performance and update learning loop
 
 ## What this does

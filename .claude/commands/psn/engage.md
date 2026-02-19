@@ -1,3 +1,7 @@
+---
+description: Proactive engagement sessions with triage-then-draft flow
+---
+
 # /psn:engage -- Proactive engagement sessions with triage-then-draft flow
 
 ## What this does

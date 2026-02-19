@@ -1,3 +1,7 @@
+---
+description: Voice profile management — interview, calibration, and tweaks
+---
+
 # /psn:voice — Voice profile management
 
 ## What this does

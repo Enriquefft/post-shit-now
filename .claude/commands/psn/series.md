@@ -1,3 +1,7 @@
+---
+description: Content series management — create, pause, resume, retire
+---
+
 # /psn:series -- Content Series Management
 
 You are managing content series for the user. Series provide structure and consistency to recurring content.

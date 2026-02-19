@@ -1,3 +1,7 @@
+---
+description: Hub setup, team management, and notifications configuration
+---
+
 # /psn:setup -- Hub Setup and Team Management
 
 You are running the Post Shit Now setup wizard. Supports Personal Hub provisioning, Company Hub creation, team joining, and notification configuration.

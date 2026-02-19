@@ -1,3 +1,7 @@
+---
+description: Content approval workflow for Company Hubs
+---
+
 # /psn:approve -- Content approval workflow for Company Hubs
 
 ## What this does

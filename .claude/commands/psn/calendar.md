@@ -1,3 +1,7 @@
+---
+description: Unified multi-hub content calendar with approval status
+---
+
 # /psn:calendar -- Unified multi-hub content calendar
 
 ## What this does
