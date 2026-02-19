@@ -108,3 +108,42 @@ export const apiKeys = pgTable(
 		}),
 	],
 );
+
+// ─── Edit History ───────────────────────────────────────────────────────────
+
+export interface EditPattern {
+	type:
+		| "tone-adjustment"
+		| "word-choice"
+		| "structure-change"
+		| "length-change"
+		| "addition"
+		| "removal"
+		| "rewrite";
+	description: string;
+	count: number;
+}
+
+export const editHistory = pgTable(
+	"edit_history",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		postId: text("post_id").notNull(),
+		originalContent: text("original_content").notNull(),
+		editedContent: text("edited_content").notNull(),
+		editDistance: integer("edit_distance").notNull(),
+		editRatio: integer("edit_ratio").notNull(),
+		editPatterns: jsonb("edit_patterns").$type<EditPattern[]>(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		pgPolicy("edit_history_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
