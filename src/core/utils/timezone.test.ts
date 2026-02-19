@@ -73,21 +73,15 @@ describe("userTimeToUtc", () => {
 	});
 
 	it("throws for invalid timezone", () => {
-		expect(() => userTimeToUtc("2026-01-15", "09:00", "NotATimezone")).toThrow(
-			"Invalid timezone",
-		);
+		expect(() => userTimeToUtc("2026-01-15", "09:00", "NotATimezone")).toThrow("Invalid timezone");
 	});
 
 	it("throws for invalid date format", () => {
-		expect(() =>
-			userTimeToUtc("not-a-date", "09:00", "America/New_York"),
-		).toThrow();
+		expect(() => userTimeToUtc("not-a-date", "09:00", "America/New_York")).toThrow();
 	});
 
 	it("throws for invalid time format", () => {
-		expect(() =>
-			userTimeToUtc("2026-01-15", "not-a-time", "America/New_York"),
-		).toThrow();
+		expect(() => userTimeToUtc("2026-01-15", "not-a-time", "America/New_York")).toThrow();
 	});
 });
 
