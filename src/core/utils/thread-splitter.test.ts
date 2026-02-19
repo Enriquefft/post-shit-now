@@ -42,28 +42,22 @@ describe("splitIntoThread", () => {
 		expect(result).toEqual(paras);
 	});
 
-	it("merges short consecutive paragraphs that fit within limit", () => {
+	it("keeps short paragraphs as separate tweets", () => {
 		const p1 = "Hi.";
 		const p2 = "Hey.";
 		const p3 = "Yo.";
 		const text = `${p1}\n\n${p2}\n\n${p3}`;
 		const result = splitIntoThread(text);
-		// All three are very short, should be merged into one tweet
-		expect(result).toHaveLength(1);
-		expect(result[0]).toContain(p1);
-		expect(result[0]).toContain(p2);
-		expect(result[0]).toContain(p3);
+		// Each paragraph becomes its own tweet (paragraph boundary respected)
+		expect(result).toEqual([p1, p2, p3]);
 	});
 
 	it("splits a long paragraph at sentence boundaries", () => {
 		// Create a paragraph with multiple sentences that totals > 280 chars
 		const s1 = "The quick brown fox jumps over the lazy dog near the river bank.";
-		const s2 =
-			"Meanwhile, the cat was sleeping peacefully on the warm windowsill.";
-		const s3 =
-			"Birds were singing in the trees and the sun was shining brightly.";
-		const s4 =
-			"It was truly a beautiful day for everyone in the neighborhood.";
+		const s2 = "Meanwhile, the cat was sleeping peacefully on the warm windowsill.";
+		const s3 = "Birds were singing in the trees and the sun was shining brightly.";
+		const s4 = "It was truly a beautiful day for everyone in the neighborhood.";
 		const s5 = "Children were playing in the park and laughing with joy.";
 		const longParagraph = `${s1} ${s2} ${s3} ${s4} ${s5}`;
 
@@ -117,8 +111,7 @@ describe("splitIntoThread", () => {
 	});
 
 	it("respects custom maxLen parameter", () => {
-		const text =
-			"First sentence here. Second sentence follows. Third sentence ends.";
+		const text = "First sentence here. Second sentence follows. Third sentence ends.";
 		const result = splitIntoThread(text, 40);
 		expect(result.length).toBeGreaterThan(1);
 		for (const tweet of result) {
@@ -168,16 +161,12 @@ describe("formatThreadPreview", () => {
 	it("returns warning for more than 7 tweets", () => {
 		const tweets = Array(8).fill("Tweet content");
 		const result = formatThreadPreview(tweets);
-		expect(result.warning).toBe(
-			"Thread has 8 tweets (recommended max: 7)",
-		);
+		expect(result.warning).toBe("Thread has 8 tweets (recommended max: 7)");
 	});
 
 	it("returns warning for 10 tweets", () => {
 		const tweets = Array(10).fill("Tweet content");
 		const result = formatThreadPreview(tweets);
-		expect(result.warning).toBe(
-			"Thread has 10 tweets (recommended max: 7)",
-		);
+		expect(result.warning).toBe("Thread has 10 tweets (recommended max: 7)");
 	});
 });
