@@ -99,12 +99,12 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Learning Loop
 
 - [x] **LEARN-01**: System tracks engagement signals (saves, shares, comments, follows) weighted by quality
-- [ ] **LEARN-02**: System tracks edit signals (edit distance, patterns, categories) from every post review
-- [ ] **LEARN-03**: System prompts explicit feedback at key moments (3x above average, significant underperformance, high/low edit streaks)
-- [ ] **LEARN-04**: Preference model updates weekly during `/psn:review` with platform learnings, archetype performance, edit patterns
-- [ ] **LEARN-05**: Autonomous adjustments: pillar weights (±5%/cycle), posting times, format preferences, topic fatigue, frequency (±1/week)
-- [ ] **LEARN-06**: Transparent changelog shows all autonomous changes in weekly review ("what the brain changed this week")
-- [ ] **LEARN-07**: User overrides are permanent — system will not re-adjust locked settings
+- [x] **LEARN-02**: System tracks edit signals (edit distance, patterns, categories) from every post review
+- [x] **LEARN-03**: System prompts explicit feedback at key moments (3x above average, significant underperformance, high/low edit streaks)
+- [x] **LEARN-04**: Preference model updates weekly during `/psn:review` with platform learnings, archetype performance, edit patterns
+- [x] **LEARN-05**: Autonomous adjustments: pillar weights (±5%/cycle), posting times, format preferences, topic fatigue, frequency (±1/week)
+- [x] **LEARN-06**: Transparent changelog shows all autonomous changes in weekly review ("what the brain changed this week")
+- [x] **LEARN-07**: User overrides are permanent — system will not re-adjust locked settings
 - [x] **LEARN-08**: Content fatigue tracker cools down overused topics and formats
 - [ ] **LEARN-09**: Company brand preference model in Company Hub DB shared across team members
 
@@ -315,12 +315,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ANLYT-08 | Phase 4 | Pending |
 | ANLYT-09 | Phase 4 | Pending |
 | LEARN-01 | Phase 4 | Complete |
-| LEARN-02 | Phase 4 | Pending |
-| LEARN-03 | Phase 4 | Pending |
-| LEARN-04 | Phase 4 | Pending |
-| LEARN-05 | Phase 4 | Pending |
-| LEARN-06 | Phase 4 | Pending |
-| LEARN-07 | Phase 4 | Pending |
+| LEARN-02 | Phase 4 | Complete |
+| LEARN-03 | Phase 4 | Complete |
+| LEARN-04 | Phase 4 | Complete |
+| LEARN-05 | Phase 4 | Complete |
+| LEARN-06 | Phase 4 | Complete |
+| LEARN-07 | Phase 4 | Complete |
 | LEARN-08 | Phase 4 | Complete |
 | POST-13 | Phase 4 | Pending |
 | SCHED-06 | Phase 4 | Pending |

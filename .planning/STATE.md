@@ -19,9 +19,9 @@ Progress: [██████░░░░] 60%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: ~7min
-- Total execution time: ~1h 55min
+- Total execution time: ~1h 59min
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [██████░░░░] 60%
 | 1 | 3/3 | ~60min | ~20min |
 | 2 | 4/4 | ~12min | ~3min |
 | 3 | 7/7 | ~21min | ~3min |
-| 4 | 2/5 | ~13min | ~6.5min |
+| 4 | 3/5 | ~17min | ~5.7min |
 
 **Recent Trend:**
-- Last 5 plans: 03-05 (~1min), 03-06 (~4min), 03-07 (~3min), 04-01 (~9min), 04-02 (~4min)
-- Trend: Consistently fast; analytics plans averaging ~6.5min
+- Last 5 plans: 03-06 (~4min), 03-07 (~3min), 04-01 (~9min), 04-02 (~4min), 04-03 (~4min)
+- Trend: Consistently fast; analytics plans averaging ~5.7min
 
 *Updated after each plan completion*
 
@@ -98,6 +98,10 @@ Recent decisions affecting current work:
 - [04-02]: Per-post error isolation in analytics collector (catch, log, continue)
 - [04-02]: Fatigue detection requires strictly declining scores across last 3 posts
 - [04-02]: Added unique index on postMetrics (postId, platform) for upsert support
+- [04-03]: Speed limits: 5+ posts before any adjustment, 3+ weeks before pillar weight changes
+- [04-03]: Feedback only at 3x average (high), 0.3x average (low), and edit streaks
+- [04-03]: Format preferences always auto-apply; new pillars and drop format always require approval
+- [04-03]: Frequency capped per platform (x:14, linkedin:7, instagram:7, tiktok:7)
 
 ### Pending Todos
 
@@ -119,5 +123,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 04-02-PLAN.md
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
