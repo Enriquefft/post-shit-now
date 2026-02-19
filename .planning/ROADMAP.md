@@ -13,7 +13,7 @@ Post Shit Now delivers a Claude Code-first social media growth system in 8 phase
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation Infrastructure** - Project scaffolding, @psn/core package, Personal Hub provisioning, Drizzle migrations, BYOK setup
-- [ ] **Phase 2: X Platform Pipeline** - OAuth for X, token management with race condition protection, post scheduling, media uploads
+- [x] **Phase 2: X Platform Pipeline** - OAuth for X, token management with race condition protection, post scheduling, media uploads (completed 2026-02-19)
 - [ ] **Phase 3: Voice Profiling and Content Generation** - Voice interviews, content import, calibration, post generation in user's voice, image generation, draft management
 - [ ] **Phase 4: Analytics and Learning Loop** - X analytics collection, engagement scoring, performance review, 3-channel learning loop, preference model
 - [ ] **Phase 5: Intelligence, Ideation, and Planning** - Trend collection, idea bank, weekly batch planning, content series, bilingual support, content recycling
@@ -53,10 +53,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — DB schema expansion, X OAuth 2.0 PKCE module, API types, setup integration
-- [ ] 02-02-PLAN.md — Thread auto-splitter and timezone utilities (TDD)
-- [ ] 02-03-PLAN.md — X API client with rate limits, media upload, token refresher cron
-- [ ] 02-04-PLAN.md — Publish-post task, post CLI, /psn:post command, watchdog update
+- [x] 02-01-PLAN.md — DB schema expansion, X OAuth 2.0 PKCE module, API types, setup integration
+- [x] 02-02-PLAN.md — Thread auto-splitter and timezone utilities (TDD)
+- [x] 02-03-PLAN.md — X API client with rate limits, media upload, token refresher cron
+- [x] 02-04-PLAN.md — Publish-post task, post CLI, /psn:post command, watchdog update
 
 ### Phase 3: Voice Profiling and Content Generation
 **Goal**: User can generate posts in their authentic voice with image support, review and edit them, and manage drafts
@@ -166,7 +166,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation Infrastructure | 3/3 | Complete | 2026-02-18 |
-| 2. X Platform Pipeline | 0/4 | Planned | - |
+| 2. X Platform Pipeline | 4/4 | Complete | 2026-02-19 |
 | 3. Voice Profiling and Content Generation | 0/3 | Not started | - |
 | 4. Analytics and Learning Loop | 0/2 | Not started | - |
 | 5. Intelligence, Ideation, and Planning | 0/3 | Not started | - |
