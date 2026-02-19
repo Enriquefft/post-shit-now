@@ -47,6 +47,7 @@ Progress: [█████████░] 90%
 | Phase 08 P01 | 4min | 2 tasks | 8 files |
 | Phase 08 P02 | 6min | 2 tasks | 8 files |
 | Phase 08 P04 | 6min | 2 tasks | 8 files |
+| Phase 08 P03 | 6min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -188,6 +189,10 @@ Recent decisions affecting current work:
 - [Phase 08]: [08-04]: Instagram hashtag budget limited to 2 searches per monitoring run to preserve 30/week budget
 - [Phase 08]: [08-04]: Notification routing reuses existing notification_log table with dedup keys
 - [Phase 08]: [08-04]: NeonHttpQueryResult uses .rows[0] pattern for SELECT queries (not destructuring)
+- [Phase 08]: [08-03]: Instagram analytics budget 50 req/hr from 200/hr total (conservative for analytics)
+- [Phase 08]: [08-03]: TikTok video.list inline metrics — no separate insights call needed (more efficient)
+- [Phase 08]: [08-03]: Instagram default format biased to Reels (30.81% reach rate, 55% views from non-followers)
+- [Phase 08]: [08-03]: Instagram engagement weights: shares(4) > saved(3) > comments(2) > likes(1)
 
 ### Pending Todos
 

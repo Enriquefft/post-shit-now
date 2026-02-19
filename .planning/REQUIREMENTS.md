@@ -45,8 +45,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **POST-01**: User can generate a post for X in their voice using `/psn:post`
 - [ ] **POST-02**: User can generate a post for LinkedIn in their voice using `/psn:post`
-- [ ] **POST-03**: User can generate a post for Instagram in their voice using `/psn:post`
-- [ ] **POST-04**: User can generate a post for TikTok in their voice using `/psn:post`
+- [x] **POST-03**: User can generate a post for Instagram in their voice using `/psn:post`
+- [x] **POST-04**: User can generate a post for TikTok in their voice using `/psn:post`
 - [x] **POST-05**: Content brain picks optimal format per platform (text, thread, carousel, reel script, TikTok concept)
 - [x] **POST-06**: User can choose posting persona (personal, brand operator, brand ambassador) per post
 - [x] **POST-07**: User can choose language (en, es, both) per post with platform-specific defaults
@@ -87,8 +87,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **ANLYT-01**: Analytics collector task pulls metrics from X API daily and writes to Hub DB
 - [ ] **ANLYT-02**: Analytics collector pulls metrics from LinkedIn API daily
-- [ ] **ANLYT-03**: Analytics collector pulls metrics from Instagram API daily (within 200 req/hr budget)
-- [ ] **ANLYT-04**: Analytics collector pulls metrics from TikTok API daily
+- [x] **ANLYT-03**: Analytics collector pulls metrics from Instagram API daily (within 200 req/hr budget)
+- [x] **ANLYT-04**: Analytics collector pulls metrics from TikTok API daily
 - [x] **ANLYT-05**: Each post receives a composite engagement score (saves > shares > comments > likes)
 - [x] **ANLYT-06**: User can view performance analysis via `/psn:review` showing what worked and what didn't
 - [x] **ANLYT-07**: Weekly review includes per-platform performance, per-post breakdown, and recommendations
@@ -390,10 +390,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-04 | Phase 8 | Complete |
 | PLAT-03 | Phase 8 | Complete |
 | PLAT-04 | Phase 8 | Complete |
-| ANLYT-03 | Phase 8 | Pending |
-| ANLYT-04 | Phase 8 | Pending |
-| POST-03 | Phase 8 | Pending |
-| POST-04 | Phase 8 | Pending |
+| ANLYT-03 | Phase 8 | Complete |
+| ANLYT-04 | Phase 8 | Complete |
+| POST-03 | Phase 8 | Complete |
+| POST-04 | Phase 8 | Complete |
 | ENGAGE-01 | Phase 8 | Complete |
 | ENGAGE-02 | Phase 8 | Complete |
 | ENGAGE-03 | Phase 8 | Pending |
