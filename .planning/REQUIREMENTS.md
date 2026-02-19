@@ -163,14 +163,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Notifications
 
-- [ ] **NOTIF-01**: WhatsApp notifications via WAHA (self-hosted) with Twilio as configurable fallback
-- [ ] **NOTIF-02**: Tier 1 push notifications: trending topics (70+), engagement opportunities, content going viral, timely ideas expiring, approvals needed
-- [ ] **NOTIF-03**: Tier 2 morning digest at configurable time with adaptive content based on user journey stage
-- [ ] **NOTIF-04**: Tier 3 standard notifications: post scheduled/published, approval results, weekly digest, token expiring
-- [ ] **NOTIF-05**: WhatsApp structured commands: R1/R2/R3 (reply selection), skip, approve, reject, edit, post, time, list, help
+- [x] **NOTIF-01**: WhatsApp notifications via WAHA (self-hosted) with Twilio as configurable fallback
+- [x] **NOTIF-02**: Tier 1 push notifications: trending topics (70+), engagement opportunities, content going viral, timely ideas expiring, approvals needed
+- [x] **NOTIF-03**: Tier 2 morning digest at configurable time with adaptive content based on user journey stage
+- [x] **NOTIF-04**: Tier 3 standard notifications: post scheduled/published, approval results, weekly digest, token expiring
+- [x] **NOTIF-05**: WhatsApp structured commands: R1/R2/R3 (reply selection), skip, approve, reject, edit, post, time, list, help
 - [x] **NOTIF-06**: Conversation state machine tracks active notification context per user in `whatsapp_sessions` table
 - [x] **NOTIF-07**: Notification fatigue prevention: hard caps (3 push/day), cooldowns (2hr), dedup, feedback loop, quiet hours
-- [ ] **NOTIF-08**: Company-level notification routing based on team member expertise
+- [x] **NOTIF-08**: Company-level notification routing based on team member expertise
 
 ### Company Coordination
 
@@ -374,14 +374,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEAM-07 | Phase 7 | Complete |
 | TEAM-08 | Phase 7 | Complete |
 | TEAM-09 | Phase 7 | Complete |
-| NOTIF-01 | Phase 7 | Pending |
-| NOTIF-02 | Phase 7 | Pending |
-| NOTIF-03 | Phase 7 | Pending |
-| NOTIF-04 | Phase 7 | Pending |
-| NOTIF-05 | Phase 7 | Pending |
+| NOTIF-01 | Phase 7 | Complete |
+| NOTIF-02 | Phase 7 | Complete |
+| NOTIF-03 | Phase 7 | Complete |
+| NOTIF-04 | Phase 7 | Complete |
+| NOTIF-05 | Phase 7 | Complete |
 | NOTIF-06 | Phase 7 | Complete |
 | NOTIF-07 | Phase 7 | Complete |
-| NOTIF-08 | Phase 7 | Pending |
+| NOTIF-08 | Phase 7 | Complete |
 | LEARN-09 | Phase 7 | Complete |
 | SERIES-07 | Phase 7 | Complete |
 | CONFIG-05 | Phase 7 | Complete |

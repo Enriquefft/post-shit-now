@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 7 of 8 (Team Coordination and Notifications)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: Executing
-Last activity: 2026-02-19 - Completed 07-03 (Approval workflow, calendar, and publish gate)
+Last activity: 2026-02-19 - Completed 07-04 (WhatsApp notification system)
 
 Progress: [████████░░] 80%
 
@@ -42,6 +42,7 @@ Progress: [████████░░] 80%
 | Phase 07 P01 | 2min | 2 tasks | 5 files |
 | Phase 07 P02 | 4min | 4 tasks | 8 files |
 | Phase 07 P03 | 4min | 3 tasks | 4 files |
+| Phase 07 P04 | 5min | 4 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -161,6 +162,10 @@ Recent decisions affecting current work:
 - [Phase 07]: [07-03]: Publish-post returns 'skipped' for unapproved company posts (never 'failed')
 - [Phase 07]: [07-03]: Calendar default optimal hours per platform when strategy.yaml unavailable
 - [Phase 07]: [07-03]: Approval stats use 3 separate queries for clarity over single aggregation
+- [Phase 07]: [07-04]: WAHA Core tier fallback renders buttons/lists as numbered text options
+- [Phase 07]: [07-04]: Twilio always uses text fallback for interactive messages (Content Templates require pre-registration)
+- [Phase 07]: [07-04]: Twice-daily digest splits at digestTime and digestTime+10 hours for morning/evening cadence
+- [Phase 07]: [07-04]: Company notification routing: admins for approvals, author for failures, both for viral
 
 ### Pending Todos
 
@@ -182,5 +187,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 07-03-PLAN.md
-Resume file: .planning/phases/07-team-coordination-and-notifications/07-04-PLAN.md
+Stopped at: Completed 07-04-PLAN.md
+Resume file: .planning/phases/07-team-coordination-and-notifications/07-05-PLAN.md
