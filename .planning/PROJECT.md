@@ -26,11 +26,17 @@ Make it so easy to create and post high-quality, voice-matched content that team
 - ✓ Calibration engine with edit tracking and convergence detection — Phase 3
 - ✓ Content brain: format picker, topic suggestions, draft management — Phase 3
 - ✓ `/psn:post` voice-matched workflow and `/psn:voice` management command — Phase 3
+- ✓ X analytics collection with tiered cadence and composite engagement scoring — Phase 4
+- ✓ Preference model with weekly updates from engagement + edit + feedback signals — Phase 4
+- ✓ Autonomous strategy adjustments (tiered auto/approval) with transparent changelog — Phase 4
+- ✓ `/psn:review` weekly review with per-post breakdown, recommendations, fatigue warnings — Phase 4
+- ✓ Content fatigue detection and deprioritization in suggestions — Phase 4
+- ✓ Semi-automated draft finish flow for video scripts — Phase 4
+- ✓ Hub routing (personal/company) in draft metadata — Phase 4
 
 ### Active
 
 - [ ] Two-Hub architecture: mandatory Personal Hub (Neon Postgres + Trigger.dev) for every user, optional Company Hubs for teams
-- [ ] Learning loop (RLHF for your brand): engagement signals, edit signals, explicit feedback → preference model
 - [ ] Intelligence layer: scheduled trend collection (HN, Reddit, PH, RSS, Google Trends) + on-demand research (Perplexity, Exa, Tavily, Brave)
 - [ ] Idea bank with maturity pipeline: spark → seed → ready → claimed → developed → used/killed
 - [ ] Content series system: recurring formats with cadence, format templates, and performance tracking
@@ -39,7 +45,7 @@ Make it so easy to create and post high-quality, voice-matched content that team
 - [ ] Bilingual content creation: English + Spanish, per-post language choice, language-specific voice sections
 - [ ] WhatsApp notifications via WAHA (push, digest, standard tiers) with structured command interaction
 - [ ] Company coordination: approval workflows, content calendar, invite code onboarding, team idea surfacing
-- [ ] Remaining slash commands: `/psn:plan`, `/psn:capture`, `/psn:engage`, `/psn:review`, `/psn:approve`, `/psn:series`, `/psn:config`, `/psn:calendar`
+- [ ] Remaining slash commands: `/psn:plan`, `/psn:capture`, `/psn:engage`, `/psn:approve`, `/psn:series`, `/psn:config`, `/psn:calendar`
 
 ### Out of Scope
 

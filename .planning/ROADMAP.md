@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation Infrastructure** - Project scaffolding, @psn/core package, Personal Hub provisioning, Drizzle migrations, BYOK setup
 - [x] **Phase 2: X Platform Pipeline** - OAuth for X, token management with race condition protection, post scheduling, media uploads (completed 2026-02-19)
 - [x] **Phase 3: Voice Profiling and Content Generation** - Voice interviews, content import, calibration, post generation in user's voice, image generation, draft management (completed 2026-02-19)
-- [ ] **Phase 4: Analytics and Learning Loop** - X analytics collection, engagement scoring, performance review, 3-channel learning loop, preference model
+- [x] **Phase 4: Analytics and Learning Loop** - X analytics collection, engagement scoring, performance review, 3-channel learning loop, preference model
 - [ ] **Phase 5: Intelligence, Ideation, and Planning** - Trend collection, idea bank, weekly batch planning, content series, bilingual support, content recycling
 - [ ] **Phase 6: LinkedIn and Multi-Platform** - LinkedIn OAuth and posting, multi-platform content adaptation, partial failure isolation
 - [ ] **Phase 7: Team Coordination and Notifications** - Company Hub provisioning, invite codes, approval workflows, WhatsApp notifications, brand personas
@@ -92,11 +92,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — DB schema (metrics, preferences, adjustments), XClient GET methods, engagement scoring engine (TDD)
-- [ ] 04-02-PLAN.md — Analytics collector Trigger.dev task with tiered cadence, content fatigue detection
-- [ ] 04-03-PLAN.md — Preference model, autonomous adjustments engine, user override locks, strategy changelog
-- [ ] 04-04-PLAN.md — Weekly review generator (/psn:review), monthly deep analysis task, report saving
-- [ ] 04-05-PLAN.md — Preference model wiring into content generation, semi-automated draft finish, hub routing
+- [x] 04-01-PLAN.md — DB schema (metrics, preferences, adjustments), XClient GET methods, engagement scoring engine (TDD)
+- [x] 04-02-PLAN.md — Analytics collector Trigger.dev task with tiered cadence, content fatigue detection
+- [x] 04-03-PLAN.md — Preference model, autonomous adjustments engine, user override locks, strategy changelog
+- [x] 04-04-PLAN.md — Weekly review generator (/psn:review), monthly deep analysis task, report saving
+- [x] 04-05-PLAN.md — Preference model wiring into content generation, semi-automated draft finish, hub routing
 
 ### Phase 5: Intelligence, Ideation, and Planning
 **Goal**: User can capture ideas, get trend-informed suggestions, plan a full week of content, create recurring series, and post in both English and Spanish
@@ -175,7 +175,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Foundation Infrastructure | 3/3 | Complete | 2026-02-18 |
 | 2. X Platform Pipeline | 4/4 | Complete | 2026-02-19 |
 | 3. Voice Profiling and Content Generation | 7/7 | Complete | 2026-02-19 |
-| 4. Analytics and Learning Loop | 0/5 | Not started | - |
+| 4. Analytics and Learning Loop | 5/5 | Complete | 2026-02-19 |
 | 5. Intelligence, Ideation, and Planning | 0/3 | Not started | - |
 | 6. LinkedIn and Multi-Platform | 0/2 | Not started | - |
 | 7. Team Coordination and Notifications | 0/3 | Not started | - |
