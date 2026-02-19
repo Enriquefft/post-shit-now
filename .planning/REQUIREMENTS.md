@@ -180,7 +180,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TEAM-04**: Postgres RLS enforces per-user data isolation in Company Hub
 - [ ] **TEAM-05**: Company posts follow approval workflow: submit → notify approvers → approve/reject → schedule/cancel
 - [ ] **TEAM-06**: `/psn:approve` shows pending posts with calendar context and related ideas
-- [ ] **TEAM-07**: Team member leaving = delete connection file; personal data unaffected
+- [x] **TEAM-07**: Team member leaving = delete connection file; personal data unaffected
 - [ ] **TEAM-08**: `/psn:calendar` merges Personal Hub + all connected Company Hubs into unified view
 - [ ] **TEAM-09**: Calendar slot claiming with Company Hub conflict checking
 
@@ -200,8 +200,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **CONFIG-02**: Strategy.yaml auto-generated from voice interview with content pillars, platform config, posting frequency
 - [x] **CONFIG-03**: `/psn:config` allows manual overrides for notifications, engagement, language, frequency, pillars, voice tweaks
 - [ ] **CONFIG-04**: BYOK model: user provides all API keys (platform APIs, image gen, intelligence, Trigger.dev, Neon)
-- [ ] **CONFIG-05**: `/psn:setup join` connects to Company Hub; `/psn:setup hub` creates Company Hub
-- [ ] **CONFIG-06**: `/psn:setup disconnect` cleanly removes a Company Hub connection
+- [x] **CONFIG-05**: `/psn:setup join` connects to Company Hub; `/psn:setup hub` creates Company Hub
+- [x] **CONFIG-06**: `/psn:setup disconnect` cleanly removes a Company Hub connection
 - [ ] **CONFIG-07**: Database migrations run automatically during setup via Drizzle Kit
 
 ### Content Management
@@ -371,7 +371,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEAM-04 | Phase 7 | Complete |
 | TEAM-05 | Phase 7 | Pending |
 | TEAM-06 | Phase 7 | Pending |
-| TEAM-07 | Phase 7 | Pending |
+| TEAM-07 | Phase 7 | Complete |
 | TEAM-08 | Phase 7 | Pending |
 | TEAM-09 | Phase 7 | Pending |
 | NOTIF-01 | Phase 7 | Pending |
@@ -384,8 +384,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NOTIF-08 | Phase 7 | Pending |
 | LEARN-09 | Phase 7 | Complete |
 | SERIES-07 | Phase 7 | Complete |
-| CONFIG-05 | Phase 7 | Pending |
-| CONFIG-06 | Phase 7 | Pending |
+| CONFIG-05 | Phase 7 | Complete |
+| CONFIG-06 | Phase 7 | Complete |
 | AUTH-03 | Phase 8 | Pending |
 | AUTH-04 | Phase 8 | Pending |
 | PLAT-03 | Phase 8 | Pending |

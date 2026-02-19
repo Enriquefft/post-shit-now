@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 7 of 8 (Team Coordination and Notifications)
-Plan: 1 of 5 in current phase
+Plan: 2 of 5 in current phase
 Status: Executing
-Last activity: 2026-02-19 - Completed 07-01 (schema and types for team coordination)
+Last activity: 2026-02-19 - Completed 07-02 (Company Hub and team management)
 
 Progress: [████████░░] 80%
 
@@ -40,6 +40,7 @@ Progress: [████████░░] 80%
 
 *Updated after each plan completion*
 | Phase 07 P01 | 2min | 2 tasks | 5 files |
+| Phase 07 P02 | 4min | 4 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -151,6 +152,10 @@ Recent decisions affecting current work:
 - [Phase 07]: [07-01]: inviteCodes has no RLS -- validated server-side only
 - [Phase 07]: [07-01]: Approval columns nullable on posts (null=personal, non-null=company)
 - [Phase 07]: [07-01]: pushEnabled/digestEnabled as integer (0/1) for Postgres boolean-as-int pattern
+- [Phase 07]: [07-02]: Invite bundle as base64 JSON avoids central registry -- admin shares single string
+- [Phase 07]: [07-02]: Soft-delete for team member removal (leftAt) preserves content attribution
+- [Phase 07]: [07-02]: Last-admin guard prevents demoting the only admin in a hub
+- [Phase 07]: [07-02]: Disconnect continues removing local file even if server-side fails (graceful)
 
 ### Pending Todos
 
@@ -172,5 +177,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 07-01-PLAN.md
-Resume file: .planning/phases/07-team-coordination-and-notifications/07-02-PLAN.md
+Stopped at: Completed 07-02-PLAN.md
+Resume file: .planning/phases/07-team-coordination-and-notifications/07-03-PLAN.md
