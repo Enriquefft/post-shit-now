@@ -4,10 +4,15 @@ import { setupDatabase } from "./setup-db.ts";
 import { setupDisconnect } from "./setup-disconnect.ts";
 import { setupJoinHub } from "./setup-join.ts";
 import { setupKeys } from "./setup-keys.ts";
+import { setupInstagramOAuth } from "./setup-instagram-oauth.ts";
 import { setupLinkedInOAuth } from "./setup-linkedin-oauth.ts";
+import { setupTikTokOAuth } from "./setup-tiktok-oauth.ts";
 import { setupTrigger } from "./setup-trigger.ts";
 import { setupXOAuth } from "./setup-x-oauth.ts";
 import { validateAll } from "./validate.ts";
+import { getHubConnection, getHubDb } from "../team/hub.ts";
+import { generateInviteCode } from "../team/invite.ts";
+import { isAdmin, listTeamMembers, promoteToAdmin } from "../team/members.ts";
 
 interface SetupOutput {
 	steps: SetupResult[];
@@ -17,12 +22,16 @@ interface SetupOutput {
 
 // ─── Subcommand Types ──────────────────────────────────────────────────────
 
-type SetupSubcommand = "hub" | "join" | "disconnect";
+type SetupSubcommand = "hub" | "join" | "disconnect" | "invite" | "team" | "promote" | "notifications";
 
 interface SubcommandParams {
 	hub: { slug: string; displayName: string; adminUserId?: string };
 	join: { inviteBundle: string; userId?: string; displayName?: string; email?: string };
 	disconnect: { slug: string; userId?: string };
+	invite: { slug: string; userId?: string };
+	team: { slug: string };
+	promote: { slug: string; userId: string; targetUserId: string };
+	notifications: { provider?: string; phone?: string };
 }
 
 /**
@@ -126,7 +135,27 @@ export async function runSetup(configDir = "config"): Promise<SetupOutput> {
 		return { steps, validation: null, completed: false };
 	}
 
-	// Step 7: Validate all connections
+	// Step 7: Instagram OAuth setup (optional — skips if no credentials)
+	const instagramOAuthResult = await setupInstagramOAuth(configDir);
+	steps.push(instagramOAuthResult);
+	if (instagramOAuthResult.status === "error") {
+		return { steps, validation: null, completed: false };
+	}
+	if (instagramOAuthResult.status === "need_input") {
+		return { steps, validation: null, completed: false };
+	}
+
+	// Step 8: TikTok OAuth setup (optional — skips if no credentials)
+	const tiktokOAuthResult = await setupTikTokOAuth(configDir);
+	steps.push(tiktokOAuthResult);
+	if (tiktokOAuthResult.status === "error") {
+		return { steps, validation: null, completed: false };
+	}
+	if (tiktokOAuthResult.status === "need_input") {
+		return { steps, validation: null, completed: false };
+	}
+
+	// Step 9: Validate all connections
 	const validation = await validateAll(configDir);
 	steps.push({
 		step: "validation",

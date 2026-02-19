@@ -2,10 +2,15 @@ import { logger, schedules } from "@trigger.dev/sdk";
 import { sql } from "drizzle-orm";
 import { createHubConnection } from "../core/db/connection.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
+import { refreshInstagramToken } from "../platforms/instagram/oauth.ts";
 import {
 	createLinkedInOAuthClient,
 	refreshAccessToken as refreshLinkedInToken,
 } from "../platforms/linkedin/oauth.ts";
+import {
+	createTikTokOAuthClient,
+	refreshTikTokToken,
+} from "../platforms/tiktok/oauth.ts";
 import { createXOAuthClient, refreshAccessToken as refreshXToken } from "../platforms/x/oauth.ts";
 
 export interface TokenRefresherResult {
@@ -62,10 +67,11 @@ export const tokenRefresher = schedules.task({
 		const queryResult = await db.execute(sql`
 			SELECT id, user_id, platform, access_token, refresh_token, expires_at, metadata
 			FROM oauth_tokens
-			WHERE refresh_token IS NOT NULL
-			  AND (
-			    (platform = 'x' AND expires_at < NOW() + INTERVAL '1 day')
-			    OR (platform = 'linkedin' AND expires_at < NOW() + INTERVAL '7 days')
+			WHERE (
+			    (platform = 'x' AND refresh_token IS NOT NULL AND expires_at < NOW() + INTERVAL '1 day')
+			    OR (platform = 'linkedin' AND refresh_token IS NOT NULL AND expires_at < NOW() + INTERVAL '7 days')
+			    OR (platform = 'instagram' AND expires_at < NOW() + INTERVAL '7 days')
+			    OR (platform = 'tiktok' AND refresh_token IS NOT NULL AND expires_at < NOW() + INTERVAL '1 day')
 			  )
 			FOR UPDATE SKIP LOCKED
 			LIMIT 10
@@ -77,16 +83,19 @@ export const tokenRefresher = schedules.task({
 		// Build platform-specific OAuth clients lazily
 		let xOAuthClient: ReturnType<typeof createXOAuthClient> | null = null;
 		let linkedInOAuthClient: ReturnType<typeof createLinkedInOAuthClient> | null = null;
+		let tikTokOAuthClient: ReturnType<typeof createTikTokOAuthClient> | null = null;
 
 		for (const token of rows) {
 			try {
-				if (!token.refresh_token) {
+				// Instagram uses access token refresh (no refresh token needed)
+				// X and LinkedIn require a refresh token
+				if (!token.refresh_token && token.platform !== "instagram") {
 					result.skipped++;
 					continue;
 				}
 
-				// Decrypt the stored refresh token
-				const decryptedRefresh = decrypt(token.refresh_token, encKey);
+				// Decrypt the stored refresh token (for X and LinkedIn)
+				const decryptedRefresh = token.refresh_token ? decrypt(token.refresh_token, encKey) : "";
 
 				let newTokens: { accessToken: string; refreshToken: string; expiresAt: Date };
 
@@ -137,6 +146,46 @@ export const tokenRefresher = schedules.task({
 
 					// Progressive warning logging for LinkedIn tokens
 					logLinkedInExpiryWarnings(token);
+				} else if (token.platform === "tiktok") {
+					// ─── TikTok Token Refresh ────────────────────────────────
+					const clientKey = process.env.TIKTOK_CLIENT_KEY;
+					const clientSecret = process.env.TIKTOK_CLIENT_SECRET;
+					if (!clientKey || !clientSecret) {
+						logger.warn("TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET not set — skipping TikTok token", {
+							tokenId: token.id,
+						});
+						result.skipped++;
+						continue;
+					}
+
+					if (!tikTokOAuthClient) {
+						tikTokOAuthClient = createTikTokOAuthClient({
+							clientKey,
+							clientSecret,
+							callbackUrl: "https://example.com/callback",
+						});
+					}
+
+					// CRITICAL: TikTok rotates refresh tokens on each refresh — store the new one
+					newTokens = await refreshTikTokToken(tikTokOAuthClient, decryptedRefresh);
+				} else if (token.platform === "instagram") {
+					// ─── Instagram Token Refresh ─────────────────────────────
+					// Instagram does NOT use refresh tokens — the access token itself is refreshed
+					// via the ig_refresh_token grant type. Decrypt the stored access token to refresh it.
+					const decryptedAccess = decrypt(token.access_token, encKey);
+
+					const igResult = await refreshInstagramToken(decryptedAccess);
+
+					// Instagram refresh returns only an access token (no refresh token)
+					const expiresAt = new Date(Date.now() + igResult.expiresIn * 1000);
+					newTokens = {
+						accessToken: igResult.accessToken,
+						refreshToken: "", // Instagram has no refresh token
+						expiresAt,
+					};
+
+					// Progressive warning logging (same pattern as LinkedIn)
+					logInstagramExpiryWarnings(token);
 				} else {
 					logger.warn("Unknown platform in token refresh", {
 						tokenId: token.id,
@@ -146,15 +195,17 @@ export const tokenRefresher = schedules.task({
 					continue;
 				}
 
-				// Encrypt BOTH new tokens for storage
+				// Encrypt new tokens for storage
 				const encryptedAccess = encrypt(newTokens.accessToken, encKey);
-				const encryptedRefresh = encrypt(newTokens.refreshToken, encKey);
+				const encryptedRefresh = newTokens.refreshToken
+					? encrypt(newTokens.refreshToken, encKey)
+					: null;
 
 				// Update the row atomically with new tokens
 				await db.execute(sql`
 					UPDATE oauth_tokens
 					SET access_token = ${encryptedAccess},
-					    refresh_token = ${encryptedRefresh},
+					    refresh_token = ${encryptedRefresh ?? token.refresh_token},
 					    expires_at = ${newTokens.expiresAt},
 					    updated_at = NOW(),
 					    metadata = jsonb_set(
@@ -219,6 +270,33 @@ export const tokenRefresher = schedules.task({
 		return result;
 	},
 });
+
+/**
+ * Log progressive warnings for Instagram tokens approaching expiry.
+ * Same pattern as LinkedIn — 60-day tokens with progressive warnings.
+ */
+function logInstagramExpiryWarnings(token: TokenRow): void {
+	if (!token.expires_at) return;
+
+	const now = new Date();
+	const expiresAt = new Date(token.expires_at);
+	const daysUntilExpiry = (expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+
+	const context = {
+		tokenId: token.id,
+		userId: token.user_id,
+		expiresAt: expiresAt.toISOString(),
+		daysUntilExpiry: Math.round(daysUntilExpiry),
+	};
+
+	if (daysUntilExpiry <= 1) {
+		logger.error("Instagram token expiring tomorrow — re-auth may be needed", context);
+	} else if (daysUntilExpiry <= 3) {
+		logger.warn("Instagram token expiring in 3 days — refresh recommended", context);
+	} else if (daysUntilExpiry <= 7) {
+		logger.info("Instagram token expiring in 7 days", context);
+	}
+}
 
 /**
  * Log progressive warnings for LinkedIn tokens approaching expiry.
