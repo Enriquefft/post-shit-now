@@ -1,5 +1,14 @@
 import { sql } from "drizzle-orm";
-import { jsonb, pgPolicy, pgRole, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+	integer,
+	jsonb,
+	pgPolicy,
+	pgRole,
+	pgTable,
+	text,
+	timestamp,
+	uuid,
+} from "drizzle-orm/pg-core";
 
 // Role for hub users — expected to exist in the database
 export const hubUser = pgRole("hub_user").existing();
@@ -27,6 +36,7 @@ export const oauthTokens = pgTable(
 		refreshToken: text("refresh_token"), // encrypted, nullable (not all platforms use refresh)
 		expiresAt: timestamp("expires_at", { withTimezone: true }),
 		scopes: text("scopes"),
+		metadata: jsonb("metadata").$type<Record<string, unknown>>(),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
@@ -52,6 +62,12 @@ export const posts = pgTable(
 		content: text("content").notNull(),
 		mediaUrls: jsonb("media_urls").$type<string[]>(),
 		status: text("status").notNull().default("draft"), // draft | scheduled | publishing | published | failed | retry
+		subStatus: text("sub_status"), // retry_1, rate_limited, media_uploading, etc.
+		parentPostId: text("parent_post_id"), // references parent post for thread tweets
+		threadPosition: integer("thread_position"), // position in thread (0-indexed)
+		triggerRunId: text("trigger_run_id"), // Trigger.dev run ID for cancel/reschedule
+		failReason: text("fail_reason"), // human-readable failure reason
+		platformPostIds: jsonb("platform_post_ids").$type<string[]>(), // array of platform-side post IDs (for threads)
 		scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
 		publishedAt: timestamp("published_at", { withTimezone: true }),
 		externalPostId: text("external_post_id"),
