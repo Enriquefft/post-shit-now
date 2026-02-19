@@ -396,6 +396,11 @@ export const trends = pgTable(
 			.notNull(),
 	},
 	(table) => [
+		uniqueIndex("trends_user_title_source_idx").on(
+			table.userId,
+			table.title,
+			table.source,
+		),
 		pgPolicy("trends_isolation", {
 			as: "permissive",
 			to: hubUser,
