@@ -271,3 +271,197 @@ export const strategyAdjustments = pgTable(
 		}),
 	],
 );
+
+// ─── Ideas ────────────────────────────────────────────────────────────────
+
+export const ideas = pgTable(
+	"ideas",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		hubId: text("hub_id"), // null = personal hub
+		title: text("title").notNull(),
+		notes: text("notes"),
+		tags: jsonb("tags").$type<string[]>(),
+		status: text("status").notNull().default("spark"), // spark | seed | ready | claimed | developed | used | killed
+		urgency: text("urgency").notNull().default("evergreen"), // timely | seasonal | evergreen
+		pillar: text("pillar"),
+		platform: text("platform"),
+		format: text("format"),
+		claimedBy: text("claimed_by"),
+		killReason: text("kill_reason"),
+		expiresAt: timestamp("expires_at", { withTimezone: true }),
+		lastTouchedAt: timestamp("last_touched_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		sourceType: text("source_type"), // trend | capture | plan | remix | recycle
+		sourceId: text("source_id"),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [
+		pgPolicy("ideas_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── Series ───────────────────────────────────────────────────────────────
+
+export interface SeriesTemplate {
+	formatStructure: string;
+	sections: string[];
+	introPattern?: string;
+	outroPattern?: string;
+	visualStyle?: string;
+	hashtags?: string[];
+}
+
+export const series = pgTable(
+	"series",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		hubId: text("hub_id"),
+		name: text("name").notNull(),
+		description: text("description"),
+		platform: text("platform").notNull(),
+		template: jsonb("template").$type<SeriesTemplate>(),
+		cadence: text("cadence").notNull(), // weekly | biweekly | monthly | custom
+		cadenceCustomDays: integer("cadence_custom_days"),
+		trackingMode: text("tracking_mode").notNull().default("auto-increment"), // none | auto-increment | custom
+		trackingFormat: text("tracking_format"), // e.g., "Season {s}, Ep {e}"
+		episodeCount: integer("episode_count").notNull().default(0),
+		status: text("status").notNull().default("active"), // active | paused | retired
+		lastPublishedAt: timestamp("last_published_at", { withTimezone: true }),
+		pillar: text("pillar"),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [
+		pgPolicy("series_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── Trends ───────────────────────────────────────────────────────────────
+
+export const trends = pgTable(
+	"trends",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		title: text("title").notNull(),
+		url: text("url"),
+		source: text("source").notNull(), // hackernews | reddit | producthunt | google-trends | rss | x
+		sourceScore: integer("source_score"),
+		pillarRelevance: jsonb("pillar_relevance").$type<Record<string, number>>(),
+		overallScore: integer("overall_score").notNull().default(0),
+		suggestedAngles: jsonb("suggested_angles").$type<string[]>(),
+		detectedAt: timestamp("detected_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		expiresAt: timestamp("expires_at", { withTimezone: true }),
+		usedInIdeaId: text("used_in_idea_id"),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [
+		pgPolicy("trends_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── Weekly Plans ─────────────────────────────────────────────────────────
+
+export interface PlanSlot {
+	day: string;
+	platform: string;
+	topic: string;
+	format: string;
+	pillar: string;
+	language: string;
+	seriesId?: string;
+	seriesEpisode?: number;
+	ideaId?: string;
+	postId?: string;
+	status: string;
+}
+
+export const weeklyPlans = pgTable(
+	"weekly_plans",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		weekStart: timestamp("week_start", { withTimezone: true }).notNull(),
+		weekEnd: timestamp("week_end", { withTimezone: true }).notNull(),
+		slots: jsonb("slots").$type<PlanSlot[]>(),
+		totalSlots: integer("total_slots").notNull().default(0),
+		completedSlots: integer("completed_slots").notNull().default(0),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [
+		pgPolicy("weekly_plans_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── Monitored Accounts ───────────────────────────────────────────────────
+
+export const monitoredAccounts = pgTable(
+	"monitored_accounts",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		platform: text("platform").notNull(),
+		accountHandle: text("account_handle").notNull(),
+		accountName: text("account_name"),
+		lastCheckedAt: timestamp("last_checked_at", { withTimezone: true }),
+		lastPostCount: integer("last_post_count"),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [
+		pgPolicy("monitored_accounts_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
