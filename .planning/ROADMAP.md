@@ -61,12 +61,12 @@ Plans:
 ### Phase 3: Voice Profiling and Content Generation
 **Goal**: User can generate posts in their authentic voice with image support, review and edit them, and manage drafts
 **Depends on**: Phase 2
-**Requirements**: VOICE-01, VOICE-02, VOICE-03, VOICE-04, VOICE-05, VOICE-06, VOICE-07, VOICE-08, VOICE-09, VOICE-10, POST-01, POST-05, POST-06, POST-09, POST-10, POST-11, POST-12, POST-14, IMG-01, IMG-02, IMG-03, IMG-04, IMG-05, CONTENT-01, CONTENT-02, CONFIG-02, CONFIG-03
+**Requirements**: VOICE-01, VOICE-02, VOICE-03, VOICE-04, VOICE-05, VOICE-06, VOICE-07, VOICE-08, VOICE-09, VOICE-10, POST-01, POST-05, POST-06, POST-09, POST-10, POST-11, POST-12, POST-14, IMG-01, IMG-02, IMG-03, IMG-04, IMG-05, VID-01, VID-02, VID-03, VID-04, VID-05, CONTENT-01, CONTENT-02, CONFIG-02, CONFIG-03
 **Success Criteria** (what must be TRUE):
   1. User can complete a voice profiling interview (or shorter blank-slate version) and get a personal.yaml voice profile with language-specific sections
   2. User can import existing content (X history, LinkedIn posts, blogs) to bootstrap voice patterns
   3. User can generate a post for X via `/psn:post` that sounds like them, not like generic AI, with format picked per platform
-  4. User can generate images using GPT Image, Ideogram 3, or Flux 2, with Claude picking the best tool and sharp processing for platform specs
+  4. User can generate images using GPT Image, Ideogram 3, or Flux 2, and generate videos using Kling, Runway, or Pika, with Claude picking the best tool for the job and media processed to meet platform specs
   5. Every post goes through human review, edits are tracked, and drafts are stored locally with auto-pruning
 **Plans**: TBD
 
