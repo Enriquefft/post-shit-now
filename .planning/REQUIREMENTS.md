@@ -134,12 +134,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Content Series
 
-- [ ] **SERIES-01**: User can create a content series via `/psn:series create` with format, cadence, branding
+- [x] **SERIES-01**: User can create a content series via `/psn:series create` with format, cadence, branding
 - [x] **SERIES-02**: Series have YAML config defining format structure, platform, cadence, and branding
-- [ ] **SERIES-03**: Series installments auto-slot into weekly plans and surface in `/psn:post`
-- [ ] **SERIES-04**: User can pause, resume, and retire series via `/psn:series`
-- [ ] **SERIES-05**: Per-series analytics tracked separately in `/psn:review`
-- [ ] **SERIES-06**: System suggests formalizing as series when it detects recurring post patterns
+- [x] **SERIES-03**: Series installments auto-slot into weekly plans and surface in `/psn:post`
+- [x] **SERIES-04**: User can pause, resume, and retire series via `/psn:series`
+- [x] **SERIES-05**: Per-series analytics tracked separately in `/psn:review`
+- [x] **SERIES-06**: System suggests formalizing as series when it detects recurring post patterns
 - [ ] **SERIES-07**: Company-scoped series in Company Hub with contributor rotation support
 
 ### Intelligence
@@ -348,12 +348,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLAN-08 | Phase 5 | Pending |
 | PLAN-09 | Phase 5 | Pending |
 | PLAN-10 | Phase 5 | Pending |
-| SERIES-01 | Phase 5 | Pending |
+| SERIES-01 | Phase 5 | Complete |
 | SERIES-02 | Phase 5 | Complete |
-| SERIES-03 | Phase 5 | Pending |
-| SERIES-04 | Phase 5 | Pending |
-| SERIES-05 | Phase 5 | Pending |
-| SERIES-06 | Phase 5 | Pending |
+| SERIES-03 | Phase 5 | Complete |
+| SERIES-04 | Phase 5 | Complete |
+| SERIES-05 | Phase 5 | Complete |
+| SERIES-06 | Phase 5 | Complete |
 | POST-07 | Phase 5 | Complete |
 | POST-08 | Phase 5 | Pending |
 | ANLYT-10 | Phase 5 | Complete |

@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 5 of 8 (Intelligence, Ideation, and Planning)
-Plan: 4 of 6 in current phase
+Plan: 5 of 6 in current phase
 Status: Executing Phase 5
-Last activity: 2026-02-19 - Completed 05-04 (Scheduled tasks: trend collector, poller, idea expiry)
+Last activity: 2026-02-19 - Completed 05-05 (Content series system with CRUD, episodes, detection, CLI)
 
-Progress: [██████░░░░] 63%
+Progress: [██████░░░░] 65%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
+- Total plans completed: 22
 - Average duration: ~6min
-- Total execution time: ~2h 9min
+- Total execution time: ~2h 12min
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [██████░░░░] 63%
 | 2 | 4/4 | ~12min | ~3min |
 | 3 | 7/7 | ~21min | ~3min |
 | 4 | 5/5 | ~25min | ~5min |
-| 5 | 4/6 | ~10min | ~3min |
+| 5 | 5/6 | ~13min | ~3min |
 
 **Recent Trend:**
-- Last 5 plans: 04-05 (~4min), 05-01 (~2min), 05-02 (~2min), 05-03 (~4min), 05-04 (~2min)
+- Last 5 plans: 05-01 (~2min), 05-02 (~2min), 05-03 (~4min), 05-04 (~2min), 05-05 (~3min)
 - Trend: Phase 5 plans executing efficiently
 
 *Updated after each plan completion*
@@ -124,6 +124,10 @@ Recent decisions affecting current work:
 - [05-04]: ON CONFLICT updates score only if new score is higher (GREATEST)
 - [05-04]: Poller does NOT prune old trends -- daily collector handles that
 - [05-04]: Lightweight YAML parsing reused from collector pattern for pillar loading
+- [05-05]: SeriesTemplate re-exported from schema.ts as single source of truth
+- [05-05]: Pattern detection uses pure SQL+JS aggregation, no ML
+- [05-05]: Custom tracking format supports {e} for episode and {s} for season
+- [05-05]: Retired status is terminal -- cannot un-retire a series
 
 ### Pending Todos
 
@@ -145,5 +149,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 05-04-PLAN.md
+Stopped at: Completed 05-05-PLAN.md
 Resume file: None
