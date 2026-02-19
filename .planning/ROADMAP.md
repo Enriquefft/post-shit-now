@@ -108,12 +108,15 @@ Plans:
   3. User can run `/psn:plan` for weekly batch ideation showing calendar state, generating ideas mixed with ready ideas from the bank, and scheduling a full week
   4. User can create content series with cadence and format templates that auto-slot into weekly plans
   5. User can choose language (en/es/both) per post with bilingual posts independently crafted, not translated
-**Plans**: TBD
+**Plans**: 6 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
-- [ ] 05-03: TBD
+- [ ] 05-01-PLAN.md — DB schema (ideas, series, trends, weekly_plans, monitored_accounts) + posts/metrics extensions
+- [ ] 05-02-PLAN.md — Intelligence source adapters, scoring engine, search clients, competitive intelligence
+- [ ] 05-03-PLAN.md — Idea bank with capture, lifecycle state machine, /psn:capture command
+- [ ] 05-04-PLAN.md — Trigger.dev tasks (trend collector, breaking news poller, idea expiry)
+- [ ] 05-05-PLAN.md — Content series management, episode tracking, pattern detection, /psn:series command
+- [ ] 05-06-PLAN.md — Weekly planning engine, content recycling/remixing, bilingual support, /psn:plan command
 
 ### Phase 6: LinkedIn and Multi-Platform
 **Goal**: User can post to LinkedIn in addition to X, with content adapted per platform and failures isolated
@@ -176,7 +179,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 2. X Platform Pipeline | 4/4 | Complete | 2026-02-19 |
 | 3. Voice Profiling and Content Generation | 7/7 | Complete | 2026-02-19 |
 | 4. Analytics and Learning Loop | 5/5 | Complete | 2026-02-19 |
-| 5. Intelligence, Ideation, and Planning | 0/3 | Not started | - |
+| 5. Intelligence, Ideation, and Planning | 0/6 | Not started | - |
 | 6. LinkedIn and Multi-Platform | 0/2 | Not started | - |
 | 7. Team Coordination and Notifications | 0/3 | Not started | - |
 | 8. Instagram, TikTok, and Engagement | 0/3 | Not started | - |
