@@ -1,11 +1,6 @@
-import { and, eq, gt, sql } from "drizzle-orm";
+import { and, eq, gt } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
-import {
-	editHistory,
-	type EditPattern,
-	postMetrics,
-	preferenceModel,
-} from "../core/db/schema.ts";
+import { type EditPattern, editHistory, postMetrics, preferenceModel } from "../core/db/schema.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -88,10 +83,7 @@ export async function updatePreferenceModel(
 
 const MIN_POSTS_FOR_DIMENSION = 3;
 
-export async function computeWeeklyUpdate(
-	db: HubDb,
-	userId: string,
-): Promise<WeeklyUpdateSummary> {
+export async function computeWeeklyUpdate(db: HubDb, userId: string): Promise<WeeklyUpdateSummary> {
 	const summary: WeeklyUpdateSummary = {
 		formatsUpdated: false,
 		pillarsUpdated: false,
@@ -115,12 +107,7 @@ export async function computeWeeklyUpdate(
 	const metrics = await db
 		.select()
 		.from(postMetrics)
-		.where(
-			and(
-				eq(postMetrics.userId, userId),
-				gt(postMetrics.collectedAt, sevenDaysAgo),
-			),
-		);
+		.where(and(eq(postMetrics.userId, userId), gt(postMetrics.collectedAt, sevenDaysAgo)));
 
 	if (metrics.length > 0) {
 		// Group by format
@@ -192,10 +179,7 @@ export async function computeWeeklyUpdate(
 		}> = [];
 		for (const [key, scores] of byTime) {
 			if (scores.length >= MIN_POSTS_FOR_DIMENSION) {
-				const [hour, dayOfWeek] = key.split("-").map(Number) as [
-					number,
-					number,
-				];
+				const [hour, dayOfWeek] = key.split("-").map(Number) as [number, number];
 				const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
 				bestPostingTimes.push({
 					hour,
@@ -216,12 +200,7 @@ export async function computeWeeklyUpdate(
 	const edits = await db
 		.select()
 		.from(editHistory)
-		.where(
-			and(
-				eq(editHistory.userId, userId),
-				gt(editHistory.createdAt, sevenDaysAgo),
-			),
-		);
+		.where(and(eq(editHistory.userId, userId), gt(editHistory.createdAt, sevenDaysAgo)));
 
 	if (edits.length > 0) {
 		// Average edit ratio
@@ -234,16 +213,12 @@ export async function computeWeeklyUpdate(
 			const patterns = edit.editPatterns as EditPattern[] | null;
 			if (patterns) {
 				for (const p of patterns) {
-					patternCounts.set(
-						p.type,
-						(patternCounts.get(p.type) ?? 0) + p.count,
-					);
+					patternCounts.set(p.type, (patternCounts.get(p.type) ?? 0) + p.count);
 				}
 			}
 		}
 
-		const commonEditPatterns: Array<{ type: string; frequency: number }> =
-			[];
+		const commonEditPatterns: Array<{ type: string; frequency: number }> = [];
 		for (const [type, frequency] of patternCounts) {
 			commonEditPatterns.push({ type, frequency });
 		}
