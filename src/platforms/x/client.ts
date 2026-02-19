@@ -2,6 +2,8 @@ import type { ZodType } from "zod/v4";
 import {
 	RateLimitError,
 	type RateLimitInfo,
+	type TimelineResponse,
+	TimelineResponseSchema,
 	TweetResponseSchema,
 	type TweetsLookupResponse,
 	TweetsLookupResponseSchema,
@@ -182,6 +184,140 @@ export class XClient {
 		const endpoint = queryString ? `/2/users/me?${queryString}` : "/2/users/me";
 
 		return this.request(endpoint, { method: "GET" }, UserLookupResponseSchema);
+	}
+
+	/**
+	 * Get the authenticated user's recent tweets (reverse chronological timeline).
+	 * Used by intelligence layer to detect trending topics in user's network.
+	 */
+	async getTimeline(params?: {
+		maxResults?: number;
+		tweetFields?: string[];
+	}): Promise<{
+		data: Array<{
+			id: string;
+			text: string;
+			createdAt?: string;
+			publicMetrics?: {
+				likeCount: number;
+				retweetCount: number;
+				replyCount: number;
+				impressionCount: number;
+			};
+		}>;
+		rateLimit: RateLimitInfo;
+	}> {
+		// First get the user's ID
+		const { data: user } = await this.getMe();
+		const userId = user.data.id;
+
+		const queryParams = new URLSearchParams();
+		queryParams.set("max_results", String(params?.maxResults ?? 50));
+		if (params?.tweetFields) {
+			queryParams.set("tweet.fields", params.tweetFields.join(","));
+		}
+
+		const { data, rateLimit } = await this.request<TimelineResponse>(
+			`/2/users/${userId}/tweets?${queryParams.toString()}`,
+			{ method: "GET" },
+			TimelineResponseSchema,
+		);
+
+		return {
+			data: (data.data ?? []).map((tweet) => ({
+				id: tweet.id,
+				text: tweet.text,
+				createdAt: tweet.created_at,
+				publicMetrics: tweet.public_metrics
+					? {
+							likeCount: tweet.public_metrics.like_count,
+							retweetCount: tweet.public_metrics.retweet_count,
+							replyCount: tweet.public_metrics.reply_count,
+							impressionCount: tweet.public_metrics.impression_count,
+						}
+					: undefined,
+			})),
+			rateLimit,
+		};
+	}
+
+	/**
+	 * Look up a user by username.
+	 * Used by competitive intelligence to find monitored accounts.
+	 */
+	async getUserByUsername(
+		username: string,
+		fields?: { tweetFields?: string[] },
+	): Promise<{
+		data: { id: string; name: string; username: string };
+		rateLimit: RateLimitInfo;
+	}> {
+		const params = new URLSearchParams();
+		if (fields?.tweetFields) {
+			params.set("tweet.fields", fields.tweetFields.join(","));
+		}
+		const queryString = params.toString();
+		const endpoint = queryString
+			? `/2/users/by/username/${username}?${queryString}`
+			: `/2/users/by/username/${username}`;
+
+		const { data, rateLimit } = await this.request<{ data: { id: string; name: string; username: string } }>(
+			endpoint,
+			{ method: "GET" },
+		);
+
+		return { data: data.data, rateLimit };
+	}
+
+	/**
+	 * Get recent tweets by a specific user ID.
+	 * Used by competitive intelligence to monitor competitor accounts.
+	 */
+	async getUserTweets(
+		userId: string,
+		params?: { maxResults?: number; tweetFields?: string[] },
+	): Promise<{
+		data: Array<{
+			id: string;
+			text: string;
+			createdAt?: string;
+			publicMetrics?: {
+				likeCount: number;
+				retweetCount: number;
+				replyCount: number;
+				impressionCount: number;
+			};
+		}>;
+		rateLimit: RateLimitInfo;
+	}> {
+		const queryParams = new URLSearchParams();
+		queryParams.set("max_results", String(params?.maxResults ?? 10));
+		if (params?.tweetFields) {
+			queryParams.set("tweet.fields", params.tweetFields.join(","));
+		}
+
+		const { data, rateLimit } = await this.request<TimelineResponse>(
+			`/2/users/${userId}/tweets?${queryParams.toString()}`,
+			{ method: "GET" },
+			TimelineResponseSchema,
+		);
+
+		return {
+			data: (data.data ?? []).map((tweet) => ({
+				id: tweet.id,
+				text: tweet.text,
+				createdAt: tweet.created_at,
+				publicMetrics: tweet.public_metrics
+					? {
+							likeCount: tweet.public_metrics.like_count,
+							retweetCount: tweet.public_metrics.retweet_count,
+							replyCount: tweet.public_metrics.reply_count,
+							impressionCount: tweet.public_metrics.impression_count,
+						}
+					: undefined,
+			})),
+			rateLimit,
+		};
 	}
 
 	/**

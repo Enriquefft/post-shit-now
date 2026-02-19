@@ -100,6 +100,31 @@ export const UserLookupResponseSchema = z.object({
 
 export type UserLookupResponse = z.infer<typeof UserLookupResponseSchema>;
 
+// ─── Timeline Tweet Schema (GET /2/users/:id/tweets) ────────────────────────
+
+/** Tweet from timeline with optional metrics and created_at */
+export const TimelineTweetSchema = z.object({
+	id: z.string(),
+	text: z.string(),
+	created_at: z.string().optional(),
+	public_metrics: TweetPublicMetricsSchema.optional(),
+});
+
+export type TimelineTweet = z.infer<typeof TimelineTweetSchema>;
+
+/** Response from user tweets timeline endpoint */
+export const TimelineResponseSchema = z.object({
+	data: z.array(TimelineTweetSchema).default([]),
+	meta: z
+		.object({
+			result_count: z.number(),
+			next_token: z.string().optional(),
+		})
+		.optional(),
+});
+
+export type TimelineResponse = z.infer<typeof TimelineResponseSchema>;
+
 // ─── Rate Limit Types ───────────────────────────────────────────────────────
 
 export interface RateLimitInfo {
