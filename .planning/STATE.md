@@ -5,34 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
-**Current focus:** Phase 2 - X Platform Pipeline
+**Current focus:** Phase 2 complete - ready for Phase 3
 
 ## Current Position
 
-Phase: 2 of 8 (X Platform Pipeline)
-Plan: 3 of 4 in current phase
-Status: Completed 02-03 (X API Client & Token Refresher)
-Last activity: 2026-02-19 - Completed 02-03: X API client with rate limits, media upload, token refresh cron
+Phase: 2 of 8 (X Platform Pipeline) - COMPLETE
+Plan: 4 of 4 in current phase (all done)
+Status: Completed 02-04 (Post Scheduling & Publishing Pipeline)
+Last activity: 2026-02-19 - Completed 02-04: Full publish pipeline, post CLI, slash command, watchdog re-trigger
 
-Progress: [██░░░░░░░░] 22%
+Progress: [███░░░░░░░] 26%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: ~13min
-- Total execution time: ~1h 17min
+- Total plans completed: 7
+- Average duration: ~12min
+- Total execution time: ~1h 21min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 3/3 | ~60min | ~20min |
-| 2 | 3/4 | ~8min | ~3min |
+| 2 | 4/4 | ~12min | ~3min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (~15min), 01-03 (~10min), 02-01 (~3min), 02-02 (~3min), 02-03 (~2min)
-- Trend: Accelerating (API client + cron tasks fast with clear specs)
+- Last 5 plans: 01-03 (~10min), 02-01 (~3min), 02-02 (~3min), 02-03 (~2min), 02-04 (~4min)
+- Trend: Consistently fast (clear specs + existing patterns)
 
 *Updated after each plan completion*
 
@@ -59,6 +59,10 @@ Recent decisions affecting current work:
 - [02-03]: Raw fetch over SDK for X API client — minimal dependencies, full control over rate limit headers
 - [02-03]: Token refresh at 1-day-before-expiry window catches all X tokens (2hr lifetime)
 - [02-03]: jsonb_set for metadata updates preserves existing metadata fields
+- [02-04]: Thread content stored as JSON string array in posts.content column
+- [02-04]: Rate limit backoff uses Trigger.dev wait.until() for zero compute cost
+- [02-04]: Partial thread failures tracked in metadata.threadProgress for resume on retry
+- [02-04]: Watchdog max 3 retries before marking failed (SCHED-04 compliance)
 
 ### Pending Todos
 
@@ -81,5 +85,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 02-03-PLAN.md (X API client, media upload, token refresher)
+Stopped at: Completed 02-04-PLAN.md (Post scheduling & publishing pipeline - Phase 2 complete)
 Resume file: None

@@ -60,11 +60,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Scheduling
 
-- [ ] **SCHED-01**: User can schedule a post for a specific date and time
-- [ ] **SCHED-02**: Post scheduler task publishes content at scheduled time via Trigger.dev delayed run
+- [x] **SCHED-01**: User can schedule a post for a specific date and time
+- [x] **SCHED-02**: Post scheduler task publishes content at scheduled time via Trigger.dev delayed run
 - [x] **SCHED-03**: Scheduler handles multi-step media upload (register → upload → attach) per platform
-- [ ] **SCHED-04**: Scheduler retries 3x with exponential backoff on failure; respects platform rate limit windows
-- [ ] **SCHED-05**: Failed posts notify the user and are tagged `status:failed`
+- [x] **SCHED-04**: Scheduler retries 3x with exponential backoff on failure; respects platform rate limit windows
+- [x] **SCHED-05**: Failed posts notify the user and are tagged `status:failed`
 - [ ] **SCHED-06**: Personal posts write to Personal Hub content queue; company posts write to Company Hub
 
 ### Image Generation
@@ -210,7 +210,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **CONTENT-02**: Generated media stored in `content/media/` with auto-pruning 7 days after posting
 - [ ] **CONTENT-03**: Content remixing: system suggests re-angling high-performing content for different platforms
 - [ ] **CONTENT-04**: Content recycling: system surfaces past top performers with fresh angles during `/psn:plan`
-- [ ] **CONTENT-05**: Content queue in Hub DB `posts` table is source of truth for scheduled/published posts
+- [x] **CONTENT-05**: Content queue in Hub DB `posts` table is source of truth for scheduled/published posts
 
 ## v2 Requirements
 
@@ -270,12 +270,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-08 | Phase 2 | Complete |
 | PLAT-01 | Phase 2 | Complete |
 | PLAT-05 | Phase 2 | Complete |
-| SCHED-01 | Phase 2 | Pending |
-| SCHED-02 | Phase 2 | Pending |
+| SCHED-01 | Phase 2 | Complete |
+| SCHED-02 | Phase 2 | Complete |
 | SCHED-03 | Phase 2 | Complete |
-| SCHED-04 | Phase 2 | Pending |
-| SCHED-05 | Phase 2 | Pending |
-| CONTENT-05 | Phase 2 | Pending |
+| SCHED-04 | Phase 2 | Complete |
+| SCHED-05 | Phase 2 | Complete |
+| CONTENT-05 | Phase 2 | Complete |
 | VOICE-01 | Phase 3 | Pending |
 | VOICE-02 | Phase 3 | Pending |
 | VOICE-03 | Phase 3 | Pending |
