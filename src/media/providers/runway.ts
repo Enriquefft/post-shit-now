@@ -1,0 +1,121 @@
+import type { GeneratedVideo, VideoGenParams, VideoProvider } from "../video-gen.ts";
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+type RunwayRatio = "1280:720" | "720:1280" | "960:960";
+
+function mapAspectRatio(aspectRatio?: string): RunwayRatio {
+	switch (aspectRatio) {
+		case "9:16":
+			return "720:1280";
+		case "1:1":
+			return "960:960";
+		default:
+			return "1280:720";
+	}
+}
+
+function clampDuration(seconds: number): number {
+	return Math.min(10, Math.max(2, seconds));
+}
+
+async function downloadToBuffer(url: string): Promise<Buffer> {
+	const response = await fetch(url);
+	if (!response.ok) {
+		throw new Error(`Failed to download video: ${response.status} ${response.statusText}`);
+	}
+	const arrayBuffer = await response.arrayBuffer();
+	return Buffer.from(arrayBuffer);
+}
+
+// ─── Provider ────────────────────────────────────────────────────────────────
+
+export const runwayProvider: VideoProvider = {
+	name: "runway",
+	strengths: ["stylized", "cinematic", "image-to-video", "consistent-characters"],
+	supportedModes: ["text-to-video", "image-to-video"],
+
+	async generate(params: VideoGenParams): Promise<GeneratedVideo> {
+		const apiSecret = process.env.RUNWAYML_API_SECRET;
+		if (!apiSecret) {
+			throw new Error(
+				"RUNWAYML_API_SECRET environment variable is required for Runway video generation",
+			);
+		}
+
+		const { default: RunwayML } = await import("@runwayml/sdk");
+		const client = new RunwayML({ apiKey: apiSecret });
+
+		const ratio = mapAspectRatio(params.aspectRatio);
+		const duration = clampDuration(params.duration);
+
+		try {
+			let taskResult: { output: string[] };
+
+			if (params.mode === "image-to-video" && params.sourceImage) {
+				// Gen4 Turbo for image-to-video
+				taskResult = await client.imageToVideo
+					.create({
+						model: "gen4_turbo",
+						promptImage: params.sourceImage,
+						promptText: params.prompt,
+						ratio,
+						duration,
+					})
+					.waitForTaskOutput({ timeout: 300000 });
+			} else {
+				// Veo 3.1 for text-to-video (Runway's current text-to-video model)
+				const t2vRatio = mapT2VRatio(params.aspectRatio);
+				taskResult = await client.textToVideo
+					.create({
+						model: "veo3.1",
+						promptText: params.prompt,
+						ratio: t2vRatio,
+						duration: mapT2VDuration(duration),
+					})
+					.waitForTaskOutput({ timeout: 300000 });
+			}
+
+			const videoUrl = taskResult.output[0];
+			if (!videoUrl) {
+				throw new Error("Runway returned no video output");
+			}
+
+			const buffer = await downloadToBuffer(videoUrl);
+
+			return {
+				url: videoUrl,
+				buffer,
+				mimeType: "video/mp4",
+				duration,
+				provider: "runway",
+				hasAudio: false,
+			};
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err);
+			throw new Error(`Runway video generation failed: ${message}`);
+		}
+	},
+};
+
+// ─── Text-to-Video specific mappings ─────────────────────────────────────────
+
+type Veo31Ratio = "1280:720" | "720:1280" | "1080:1920" | "1920:1080";
+
+function mapT2VRatio(aspectRatio?: string): Veo31Ratio {
+	switch (aspectRatio) {
+		case "9:16":
+			return "720:1280";
+		case "1:1":
+			// Veo 3.1 doesn't support 1:1, default to landscape
+			return "1280:720";
+		default:
+			return "1280:720";
+	}
+}
+
+function mapT2VDuration(seconds: number): 4 | 6 | 8 {
+	if (seconds <= 4) return 4;
+	if (seconds <= 6) return 6;
+	return 8;
+}
