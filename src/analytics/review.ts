@@ -2,16 +2,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { and, eq, gt, lte } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
-import { postMetrics, posts, preferenceModel } from "../core/db/schema.ts";
-import {
-	type StrategyAdjustment,
-	applyAutoAdjustments,
-	computeAdjustments,
-	getRecentChangelog,
-} from "../learning/adjustments.ts";
-import { type FeedbackMoment, detectFeedbackMoments } from "../learning/feedback.ts";
-import { getPreferenceModel, computeWeeklyUpdate } from "../learning/preference-model.ts";
-import { type FatigueResult, detectTopicFatigue } from "./fatigue.ts";
+import { postMetrics, posts } from "../core/db/schema.ts";
+import { getRecentChangelog, type StrategyAdjustment } from "../learning/adjustments.ts";
+import { detectFeedbackMoments, type FeedbackMoment } from "../learning/feedback.ts";
+import { computeWeeklyUpdate, getPreferenceModel } from "../learning/preference-model.ts";
+import { detectTopicFatigue, type FatigueResult } from "./fatigue.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -174,19 +169,22 @@ export async function generateWeeklyReview(
 		return toDetail(row, analysis);
 	});
 
-	const bottom3 = sorted.slice(-3).reverse().map((row) => {
-		const issues: string[] = [];
-		if (row.metric.impressionCount < (avgScore > 0 ? avgScore / 2 : 100))
-			issues.push("low impressions");
-		if (row.metric.engagementRateBps < 50) issues.push("low engagement rate");
-		if (row.metric.bookmarkCount === 0 && row.metric.retweetCount === 0)
-			issues.push("no saves or shares");
-		const analysis =
-			issues.length > 0
-				? `Underperformed: ${issues.join(", ")}.`
-				: `Below average with score ${row.metric.engagementScore}.`;
-		return toDetail(row, analysis);
-	});
+	const bottom3 = sorted
+		.slice(-3)
+		.reverse()
+		.map((row) => {
+			const issues: string[] = [];
+			if (row.metric.impressionCount < (avgScore > 0 ? avgScore / 2 : 100))
+				issues.push("low impressions");
+			if (row.metric.engagementRateBps < 50) issues.push("low engagement rate");
+			if (row.metric.bookmarkCount === 0 && row.metric.retweetCount === 0)
+				issues.push("no saves or shares");
+			const analysis =
+				issues.length > 0
+					? `Underperformed: ${issues.join(", ")}.`
+					: `Below average with score ${row.metric.engagementScore}.`;
+			return toDetail(row, analysis);
+		});
 
 	// Avoid overlap between top and bottom when few posts
 	const topIds = new Set(top3.map((p) => p.postId));
@@ -420,8 +418,7 @@ function generateRecommendations(
 	pillarBreakdown: Array<{ pillar: string; avgScore: number; postCount: number }>,
 	avgScore: number,
 ): Array<{ text: string; evidence: string[]; priority: "high" | "medium" | "low" }> {
-	const recs: Array<{ text: string; evidence: string[]; priority: "high" | "medium" | "low" }> =
-		[];
+	const recs: Array<{ text: string; evidence: string[]; priority: "high" | "medium" | "low" }> = [];
 
 	if (sorted.length < 2) return recs;
 
@@ -445,9 +442,9 @@ function generateRecommendations(
 		.sort((a, b) => b.avg - a.avg);
 
 	if (formatAvgs.length >= 2) {
-		const best = formatAvgs[0]!;
-		const worst = formatAvgs[formatAvgs.length - 1]!;
-		if (best.avg > worst.avg * 1.5) {
+		const best = formatAvgs[0];
+		const worst = formatAvgs[formatAvgs.length - 1];
+		if (best && worst && best.avg > worst.avg * 1.5) {
 			recs.push({
 				text: `${best.format} outperforms ${worst.format} by ${Math.round((best.avg / worst.avg) * 10) / 10}x -- lean into ${best.format} content`,
 				evidence: best.postIds.slice(0, 3).map((id) => `post ${id.slice(0, 8)}`),
@@ -458,8 +455,7 @@ function generateRecommendations(
 
 	// Pillar performance gaps
 	if (pillarBreakdown.length >= 2) {
-		const overallAvg =
-			pillarBreakdown.reduce((s, p) => s + p.avgScore, 0) / pillarBreakdown.length;
+		const overallAvg = pillarBreakdown.reduce((s, p) => s + p.avgScore, 0) / pillarBreakdown.length;
 		for (const pillar of pillarBreakdown) {
 			if (pillar.avgScore > overallAvg * 1.3 && pillar.postCount >= 2) {
 				recs.push({
