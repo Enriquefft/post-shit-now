@@ -75,6 +75,11 @@ export const posts = pgTable(
 		metadata: jsonb("metadata").$type<Record<string, unknown>>(),
 		seriesId: text("series_id"), // references series.id when post is part of a series
 		language: text("language"), // "en" | "es" | "both" for bilingual tracking
+		// Approval workflow columns (null for personal posts)
+		approvalStatus: text("approval_status"), // draft | submitted | approved | rejected
+		reviewerId: text("reviewer_id"), // admin who approved/rejected
+		reviewComment: text("review_comment"), // rejection reason or approval note
+		reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
@@ -473,6 +478,132 @@ export const monitoredAccounts = pgTable(
 	},
 	(table) => [
 		pgPolicy("monitored_accounts_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── Team Members ────────────────────────────────────────────────────────────
+
+export const teamMembers = pgTable(
+	"team_members",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		hubId: text("hub_id").notNull(),
+		role: text("role").notNull().default("member"), // admin | member
+		displayName: text("display_name"),
+		email: text("email"),
+		joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow().notNull(),
+		leftAt: timestamp("left_at", { withTimezone: true }),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("team_members_user_hub_idx").on(table.userId, table.hubId),
+		pgPolicy("team_members_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id') OR ${table.hubId} IN (SELECT hub_id FROM team_members WHERE user_id = current_setting('app.current_user_id') AND left_at IS NULL)`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── Invite Codes ────────────────────────────────────────────────────────────
+
+export const inviteCodes = pgTable("invite_codes", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	hubId: text("hub_id").notNull(),
+	code: text("code").notNull().unique(),
+	createdBy: text("created_by").notNull(),
+	expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+	usedBy: text("used_by"),
+	usedAt: timestamp("used_at", { withTimezone: true }),
+	createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// ─── Notification Preferences ────────────────────────────────────────────────
+
+export const notificationPreferences = pgTable(
+	"notification_preferences",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull().unique(),
+		provider: text("provider").notNull().default("waha"), // waha | twilio
+		pushEnabled: integer("push_enabled").notNull().default(1),
+		digestEnabled: integer("digest_enabled").notNull().default(1),
+		digestFrequency: text("digest_frequency").notNull().default("daily"), // daily | twice_daily | weekly
+		digestTime: text("digest_time").notNull().default("08:00"), // HH:MM in user's timezone
+		quietHoursStart: text("quiet_hours_start"),
+		quietHoursEnd: text("quiet_hours_end"),
+		maxPushPerDay: integer("max_push_per_day").notNull().default(3),
+		timezone: text("timezone").notNull().default("UTC"),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		pgPolicy("notification_preferences_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── Notification Log ────────────────────────────────────────────────────────
+
+export const notificationLog = pgTable(
+	"notification_log",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		eventType: text("event_type").notNull(),
+		tier: text("tier").notNull(), // push | digest | standard
+		provider: text("provider").notNull(), // waha | twilio
+		recipient: text("recipient").notNull(), // phone number
+		status: text("status").notNull().default("pending"), // pending | sent | failed | skipped
+		messageId: text("message_id"), // provider's message ID
+		error: text("error"),
+		dedupKey: text("dedup_key"), // for dedup within window
+		sentAt: timestamp("sent_at", { withTimezone: true }),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		pgPolicy("notification_log_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── WhatsApp Sessions ───────────────────────────────────────────────────────
+
+export const whatsappSessions = pgTable(
+	"whatsapp_sessions",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull().unique(),
+		phone: text("phone").notNull(),
+		provider: text("provider").notNull(), // waha | twilio
+		sessionState: text("session_state").notNull().default("inactive"), // inactive | active | expired
+		conversationContext: jsonb("conversation_context").$type<Record<string, unknown>>(),
+		lastActivityAt: timestamp("last_activity_at", { withTimezone: true }),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		pgPolicy("whatsapp_sessions_isolation", {
 			as: "permissive",
 			to: hubUser,
 			for: "all",

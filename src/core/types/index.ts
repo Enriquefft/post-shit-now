@@ -89,3 +89,15 @@ export interface XOAuthConfig {
 }
 
 export type { LinkedInOAuthConfig } from "../../platforms/linkedin/types.ts";
+
+// Phase 7: Team, Approval, Notification types
+export type { HubConnection, HubRole, TeamMember, InviteCode } from "../../team/types.ts";
+export type { ApprovalStatus, ApprovalAction } from "../../approval/types.ts";
+export type {
+	NotificationTier,
+	NotificationEventType,
+	NotificationEvent,
+	WhatsAppProvider,
+	MessageResult,
+	NotificationPreference,
+} from "../../notifications/types.ts";
