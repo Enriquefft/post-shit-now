@@ -1,6 +1,7 @@
 import type { SetupResult, ValidationSummary } from "../core/types/index.ts";
 import { setupDatabase } from "./setup-db.ts";
 import { setupKeys } from "./setup-keys.ts";
+import { setupLinkedInOAuth } from "./setup-linkedin-oauth.ts";
 import { setupTrigger } from "./setup-trigger.ts";
 import { setupXOAuth } from "./setup-x-oauth.ts";
 import { validateAll } from "./validate.ts";
@@ -58,7 +59,17 @@ export async function runSetup(configDir = "config"): Promise<SetupOutput> {
 		return { steps, validation: null, completed: false };
 	}
 
-	// Step 6: Validate all connections
+	// Step 6: LinkedIn OAuth setup (optional — skips if no credentials)
+	const linkedInOAuthResult = await setupLinkedInOAuth(configDir);
+	steps.push(linkedInOAuthResult);
+	if (linkedInOAuthResult.status === "error") {
+		return { steps, validation: null, completed: false };
+	}
+	if (linkedInOAuthResult.status === "need_input") {
+		return { steps, validation: null, completed: false };
+	}
+
+	// Step 7: Validate all connections
 	const validation = await validateAll(configDir);
 	steps.push({
 		step: "validation",

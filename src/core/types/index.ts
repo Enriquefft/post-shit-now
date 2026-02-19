@@ -61,3 +61,5 @@ export interface XOAuthConfig {
 	clientSecret: string;
 	callbackUrl: string;
 }
+
+export type { LinkedInOAuthConfig } from "../../platforms/linkedin/types.ts";
