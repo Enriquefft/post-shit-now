@@ -2,345 +2,354 @@
 
 **Domain:** CLI-first social media automation system
 **Researched:** 2026-02-18
-**Confidence:** HIGH (core stack verified via npm/official docs), MEDIUM (social API clients -- ecosystem fragmented)
+**Confidence:** HIGH (core stack verified via official docs and npm; platform APIs verified via official developer portals)
 
 ## Recommended Stack
 
-### Core Technologies
+### Core Runtime & Build
 
-| Technology | Version | Purpose | Why Recommended | Confidence |
-|------------|---------|---------|-----------------|------------|
-| Node.js | 22.x LTS | Runtime | Trigger.dev v4 supports Node 22.16.0 natively. LTS = stable for production tasks. Avoid Node 21 (non-LTS, only kept for v3 compat). | HIGH |
-| TypeScript | 5.5+ | Language | Required by Drizzle, Trigger.dev, and Zod 4. Strict mode mandatory for Zod type inference. | HIGH |
-| pnpm | 9.x | Package manager | Disk-efficient (content-addressable store), strict dependency resolution prevents phantom deps, workspace support for monorepo structure. Trigger.dev examples use pnpm. Bun runtime is fine for Trigger.dev tasks but Bun as package manager has edge-case compat issues with some native modules (sharp). | HIGH |
-| @trigger.dev/sdk | ^4.3.3 | Task scheduling & execution | v4 is GA. Key features for this project: waitpoints (human-in-the-loop approval), queue management, middleware/lifecycle hooks, priority queuing. Import from `@trigger.dev/sdk` (NOT `@trigger.dev/sdk/v3`). | HIGH |
-| trigger.dev (CLI) | ^4.3.3 | Dev/deploy CLI | Must match SDK version. Run `npx trigger.dev@latest dev` for local development. | HIGH |
-| drizzle-orm | ^0.45.1 | ORM / query builder | Type-safe, SQL-like API, first-class Neon support via `@neondatabase/serverless`. Stay on 0.45.x stable -- v1 beta exists but has breaking changes (RQBv2, migration folder restructure, validator package moves). Do NOT upgrade to v1 beta for production. | HIGH |
-| drizzle-kit | ^0.30.x | Schema migrations | Generates SQL migrations from TypeScript schema. Pairs with drizzle-orm. Will be needed for `/psn:setup` migration runner. | HIGH |
-| @neondatabase/serverless | ^1.0.2 | Neon Postgres driver | GA driver for Neon. Use HTTP mode for Trigger.dev tasks (serverless-friendly, no persistent connections). WebSocket mode available if session/transaction support needed. | HIGH |
-| zod | ^4.3.6 | Schema validation | Validates API responses, config files, command inputs. Zod 4 has better error formatting (`z.prettifyError`). TypeScript 5.5+ required. Drizzle has built-in zod integration (`drizzle-zod`). | HIGH |
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| TypeScript | 5.7+ | Language | Type safety across CLI commands, Trigger.dev tasks, and Drizzle schema. Non-negotiable for a system with this many API integrations. |
+| Node.js | 22 LTS | Runtime | Current LTS. Required by Trigger.dev v4 (supports 21.7.3, 22.16.0, Bun 1.3.3). Use 22 for long-term support. |
+| pnpm | 9+ | Package manager | Workspace support for monorepo. Faster, stricter than npm. Trigger.dev docs use pnpm. |
+| tsx | latest | Script runner | Run TypeScript CLI scripts directly without build step. Used for local utility commands. |
 
-### Social Platform API Clients
+### Database
 
-| Library | Version | Purpose | Why Recommended | Confidence |
-|---------|---------|---------|-----------------|------------|
-| twitter-api-v2 | ^1.29.0 | X/Twitter API client | The dominant TypeScript client for X API v2. Strongly typed, zero dependencies, supports OAuth 2.0 PKCE, media upload, tweet creation, analytics reads. Officially listed on X Developer Platform. | HIGH |
-| linkedin-api-client (official) | latest (beta) | LinkedIn API client | Official LinkedIn JS client by linkedin-developers. Supports 3-legged OAuth, token refresh, Rest.li methods, post creation. Beta status is a concern but it is the ONLY official option. Wrap calls in error handling. | MEDIUM |
-| Direct HTTP (fetch/undici) | N/A | Instagram Graph API | No mature, maintained TypeScript client for Instagram Graph API posting. `instagram-graph-api` npm package exists but is thin and sporadically maintained. Better to write a thin typed wrapper over the Graph API endpoints (container creation, publish, media upload). Use Zod to validate responses. | MEDIUM |
-| Direct HTTP (fetch/undici) | N/A | TikTok Content Posting API | No official or community TypeScript SDK for TikTok posting. The API is straightforward REST (init upload, upload video/photo, publish). Write a thin typed client. | MEDIUM |
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| Neon Postgres | - | Managed Postgres | Serverless driver for edge/serverless. Free tier for personal hubs. Branching for dev/staging. Native RLS support. **Decision already made.** |
+| `@neondatabase/serverless` | 1.0.2 | Neon driver | Official serverless driver. WebSocket-based connection pooling. Works in Node.js and serverless. |
+| `drizzle-orm` | 0.45.x | ORM | SQL-like API, zero overhead, first-class RLS support via `crudPolicy()` helper with Neon roles. Schema-as-code with TypeScript. **Decision already made.** |
+| `drizzle-kit` | latest | Migrations | Generate and run migrations from Drizzle schema. Bundled with repo, runs during `/psn:setup`. |
 
-### OAuth & Authentication
+**Drizzle + Neon RLS pattern:** Drizzle provides `pgPolicy()`, `pgRole()`, and `crudPolicy()` (from `drizzle-orm/neon`) for declarative RLS. Neon exposes `authenticated` and `anonymous` roles. Policies are defined alongside schema, not in raw SQL. This is the officially recommended approach per both Neon and Drizzle docs.
 
-| Library | Version | Purpose | Why Recommended | Confidence |
-|---------|---------|---------|-----------------|------------|
-| arctic | ^3.x | OAuth 2.0 flows | Lightweight, fully-typed, runtime-agnostic OAuth 2.0 client. Supports Twitter, LinkedIn, TikTok, and Facebook (for Instagram) out of the box. Does NOT have a dedicated Instagram provider -- use the Facebook provider (Instagram auth goes through Facebook OAuth). 70+ providers, handles PKCE, token refresh. Zero framework dependency. | HIGH |
+### Background Tasks & Scheduling
 
-### Notifications & Messaging
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `@trigger.dev/sdk` | 4.1.x | Task SDK | v4 is GA. Warm starts (100-300ms). Waitpoints for approval workflows. Priority runs. Middleware system. **Decision already made.** |
+| `trigger.dev` (CLI) | 4.3.x | Dev/deploy CLI | `npx trigger dev` for local development, `npx trigger deploy` for cloud. |
 
-| Library | Version | Purpose | Why Recommended | Confidence |
-|---------|---------|---------|-----------------|------------|
-| WAHA (HTTP API) | latest | WhatsApp notifications | Self-hosted WhatsApp HTTP API. No npm client needed -- it exposes REST endpoints. Call from Trigger.dev tasks via fetch. Free core version, no message limits. Docker-based deployment. | MEDIUM |
-| twilio | ^5.x | WhatsApp (alternative) | Official Twilio SDK. More reliable than WAHA for production but costs money. Use as fallback if WAHA proves unstable or if user prefers managed service. | HIGH |
+**Key Trigger.dev v4 patterns for this project:**
+- **Delayed runs**: `task.trigger({ ... }, { delay: "2h" })` for scheduled posts. Store `runId` in DB to cancel/reschedule.
+- **Cron tasks**: `schedules.task({ cron: "0 */6 * * *" })` for analytics collection, trend gathering, token refresh.
+- **Waitpoints (wait-for-token)**: Human-in-the-loop approval for company posts. Create token, send to WhatsApp, wait for response.
+- **Priority**: `task.trigger({ ... }, { priority: 100 })` for time-sensitive posts.
+- **Middleware + locals**: Share hub connection context across all tasks.
 
-### Image Generation API Clients
+**Breaking change from v3:** Import from `@trigger.dev/sdk` (not `@trigger.dev/sdk/v3`). Queues must be predefined with `queue()`. Lifecycle hooks use single object params.
 
-| Library | Version | Purpose | Why Recommended | Confidence |
-|---------|---------|---------|-----------------|------------|
-| openai | ^4.x | GPT Image generation | Official OpenAI SDK. Covers GPT Image (DALL-E successor). Well-typed, maintained. | HIGH |
-| Direct HTTP (fetch) | N/A | Ideogram 3 API | No official SDK. REST API with API key auth. Thin typed wrapper. | MEDIUM |
-| Direct HTTP (fetch) | N/A | Flux 2 (BFL API) | No official SDK. REST API. Thin typed wrapper. | MEDIUM |
+### Validation
 
-### Intelligence & Search APIs
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `zod` | 4.x | Schema validation | Validate API payloads, config files, command inputs. Drizzle has native Zod integration (now built into drizzle-orm, no separate drizzle-zod package needed). Trigger.dev `schemaTask` uses Zod. |
 
-| Library | Version | Purpose | Why Recommended | Confidence |
-|---------|---------|---------|-----------------|------------|
-| Direct HTTP (fetch) | N/A | Perplexity API | OpenAI-compatible API format. Can use the `openai` SDK with a custom baseURL. | HIGH |
-| exa-js | latest | Exa search API | Official Exa TypeScript SDK. Semantic search, content retrieval. | MEDIUM |
-| Direct HTTP (fetch) | N/A | Tavily API | Simple REST API. No maintained SDK worth depending on. | MEDIUM |
-| Direct HTTP (fetch) | N/A | Brave Search API | Simple REST API with API key. Thin wrapper. | MEDIUM |
+### OAuth & Token Management
 
-### Image Processing
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `arctic` | 3.x | OAuth 2.0 clients | Lightweight, typed OAuth clients. Supports **LinkedIn, Twitter/X, TikTok, Facebook** (Instagram uses Facebook OAuth). No heavy auth framework needed since we store tokens in DB, not sessions. |
 
-| Library | Version | Purpose | Why Recommended | Confidence |
-|---------|---------|---------|-----------------|------------|
-| sharp | ^0.34.5 | Image resizing/optimization | Fastest Node.js image processor (libvips-based). Resize for platform specs, format conversion, optimization before upload. Built-in TypeScript types since v0.32. | HIGH |
+**OAuth flow per platform:**
+- **X/Twitter**: OAuth 2.0 PKCE. Arctic `Twitter` provider. Tokens don't expire (revoke-only).
+- **LinkedIn**: OAuth 2.0 authorization code. Arctic `LinkedIn` provider. Tokens expire in 60 days. Cron task for refresh.
+- **Instagram**: OAuth 2.0 via **Facebook Login** (Instagram Graph API requires Facebook Business Login). Arctic `Facebook` provider. Short-lived token (1hr) exchanged for long-lived (60 days). Cron task for refresh.
+- **TikTok**: OAuth 2.0. Arctic `TikTok` provider. Tokens expire, refresh via cron.
 
-### Configuration & File Handling
+**Token storage:** Encrypted in `oauth_tokens` DB table. Trigger.dev `token-refresher` cron task checks expiry daily and refreshes proactively.
 
-| Library | Version | Purpose | Why Recommended | Confidence |
-|---------|---------|---------|-----------------|------------|
-| yaml | ^2.x | YAML parsing | Parse strategy.yaml, voice profiles, series configs. Well-maintained, TypeScript types included. | HIGH |
-| dotenv | ^16.x | Env file loading | Parse hub.env, connections/*.env, keys.env. Standard, battle-tested. | HIGH |
+**Instagram note:** Arctic does not have a dedicated Instagram provider because Instagram OAuth goes through Facebook. Use the `Facebook` provider with `instagram_basic`, `instagram_content_publish`, `pages_show_list` scopes.
 
-### Development & Testing
+---
 
-| Tool | Version | Purpose | Why Recommended | Confidence |
-|------|---------|---------|-----------------|------------|
-| vitest | ^3.x | Testing | Native TypeScript/ESM support, 10-20x faster than Jest in watch mode, Jest-compatible API. No ts-jest config needed. | HIGH |
-| tsx | ^4.x | TypeScript execution | Run .ts files directly for scripts/utilities. Faster than ts-node, ESM-native. | HIGH |
-| @biomejs/biome | ^1.x | Linting + formatting | Single tool replaces ESLint + Prettier. 35x faster than ESLint. Opinionated defaults reduce config. | MEDIUM |
+## Platform API SDKs
+
+### X (Twitter)
+
+| Library | Version | Purpose | Confidence |
+|---------|---------|---------|------------|
+| `twitter-api-v2` | 1.29.x | Full X API v2 client | HIGH - actively maintained, 4k+ GitHub stars, official X docs list it |
+
+**Usage:** Post tweets, upload media (images/video), read analytics, manage threads. Supports OAuth 2.0 and OAuth 1.0a. Pay-per-use pricing: $0.01/post, $0.005/read.
+
+```typescript
+import { TwitterApi } from 'twitter-api-v2';
+const client = new TwitterApi(accessToken);
+await client.v2.tweet({ text: 'Hello world' });
+```
+
+### LinkedIn
+
+| Library | Version | Purpose | Confidence |
+|---------|---------|---------|------------|
+| Direct REST API calls | - | LinkedIn Marketing API | HIGH - no good SDK exists; raw fetch is the standard approach |
+
+**Why no SDK:** LinkedIn's Marketing API is versioned (currently `202602`). Community SDKs are stale or incomplete. The API is REST + JSON; a thin typed wrapper over `fetch` is all you need. Build a `linkedin-client.ts` module.
+
+**Key endpoints:**
+- `POST /rest/posts` - Create posts (text, articles, images, carousels)
+- `POST /rest/images` - Upload images (register + upload flow)
+- `GET /rest/organizationalEntityShareStatistics` - Analytics
+
+**Partner approval required:** Takes days to weeks. Apply early. Tokens expire 60 days.
+
+### Instagram
+
+| Library | Version | Purpose | Confidence |
+|---------|---------|---------|------------|
+| Direct REST API calls | - | Instagram Graph API (via Facebook) | HIGH - same situation as LinkedIn, thin wrapper is best |
+
+**Why no SDK:** The `instagram-graph-api` npm package exists but is thin and low-adoption. Better to build a typed client. Instagram Graph API endpoints are stable and well-documented.
+
+**Key endpoints:**
+- `POST /{ig-user-id}/media` - Create media container (image_url/video_url + caption)
+- `POST /{ig-user-id}/media_publish` - Publish container
+- `GET /{ig-user-id}/insights` - Analytics
+
+**Rate limit:** 200 requests/hour. Business/Creator account required. No personal accounts.
+
+### TikTok
+
+| Library | Version | Purpose | Confidence |
+|---------|---------|---------|------------|
+| Direct REST API calls | - | TikTok Content Posting API | HIGH - official REST API, no maintained SDK |
+| `ensembledata` | latest | TikTok analytics scraping | MEDIUM - third-party service, ~$100/mo |
+
+**Content Posting API:** REST endpoint at `https://open.tiktokapis.com/v2/post/publish/`. Supports Direct Post and Inbox (Draft) modes. **Audit required** for public posting access.
+
+**Analytics:** TikTok's official API has limited analytics. EnsembleData provides real-time scraping for engagement metrics, trending content, hashtag monitoring. Fallback: TikTok Creative Center (free, manual).
+
+---
+
+## Intelligence & Search APIs
+
+| Library | Version | Purpose | Pricing | Confidence |
+|---------|---------|---------|---------|------------|
+| `@tavily/core` | latest | Search API for trend research | ~$0.005/search (1000 free/mo) | HIGH - official SDK, Vercel AI SDK compatible |
+| `@exalabs/ai-sdk` | latest | Semantic search, content discovery | $0.001/search (1000 free/mo) | HIGH - official SDK |
+| Perplexity API (via `openai` SDK) | - | Deep research, trend analysis | $5/1000 searches (Sonar), $1/1000 (Sonar Pro for citations) | HIGH - OpenAI-compatible API |
+| Brave Search API (raw fetch) | - | Web search, news monitoring | $5/1000 requests ($5 free credit/mo) | HIGH - independent index, less SEO spam |
+
+**Perplexity integration:** Uses OpenAI-compatible API format. Use the `openai` package with `baseURL: 'https://api.perplexity.ai'`. Models: `sonar` (fast), `sonar-pro` (deeper retrieval). Citation tokens now free.
+
+**Strategy:** Use Tavily for quick searches (cheap, fast). Exa for semantic/neural search (finding similar content). Perplexity for deep research queries. Brave for news monitoring.
+
+---
+
+## Image & Video Generation
+
+| Library | Version | Purpose | Pricing | Confidence |
+|---------|---------|---------|---------|------------|
+| `openai` | 6.22.x | GPT Image (gpt-image-1, gpt-image-1.5) | ~$0.02-0.08/image | HIGH - official SDK |
+| `@fal-ai/client` | 1.9.x | FLUX.2 (photorealistic images) | $0.012-0.03/megapixel | HIGH - official SDK |
+| Ideogram API (raw fetch) | - | Ideogram 3.0 (best text in images) | $0.04-0.10/image | MEDIUM - no official Node SDK, REST API |
+
+**GPT Image:** Use `openai` SDK. `client.images.generate({ model: "gpt-image-1" })`. Returns base64. Supports up to 4096x4096. Streaming supported. Best for versatile, instruction-following images.
+
+**FLUX.2:** Use `@fal-ai/client`. FLUX.2 [pro] for production quality (no parameter tuning needed), FLUX.2 [dev] for fast prototyping. Sub-2-second generation on fal.ai. Best for photorealistic images.
+
+**Ideogram 3.0:** REST API at `https://api.ideogram.ai`. No official Node SDK -- build thin typed client. Best for images with text (logos, social cards, infographics). Style references (up to 3 images).
+
+**Alternative for FLUX.2:** `replicate` (1.4.x) if you want a single SDK for multiple models. fal.ai is faster and cheaper for FLUX specifically.
+
+---
+
+## WhatsApp Notifications
+
+| Technology | Version | Purpose | Confidence |
+|------------|---------|---------|------------|
+| WAHA (Docker) | latest | Self-hosted WhatsApp HTTP API | MEDIUM - unofficial WhatsApp client, ToS risk |
+
+**Setup:** `docker run -p 3000:3000 devlikeapro/waha`. REST API at `localhost:3000`. Dashboard at `localhost:3000/dashboard`. Scan QR code to link WhatsApp account.
+
+**Engines:** WEBJS (browser-based), NOWEB (WebSocket, lighter), GOWS (Go WebSocket, fastest). Use NOWEB for server deployment.
+
+**Core free tier** covers sending/receiving text, images, video. No message limits.
+
+**Alternative:** Twilio WhatsApp API for production reliability (official WhatsApp Business API partner). Higher cost but no ToS risk.
+
+---
+
+## Supporting Libraries
+
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| `dotenv` | latest | Environment variable loading | Loading hub.env and connections/*.env files |
+| `yaml` | latest | YAML parsing | Parsing strategy.yaml, voice profiles, series config |
+| `sharp` | latest | Image processing | Resize, crop, format convert before upload. Platform-specific sizing. |
+| `nanoid` | latest | ID generation | Post IDs, invite codes, idempotency keys |
+| `date-fns` | latest | Date manipulation | Scheduling, analytics time ranges, timezone handling |
+| `date-fns-tz` | latest | Timezone support | Converting schedule times to platform-native UTC |
+| `chalk` | latest | CLI output coloring | Command output formatting (if running outside Claude Code) |
+| `ora` | latest | CLI spinners | Loading indicators for long operations |
+| `p-limit` | latest | Concurrency control | Rate limiting API calls per platform |
+| `encrypt` / `node:crypto` | built-in | Token encryption | Encrypting OAuth tokens at rest in DB. Use Node.js built-in crypto, no external package needed. |
+
+### Development Tools
+
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| `vitest` | Testing | Fast, TypeScript-native. Use for unit testing API clients and Trigger.dev task logic. |
+| `biome` | Lint + format | Single tool replacing ESLint + Prettier. Faster. Less config. |
+| `drizzle-kit` | DB migrations | `drizzle-kit generate` for SQL, `drizzle-kit migrate` to apply. |
+| `trigger.dev` CLI | Task dev/deploy | `npx trigger dev` for local, `npx trigger deploy` for cloud. |
+
+---
 
 ## Project Structure
 
 ```
 post-shit-now/
-  package.json              # Root package (pnpm workspace)
-  pnpm-workspace.yaml       # Workspace config
-  tsconfig.json              # Shared TS config
-  trigger.config.ts          # Trigger.dev configuration
-  drizzle.config.ts          # Drizzle Kit config
+  config/                    # User config (git-tracked, .env gitignored)
+    hub.env                  # Personal hub credentials (gitignored)
+    connections/             # Company hub connections (gitignored)
+    strategy.yaml            # Personal strategy config
+    voice-profiles/          # Voice profile YAML files
+    series/                  # Content series config
+  content/                   # Content workspace
+    drafts/                  # Post drafts (auto-pruned 14d after publish)
+    media/                   # Generated media (auto-pruned 7d after posting)
   src/
-    trigger/                 # Trigger.dev task definitions
-      tasks/
-        post-scheduler.ts
-        analytics-collector.ts
-        token-refresher.ts
-        trend-gatherer.ts
-        notification-sender.ts
     db/
-      schema/                # Drizzle schema (single source of truth)
-        posts.ts
-        analytics.ts
-        ideas.ts
-        preferences.ts
-        teams.ts
-        series.ts
-        trends.ts
-        oauth-tokens.ts
-      migrations/            # Generated by drizzle-kit
-      index.ts               # DB client export
-    lib/
-      platforms/             # Platform API wrappers
-        x.ts
-        linkedin.ts
-        instagram.ts
-        tiktok.ts
-      oauth/                 # OAuth flow helpers (arctic-based)
-        index.ts
-      notifications/         # WhatsApp/notification helpers
-        whatsapp.ts
-      media/                 # Image gen + processing
-        generate.ts
-        process.ts
-      intelligence/          # Search/research API wrappers
-        perplexity.ts
-        exa.ts
-        tavily.ts
-        brave.ts
-    utils/
+      schema/                # Drizzle schema files (tables, RLS policies)
+      migrations/            # Generated migration SQL
+      index.ts               # DB client factory (personal + company hubs)
+    clients/                 # Platform API clients
+      x.ts                   # Twitter/X client (twitter-api-v2 wrapper)
+      linkedin.ts            # LinkedIn REST client
+      instagram.ts           # Instagram Graph API client
+      tiktok.ts              # TikTok Content Posting client
+      whatsapp.ts            # WAHA REST client
+    intelligence/            # Search/research API clients
+      tavily.ts
+      exa.ts
+      perplexity.ts
+      brave.ts
+    media/                   # Image/video generation clients
+      gpt-image.ts
+      flux.ts
+      ideogram.ts
+    trigger/                 # Trigger.dev task definitions
+      queues.ts              # Predefined queues (per-platform, per-hub)
+      middleware.ts          # Hub context middleware
+      tasks/
+        post-publisher.ts    # Scheduled post execution
+        analytics-collector.ts  # Cron: collect platform analytics
+        trend-gatherer.ts    # Cron: intelligence gathering
+        token-refresher.ts   # Cron: OAuth token refresh
+        notification-sender.ts  # WhatsApp notification dispatch
+    lib/                     # Shared utilities
+      crypto.ts              # Token encryption/decryption
       config.ts              # YAML/env config loaders
-      crypto.ts              # Token encryption for DB storage
+      validation.ts          # Zod schemas
   .claude/
-    commands/psn/            # Slash commands (markdown prompts)
-  config/                    # User config (strategy, voice, etc.)
+    commands/                # Slash command .md files
+  trigger.config.ts          # Trigger.dev project config
+  drizzle.config.ts          # Drizzle Kit config
+  package.json
+  tsconfig.json
 ```
+
+**Not a monorepo.** This is a single package. Trigger.dev v4 bundles tasks from the same project. No need for pnpm workspaces or turborepo -- it adds complexity without benefit for a repo-as-workspace distribution model where users clone and run.
+
+---
 
 ## Installation
 
 ```bash
-# Initialize with pnpm
-pnpm init
+# Core
+npm install @trigger.dev/sdk drizzle-orm @neondatabase/serverless zod
 
-# Core dependencies
-pnpm add @trigger.dev/sdk@^4.3.3 drizzle-orm@^0.45.1 @neondatabase/serverless@^1.0.2 zod@^4.3.6
-
-# Social platform clients
-pnpm add twitter-api-v2@^1.29.0 linkedin-api-client arctic@^3.0.0
-
-# Image & media
-pnpm add openai@^4.0.0 sharp@^0.34.5
+# Platform clients
+npm install twitter-api-v2 arctic
 
 # Intelligence
-pnpm add exa-js
+npm install @tavily/core @exalabs/ai-sdk
 
-# Notifications
-pnpm add twilio@^5.0.0
+# Image generation
+npm install openai @fal-ai/client
 
-# Config & utilities
-pnpm add yaml@^2.0.0 dotenv@^16.0.0
+# TikTok analytics (optional, ~$100/mo)
+npm install ensembledata
+
+# Utilities
+npm install yaml sharp nanoid date-fns date-fns-tz dotenv p-limit
 
 # Dev dependencies
-pnpm add -D typescript@^5.5.0 drizzle-kit@^0.30.0 trigger.dev@^4.3.3 vitest@^3.0.0 tsx@^4.0.0 @biomejs/biome@^1.0.0 @types/node
+npm install -D typescript @types/node vitest @biomejs/biome drizzle-kit trigger.dev tsx
 ```
+
+---
 
 ## Alternatives Considered
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| pnpm | Bun (package manager) | If you want fastest installs AND are willing to debug occasional native module issues (sharp). Bun runtime for Trigger.dev tasks is fine -- just use pnpm for package management. |
-| pnpm | npm | If team is unfamiliar with pnpm. npm works but is slower and allows phantom dependencies. |
-| drizzle-orm 0.45.x | drizzle-orm v1 beta | Do NOT use v1 beta yet. Breaking changes to relational queries, migration folder structure, and validator packages. Wait for stable v1 release. |
-| arctic | oslo/oauth2 | If you need lower-level OAuth control. Arctic is built on oslo/oauth2 internally -- use Arctic for convenience, drop to oslo if you hit an edge case. |
-| vitest | Jest | Only if you need React Native testing (irrelevant here). Jest requires ts-jest config overhead. |
-| Biome | ESLint + Prettier | If you need highly specific linting rules or ESLint plugins. Biome covers 90% of use cases at 35x speed. |
-| twitter-api-v2 | Direct HTTP | Never for X. The library handles OAuth complexity, pagination, rate limiting, and media upload chunking that would take weeks to reimplement. |
-| linkedin-api-client | Direct HTTP | If the beta client proves too buggy. LinkedIn API is Rest.li-based with quirky encoding -- a direct wrapper is feasible but painful. |
-| sharp | @napi-rs/image | If sharp causes native module issues in your environment. Rare. |
-| WAHA | Twilio | If you need reliability guarantees, compliance, or don't want to self-host. Twilio costs ~$0.005-0.05/message but is production-grade. |
+| `drizzle-orm` | Prisma | Never for this project. Prisma's query engine adds latency in serverless. Drizzle is SQL-native with zero overhead. Prisma also lacks first-class RLS support. |
+| `arctic` (OAuth) | `passport.js` | Never. Passport is session-based, designed for web apps. We have no web server. Arctic is stateless OAuth 2.0 flows only. |
+| `@fal-ai/client` (FLUX) | `replicate` | If you want one SDK for many models (Stable Diffusion, etc). fal.ai is faster and cheaper specifically for FLUX.2. |
+| `twitter-api-v2` | Raw fetch | If you only need tweet posting. But the SDK handles media upload, pagination, rate limiting -- worth the dependency. |
+| `biome` (lint/format) | ESLint + Prettier | If you need ESLint plugins for specific rules. Biome covers 95% of cases, runs 10-100x faster, and is a single dependency. |
+| `vitest` | Jest | If you have existing Jest config. Vitest is faster, native TypeScript, same API as Jest. No reason to use Jest for a new project. |
+| WAHA (WhatsApp) | Twilio WhatsApp | For production/enterprise where ToS compliance matters. Twilio is an official WhatsApp Business API partner. Higher cost but zero ban risk. |
+| Single package | pnpm monorepo | Never for this project. Users clone this repo as a workspace. A monorepo adds `pnpm-workspace.yaml`, `turbo.json`, cross-package imports -- all complexity for a single deployable unit. |
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| drizzle-orm v1 beta | Breaking changes to RQBv2, migration structure, validator packages. Not stable for production. | drizzle-orm ^0.45.1 (latest stable) |
-| Prisma | Heavy ORM, poor serverless cold-start, generated client bloat, no RLS support. | Drizzle ORM |
-| passport.js | Express-coupled, callback-heavy, unnecessary for this architecture (no web server). | Arctic (direct OAuth 2.0 flows) |
-| instagram-private-api | Uses reverse-engineered private APIs. Will get accounts banned. Violates Instagram TOS. | Instagram Graph API (direct HTTP) |
-| linkedin-private-api | Same problem. Reverse-engineered, account ban risk. | linkedin-api-client (official) |
-| node-cron / cron | Trigger.dev handles all scheduling. Adding a second scheduler creates split-brain problems. | Trigger.dev scheduled tasks |
-| express / fastify | No web server needed. Slash commands run locally, Trigger.dev tasks run in cloud. A web server adds unnecessary surface area. | Direct function calls in Trigger.dev tasks |
-| Axios | Fetch is built into Node 22. Axios adds bundle size for zero benefit in this architecture. | Native fetch (global) or undici |
-| ts-node | Slow, ESM configuration nightmares. | tsx (faster, ESM-native) |
-| @trigger.dev/sdk/v3 import | Deprecated in v4. Will break. | Import from `@trigger.dev/sdk` |
-
-## Stack Patterns by Variant
-
-**For Personal Hub (free tier):**
-- Neon free tier: 0.5 GB storage, 190 compute hours/month
-- Single Trigger.dev project with personal tasks
-- All OAuth tokens stored encrypted in personal DB
-
-**For Company Hub:**
-- Neon paid tier if needed (Pro starts at $19/mo)
-- Separate Trigger.dev project with company tasks
-- RLS policies isolate team member data
-- Same schema, different connection string
-
-**For both:**
-- Shared `src/` code (schema, platform clients, utilities)
-- Different `.env` files drive which hub is targeted
-- Trigger.dev tasks read connection config at runtime
+| `node-linkedin` npm | Abandoned (last update 2019), uses deprecated LinkedIn v1 API | Raw fetch with typed client |
+| `instagram-private-api` | Uses undocumented private API, guaranteed to break, ban risk | Instagram Graph API (official) |
+| `@trigger.dev/sdk/v3` import path | v4 breaking change -- this path is removed | `@trigger.dev/sdk` (no /v3) |
+| `drizzle-zod` (separate package) | Merged into `drizzle-orm` core as of v1.0-beta. Separate package is deprecated. | `import { createSelectSchema } from 'drizzle-orm'` |
+| `@fal-ai/serverless-client` | Deprecated, renamed to `@fal-ai/client` | `@fal-ai/client` |
+| Prisma | Query engine overhead in serverless, no RLS support, generates client code | `drizzle-orm` |
+| `passport.js` | Session-based auth middleware for web apps; we have no web server | `arctic` for OAuth flows |
+| `cron` / `node-cron` npm | Running cron in a long-lived process is fragile and doesn't scale | Trigger.dev cron schedules (managed, reliable, observable) |
+| Bull / BullMQ | Requires self-hosted Redis, operational burden | Trigger.dev Cloud (managed, no infrastructure) |
 
 ## Version Compatibility
 
-| Package | Compatible With | Notes |
-|---------|-----------------|-------|
-| @trigger.dev/sdk@^4.3.3 | Node 22.16.0, Bun 1.3.3 | Set runtime in trigger.config.ts |
-| drizzle-orm@^0.45.1 | @neondatabase/serverless@^1.0.2 | Use `drizzle-orm/neon-http` adapter |
-| drizzle-orm@^0.45.1 | drizzle-kit@^0.30.x | Kit version must match ORM major. Do not mix 0.45 ORM with 1.0-beta Kit. |
-| zod@^4.3.6 | TypeScript 5.5+ | Strict mode required in tsconfig.json |
-| arctic@^3.x | Any runtime with Fetch API | Node 22 has global fetch. No polyfill needed. |
-| sharp@^0.34.5 | Node 22.x | Native module -- pnpm handles better than Bun for installs. |
-| twitter-api-v2@^1.29.0 | Node 18+ | Zero dependencies. Works everywhere. |
+| Package A | Compatible With | Notes |
+|-----------|-----------------|-------|
+| `drizzle-orm` 0.45.x | `@neondatabase/serverless` 1.0.x | Drizzle has first-class Neon integration. Use `drizzle(neon(url))` pattern. |
+| `@trigger.dev/sdk` 4.1.x | Node.js 22 LTS | v4 requires Node 21.7.3+. Node 22 is the recommended runtime. |
+| `zod` 4.x | `drizzle-orm` 0.45.x | Zod schemas generated from Drizzle tables. Built-in since drizzle-orm v1.0-beta. |
+| `zod` 4.x | `@trigger.dev/sdk` 4.x | Used in `schemaTask()` for typed task payloads. |
+| `arctic` 3.x | Node.js 20+ | Requires Web Crypto API (native in Node 20+). |
 
-## Key Integration Patterns
-
-### Trigger.dev Task + Drizzle + Neon
-
-```typescript
-// src/trigger/tasks/analytics-collector.ts
-import { task } from "@trigger.dev/sdk";
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
-import { analytics } from "../../db/schema/analytics";
-
-export const collectAnalytics = task({
-  id: "collect-analytics",
-  run: async ({ payload }) => {
-    const sql = neon(process.env.DATABASE_URL!);
-    const db = drizzle(sql);
-
-    // Fetch from platform APIs, insert into DB
-    await db.insert(analytics).values({
-      postId: payload.postId,
-      platform: payload.platform,
-      impressions: payload.metrics.impressions,
-      // ...
-    });
-  },
-});
-```
-
-### OAuth Flow with Arctic
-
-```typescript
-// src/lib/oauth/index.ts
-import { Twitter, LinkedIn, TikTok, Facebook } from "arctic";
-
-// Each provider initialized with user's BYOK credentials
-export function createOAuthClient(platform: string, keys: PlatformKeys) {
-  switch (platform) {
-    case "x":
-      return new Twitter(keys.clientId, keys.clientSecret, keys.redirectUri);
-    case "linkedin":
-      return new LinkedIn(keys.clientId, keys.clientSecret, keys.redirectUri);
-    case "tiktok":
-      return new TikTok(keys.clientId, keys.clientSecret, keys.redirectUri);
-    case "instagram":
-      // Instagram uses Facebook OAuth
-      return new Facebook(keys.clientId, keys.clientSecret, keys.redirectUri);
-  }
-}
-```
-
-### Platform API Wrapper Pattern
-
-```typescript
-// src/lib/platforms/instagram.ts
-import { z } from "zod";
-
-const ContainerResponseSchema = z.object({
-  id: z.string(),
-});
-
-export async function createInstagramPost(
-  accessToken: string,
-  igUserId: string,
-  imageUrl: string,
-  caption: string
-) {
-  // Step 1: Create media container
-  const containerRes = await fetch(
-    `https://graph.instagram.com/v21.0/${igUserId}/media`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        image_url: imageUrl,
-        caption,
-        access_token: accessToken,
-      }),
-    }
-  );
-  const container = ContainerResponseSchema.parse(await containerRes.json());
-
-  // Step 2: Publish
-  const publishRes = await fetch(
-    `https://graph.instagram.com/v21.0/${igUserId}/media_publish`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        creation_id: container.id,
-        access_token: accessToken,
-      }),
-    }
-  );
-  return publishRes.json();
-}
-```
+---
 
 ## Sources
 
-- [@trigger.dev/sdk npm](https://www.npmjs.com/package/@trigger.dev/sdk) -- v4.3.3, verified Feb 2026
-- [Trigger.dev v4 GA announcement](https://trigger.dev/changelog/trigger-v4-ga) -- migration guide, breaking changes
-- [Trigger.dev v3 to v4 migration](https://trigger.dev/docs/migrating-from-v3) -- runtime support, code changes
-- [drizzle-orm npm](https://www.npmjs.com/drizzle-orm) -- v0.45.1, verified Feb 2026
-- [Drizzle + Neon setup guide](https://orm.drizzle.team/docs/get-started/neon-new) -- official integration docs
-- [Drizzle v1 beta release notes](https://orm.drizzle.team/docs/latest-releases/drizzle-orm-v1beta2) -- breaking changes documented
-- [@neondatabase/serverless npm](https://www.npmjs.com/package/@neondatabase/serverless) -- v1.0.2 GA
-- [Neon serverless driver docs](https://neon.com/docs/serverless/serverless-driver) -- HTTP vs WebSocket modes
-- [twitter-api-v2 npm](https://www.npmjs.com/package/twitter-api-v2) -- v1.29.0, verified Feb 2026
-- [twitter-api-v2 GitHub](https://github.com/PLhery/node-twitter-api-v2) -- TypeScript, zero deps
-- [linkedin-api-js-client GitHub](https://github.com/linkedin-developers/linkedin-api-js-client) -- official, beta status
-- [LinkedIn Posts API](https://learn.microsoft.com/en-us/linkedin/marketing/community-management/shares/posts-api) -- versioned API docs
-- [Arctic v3 docs](https://arcticjs.dev/) -- 70+ providers, Twitter/LinkedIn/TikTok/Facebook confirmed
-- [Arctic GitHub](https://github.com/pilcrowonpaper/arctic) -- OAuth 2.0 authorization code flow
-- [Zod npm](https://www.npmjs.com/package/zod) -- v4.3.6, verified Feb 2026
-- [sharp npm](https://www.npmjs.com/package/sharp) -- v0.34.5, TypeScript types built-in
-- [WAHA GitHub](https://github.com/devlikeapro/waha) -- self-hosted WhatsApp HTTP API
-- [TikTok Content Posting API](https://developers.tiktok.com/products/content-posting-api/) -- official docs, no SDK
-- [Instagram Graph API posting guide](https://getlate.dev/blog/api-to-post-to-instagram) -- 2026 tutorial, container-based flow
+- [Trigger.dev v4 GA announcement](https://trigger.dev/changelog/trigger-v4-ga) -- v4 features, waitpoints, warm starts
+- [Trigger.dev v3 to v4 migration guide](https://trigger.dev/docs/migrating-from-v3) -- breaking changes, new import paths
+- [Trigger.dev scheduled tasks docs](https://trigger.dev/docs/tasks/scheduled) -- cron syntax, declarative cron
+- [Drizzle ORM RLS docs](https://orm.drizzle.team/docs/rls) -- pgPolicy, pgRole, crudPolicy
+- [Neon + Drizzle RLS guide](https://neon.com/docs/guides/rls-drizzle) -- authenticated/anonymous roles, crudPolicy helper
+- [Drizzle + Neon connection docs](https://orm.drizzle.team/docs/connect-neon) -- serverless driver setup
+- [twitter-api-v2 npm](https://www.npmjs.com/package/twitter-api-v2) -- v1.29.x, actively maintained
+- [X API tools and libraries](https://docs.x.com/x-api/tools-and-libraries/overview) -- official SDK listing
+- [LinkedIn Marketing API overview](https://learn.microsoft.com/en-us/linkedin/marketing/overview?view=li-lms-2026-02) -- current API version, endpoints
+- [Instagram Graph API developer guide](https://elfsight.com/blog/instagram-graph-api-complete-developer-guide-for-2026/) -- 2026 guide
+- [TikTok Content Posting API reference](https://developers.tiktok.com/doc/content-posting-api-reference-direct-post) -- direct post endpoint
+- [Arctic v3 docs](https://arcticjs.dev/) -- supported providers (LinkedIn, Twitter, TikTok, Facebook; no Instagram)
+- [WAHA GitHub](https://github.com/devlikeapro/waha) -- Docker setup, engines, capabilities
+- [@fal-ai/client npm](https://www.npmjs.com/package/@fal-ai/client) -- v1.9.x, FLUX.2 integration
+- [OpenAI image generation docs](https://platform.openai.com/docs/guides/image-generation) -- gpt-image-1, gpt-image-1.5
+- [Ideogram API overview](https://developer.ideogram.ai/ideogram-api/api-overview) -- REST API, pricing tiers
+- [FLUX.2 on fal.ai](https://fal.ai/flux-2) -- model variants, pricing
+- [Tavily SDK reference](https://docs.tavily.com/sdk/javascript/reference) -- @tavily/core
+- [Exa API docs](https://docs.exa.ai/reference/getting-started) -- @exalabs/ai-sdk
+- [Perplexity API changelog](https://docs.perplexity.ai/changelog/changelog) -- sonar models, deprecations
+- [Brave Search API](https://brave.com/search/api/) -- pricing, LLM Context API
+- [EnsembleData TikTok API](https://ensembledata.com/tiktok-api) -- scraping, analytics
+- [OpenAI npm](https://www.npmjs.com/package/openai) -- v6.22.x
+- [Replicate npm](https://www.npmjs.com/package/replicate) -- v1.4.x (alternative to fal.ai)
 
 ---
 *Stack research for: Post Shit Now -- CLI-first social media automation*
