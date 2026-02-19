@@ -50,7 +50,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **POST-05**: Content brain picks optimal format per platform (text, thread, carousel, reel script, TikTok concept)
 - [x] **POST-06**: User can choose posting persona (personal, brand operator, brand ambassador) per post
 - [x] **POST-07**: User can choose language (en, es, both) per post with platform-specific defaults
-- [ ] **POST-08**: Bilingual posts (`both`) are independently crafted per language, not translated
+- [x] **POST-08**: Bilingual posts (`both`) are independently crafted per language, not translated
 - [x] **POST-09**: User reviews and edits every generated post before scheduling (human-in-the-loop)
 - [x] **POST-10**: Every edit is tracked with edit distance and edit patterns for the learning loop
 - [x] **POST-11**: System checks idea bank for ready ideas before asking for a topic
@@ -121,16 +121,16 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Weekly Planning
 
-- [ ] **PLAN-01**: User can run `/psn:plan` for weekly batch ideation + generation + scheduling
-- [ ] **PLAN-02**: Planning shows current week's calendar state (scheduled, series due dates, gaps)
-- [ ] **PLAN-03**: Ideation phase checks stored trend data, fires real-time searches, reviews analytics, checks idea bank
-- [ ] **PLAN-04**: System generates 10-15 ideas with angles mixed with existing ready ideas from Hub
-- [ ] **PLAN-05**: User rates ideas: love it (→ ready) / maybe later (→ seed) / kill it (→ killed with reason)
-- [ ] **PLAN-06**: Batch generation: series installments auto-slotted first, ready ideas fill gaps, new posts for remaining slots
-- [ ] **PLAN-07**: Each slot gets a language suggestion based on platform config and recent language mix
-- [ ] **PLAN-08**: User can bail at any phase (just ideate, just generate, or full plan+schedule)
-- [ ] **PLAN-09**: Content pillar distribution balances across categories per strategy.yaml weights
-- [ ] **PLAN-10**: Content archetype balancing prevents monotonous content patterns
+- [x] **PLAN-01**: User can run `/psn:plan` for weekly batch ideation + generation + scheduling
+- [x] **PLAN-02**: Planning shows current week's calendar state (scheduled, series due dates, gaps)
+- [x] **PLAN-03**: Ideation phase checks stored trend data, fires real-time searches, reviews analytics, checks idea bank
+- [x] **PLAN-04**: System generates 10-15 ideas with angles mixed with existing ready ideas from Hub
+- [x] **PLAN-05**: User rates ideas: love it (→ ready) / maybe later (→ seed) / kill it (→ killed with reason)
+- [x] **PLAN-06**: Batch generation: series installments auto-slotted first, ready ideas fill gaps, new posts for remaining slots
+- [x] **PLAN-07**: Each slot gets a language suggestion based on platform config and recent language mix
+- [x] **PLAN-08**: User can bail at any phase (just ideate, just generate, or full plan+schedule)
+- [x] **PLAN-09**: Content pillar distribution balances across categories per strategy.yaml weights
+- [x] **PLAN-10**: Content archetype balancing prevents monotonous content patterns
 
 ### Content Series
 
@@ -208,8 +208,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **CONTENT-01**: Drafts stored in `content/drafts/` with auto-pruning 14 days after publishing
 - [x] **CONTENT-02**: Generated media stored in `content/media/` with auto-pruning 7 days after posting
-- [ ] **CONTENT-03**: Content remixing: system suggests re-angling high-performing content for different platforms
-- [ ] **CONTENT-04**: Content recycling: system surfaces past top performers with fresh angles during `/psn:plan`
+- [x] **CONTENT-03**: Content remixing: system suggests re-angling high-performing content for different platforms
+- [x] **CONTENT-04**: Content recycling: system surfaces past top performers with fresh angles during `/psn:plan`
 - [x] **CONTENT-05**: Content queue in Hub DB `posts` table is source of truth for scheduled/published posts
 
 ## v2 Requirements
@@ -338,16 +338,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IDEA-06 | Phase 5 | Complete |
 | IDEA-07 | Phase 5 | Complete |
 | IDEA-08 | Phase 5 | Complete |
-| PLAN-01 | Phase 5 | Pending |
-| PLAN-02 | Phase 5 | Pending |
-| PLAN-03 | Phase 5 | Pending |
-| PLAN-04 | Phase 5 | Pending |
-| PLAN-05 | Phase 5 | Pending |
-| PLAN-06 | Phase 5 | Pending |
-| PLAN-07 | Phase 5 | Pending |
-| PLAN-08 | Phase 5 | Pending |
-| PLAN-09 | Phase 5 | Pending |
-| PLAN-10 | Phase 5 | Pending |
+| PLAN-01 | Phase 5 | Complete |
+| PLAN-02 | Phase 5 | Complete |
+| PLAN-03 | Phase 5 | Complete |
+| PLAN-04 | Phase 5 | Complete |
+| PLAN-05 | Phase 5 | Complete |
+| PLAN-06 | Phase 5 | Complete |
+| PLAN-07 | Phase 5 | Complete |
+| PLAN-08 | Phase 5 | Complete |
+| PLAN-09 | Phase 5 | Complete |
+| PLAN-10 | Phase 5 | Complete |
 | SERIES-01 | Phase 5 | Complete |
 | SERIES-02 | Phase 5 | Complete |
 | SERIES-03 | Phase 5 | Complete |
@@ -355,10 +355,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SERIES-05 | Phase 5 | Complete |
 | SERIES-06 | Phase 5 | Complete |
 | POST-07 | Phase 5 | Complete |
-| POST-08 | Phase 5 | Pending |
+| POST-08 | Phase 5 | Complete |
 | ANLYT-10 | Phase 5 | Complete |
-| CONTENT-03 | Phase 5 | Pending |
-| CONTENT-04 | Phase 5 | Pending |
+| CONTENT-03 | Phase 5 | Complete |
+| CONTENT-04 | Phase 5 | Complete |
 | AUTH-02 | Phase 6 | Pending |
 | PLAT-02 | Phase 6 | Pending |
 | PLAT-06 | Phase 6 | Pending |
