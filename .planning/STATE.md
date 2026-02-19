@@ -54,6 +54,10 @@ Progress: [██████████] 100%
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 11 added: should we address this remaining tech debt issues? - CONFIG-04: search providers read from process.env (BYOK stores in keys.env — works via Trigger.dev env vars) - IMG/VID providers not imported by generate.ts (Claude-invoked pattern, by design)
+
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
