@@ -20,6 +20,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: LinkedIn and Multi-Platform** - LinkedIn OAuth and posting, multi-platform content adaptation, partial failure isolation (completed 2026-02-19)
 - [x] **Phase 7: Team Coordination and Notifications** - Company Hub provisioning, invite codes, approval workflows, WhatsApp notifications, brand personas (completed 2026-02-19)
 - [x] **Phase 8: Instagram, TikTok, and Engagement** - Instagram and TikTok posting, engagement engine with semi-automated replies (completed 2026-02-19)
+- [ ] **Phase 9: Integration Wiring Fixes** - Wire notification dispatcher, fix idea bank args, fix unified calendar, add preference lock checks (gap closure)
+- [ ] **Phase 10: Milestone Documentation Closure** - VERIFICATION.md for Phase 1 and 6, REQUIREMENTS.md checkbox updates, CONFIG-04 api_keys wiring (gap closure)
 
 ## Phase Details
 
@@ -173,10 +175,40 @@ Plans:
 - [x] 08-05-PLAN.md — Voice-matched reply drafting, triage-then-draft session, /psn:engage command, outcome tracking, content bridge
 - [x] 08-06-PLAN.md — Gap closure: ENGAGE-01 text alignment, engagement tracker → learning loop wire
 
+### Phase 9: Integration Wiring Fixes
+**Goal**: All notification events fire correctly, idea bank surfaces during content generation, calendar shows all hubs, and preference locks are respected
+**Depends on**: Phase 8 (all code exists, just needs wiring)
+**Requirements**: NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, TEAM-05, AUTH-07, POST-11, TEAM-07, TEAM-08, ENGAGE-03, LEARN-07
+**Gap Closure:** Closes integration gaps 1-4 and flow gaps 1-3 from v1.0 audit
+**Success Criteria** (what must be TRUE):
+  1. notificationDispatcherTask is triggered by approval workflow (submit, approve, reject), publish-post failures, and token-refresher failures
+  2. Engagement monitor triggers notification dispatcher for push-tier opportunities (score 70+)
+  3. checkIdeaBank() in generate.ts receives db and userId — ready ideas surface during `/psn:post`
+  4. calendarCommand in plan.ts uses getUnifiedCalendar — company hub posts visible during weekly planning
+  5. generate.ts checks lockedSettings from locks.ts before applying preference model adjustments
+
+Plans:
+- [ ] 09-01-PLAN.md — Wire notification dispatcher triggers, fix idea bank args, fix unified calendar, add lock checks
+
+### Phase 10: Milestone Documentation Closure
+**Goal**: All v1.0 requirements have verification artifacts and REQUIREMENTS.md reflects actual completion status
+**Depends on**: Phase 9 (integration fixes must be done before final verification)
+**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, INFRA-05, INFRA-06, INFRA-07, CONFIG-01, CONFIG-04, CONFIG-07, AUTH-02, PLAT-02, PLAT-06, PLAT-07, ANLYT-02, POST-02
+**Gap Closure:** Closes 16 partial/unsatisfied requirements from v1.0 audit (documentation gaps)
+**Success Criteria** (what must be TRUE):
+  1. VERIFICATION.md exists for Phase 1 confirming all 10 requirements are satisfied
+  2. VERIFICATION.md exists for Phase 6 confirming all 6 requirements are satisfied
+  3. Phase 6 SUMMARY files have requirements-completed frontmatter
+  4. All 16 requirement checkboxes in REQUIREMENTS.md are checked with status "Complete"
+  5. CONFIG-04: search providers read API keys from api_keys DB table (not just process.env)
+
+Plans:
+- [ ] 10-01-PLAN.md — Create verification artifacts, update REQUIREMENTS.md, fix CONFIG-04 api_keys wiring
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -186,5 +218,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 4. Analytics and Learning Loop | 5/5 | Complete | 2026-02-19 |
 | 5. Intelligence, Ideation, and Planning | 6/6 | Complete | 2026-02-19 |
 | 6. LinkedIn and Multi-Platform | 2/2 | Complete | 2026-02-19 |
-| 7. Team Coordination and Notifications | 5/5 | Complete   | 2026-02-19 |
+| 7. Team Coordination and Notifications | 5/5 | Complete | 2026-02-19 |
 | 8. Instagram, TikTok, and Engagement | 6/6 | Complete | 2026-02-19 |
+| 9. Integration Wiring Fixes | 0/1 | Pending | — |
+| 10. Milestone Documentation Closure | 0/1 | Pending | — |

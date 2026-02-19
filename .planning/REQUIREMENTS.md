@@ -25,7 +25,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AUTH-04**: User can authenticate with TikTok via OAuth 2.0 flow using Arctic library
 - [x] **AUTH-05**: Token refresher task runs daily and proactively refreshes tokens within 7 days of expiry
 - [x] **AUTH-06**: OAuth token refresh uses Postgres row-level locking (`SELECT FOR UPDATE SKIP LOCKED`) to prevent race conditions
-- [x] **AUTH-07**: User is notified when token refresh fails and manual re-authorization is needed
+- [ ] **AUTH-07**: User is notified when token refresh fails and manual re-authorization is needed
 - [x] **AUTH-08**: OAuth tokens are stored encrypted in Hub DB `oauth_tokens` table, not in environment variables
 
 ### Voice Profiling
@@ -53,7 +53,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **POST-08**: Bilingual posts (`both`) are independently crafted per language, not translated
 - [x] **POST-09**: User reviews and edits every generated post before scheduling (human-in-the-loop)
 - [x] **POST-10**: Every edit is tracked with edit distance and edit patterns for the learning loop
-- [x] **POST-11**: System checks idea bank for ready ideas before asking for a topic
+- [ ] **POST-11**: System checks idea bank for ready ideas before asking for a topic
 - [x] **POST-12**: System offers 3 quick topic suggestions when no topic provided and no ready ideas exist
 - [x] **POST-13**: Semi-automated formats (video scripts, TikTok stitches) save script + talking points to drafts; user records then runs `/psn:post finish`
 - [x] **POST-14**: Generated content reflects learnings from preference model (best hooks, formats, fatigued topics)
@@ -104,7 +104,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **LEARN-04**: Preference model updates weekly during `/psn:review` with platform learnings, archetype performance, edit patterns
 - [x] **LEARN-05**: Autonomous adjustments: pillar weights (±5%/cycle), posting times, format preferences, topic fatigue, frequency (±1/week)
 - [x] **LEARN-06**: Transparent changelog shows all autonomous changes in weekly review ("what the brain changed this week")
-- [x] **LEARN-07**: User overrides are permanent — system will not re-adjust locked settings
+- [ ] **LEARN-07**: User overrides are permanent — system will not re-adjust locked settings
 - [x] **LEARN-08**: Content fatigue tracker cools down overused topics and formats
 - [x] **LEARN-09**: Company brand preference model in Company Hub DB shared across team members
 
@@ -155,7 +155,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **ENGAGE-01**: Engagement monitor task checks for viral/trending posts in user's niche every 2-4 hours (locked decision — supersedes original 5-15 min for cost/rate-limit reasons)
 - [x] **ENGAGE-02**: Opportunities scored: relevance × author influence × post velocity × time window remaining
-- [x] **ENGAGE-03**: Scores 60+: draft 2-3 reply options using voice profile's reply_style; 70+: push notify; 60-69: digest
+- [ ] **ENGAGE-03**: Scores 60+: draft 2-3 reply options using voice profile's reply_style; 70+: push notify; 60-69: digest
 - [x] **ENGAGE-04**: User can run `/psn:engage` for proactive 15-minute engagement sessions
 - [x] **ENGAGE-05**: Human approves every reply — never auto-post
 - [x] **ENGAGE-06**: Daily caps, cooldowns, and blocklists per platform enforced
@@ -163,14 +163,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Notifications
 
-- [x] **NOTIF-01**: WhatsApp notifications via WAHA (self-hosted) with Twilio as configurable fallback
-- [x] **NOTIF-02**: Tier 1 push notifications: trending topics (70+), engagement opportunities, content going viral, timely ideas expiring, approvals needed
-- [x] **NOTIF-03**: Tier 2 morning digest at configurable time with adaptive content based on user journey stage
-- [x] **NOTIF-04**: Tier 3 standard notifications: post scheduled/published, approval results, weekly digest, token expiring
-- [x] **NOTIF-05**: WhatsApp structured commands: R1/R2/R3 (reply selection), skip, approve, reject, edit, post, time, list, help
-- [x] **NOTIF-06**: Conversation state machine tracks active notification context per user in `whatsapp_sessions` table
-- [x] **NOTIF-07**: Notification fatigue prevention: hard caps (3 push/day), cooldowns (2hr), dedup, feedback loop, quiet hours
-- [x] **NOTIF-08**: Company-level notification routing based on team member expertise
+- [ ] **NOTIF-01**: WhatsApp notifications via WAHA (self-hosted) with Twilio as configurable fallback
+- [ ] **NOTIF-02**: Tier 1 push notifications: trending topics (70+), engagement opportunities, content going viral, timely ideas expiring, approvals needed
+- [ ] **NOTIF-03**: Tier 2 morning digest at configurable time with adaptive content based on user journey stage
+- [ ] **NOTIF-04**: Tier 3 standard notifications: post scheduled/published, approval results, weekly digest, token expiring
+- [ ] **NOTIF-05**: WhatsApp structured commands: R1/R2/R3 (reply selection), skip, approve, reject, edit, post, time, list, help
+- [ ] **NOTIF-06**: Conversation state machine tracks active notification context per user in `whatsapp_sessions` table
+- [ ] **NOTIF-07**: Notification fatigue prevention: hard caps (3 push/day), cooldowns (2hr), dedup, feedback loop, quiet hours
+- [ ] **NOTIF-08**: Company-level notification routing based on team member expertise
 
 ### Company Coordination
 
@@ -178,10 +178,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TEAM-02**: Admin can generate one-time invite codes (7-day expiry) for team members
 - [x] **TEAM-03**: Team member can join a Company Hub via `/psn:setup join` with invite code
 - [x] **TEAM-04**: Postgres RLS enforces per-user data isolation in Company Hub
-- [x] **TEAM-05**: Company posts follow approval workflow: submit → notify approvers → approve/reject → schedule/cancel
+- [ ] **TEAM-05**: Company posts follow approval workflow: submit → notify approvers → approve/reject → schedule/cancel
 - [x] **TEAM-06**: `/psn:approve` shows pending posts with calendar context and related ideas
 - [x] **TEAM-07**: Team member leaving = delete connection file; personal data unaffected
-- [x] **TEAM-08**: `/psn:calendar` merges Personal Hub + all connected Company Hubs into unified view
+- [ ] **TEAM-08**: `/psn:calendar` merges Personal Hub + all connected Company Hubs into unified view
 - [x] **TEAM-09**: Calendar slot claiming with Company Hub conflict checking
 
 ### Platform Support
@@ -253,20 +253,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
-| INFRA-04 | Phase 1 | Pending |
-| INFRA-05 | Phase 1 | Pending |
-| INFRA-06 | Phase 1 | Pending |
-| INFRA-07 | Phase 1 | Pending |
-| CONFIG-01 | Phase 1 | Pending |
-| CONFIG-04 | Phase 1 | Pending |
-| CONFIG-07 | Phase 1 | Pending |
+| INFRA-01 | Phase 10 | Pending |
+| INFRA-02 | Phase 10 | Pending |
+| INFRA-03 | Phase 10 | Pending |
+| INFRA-04 | Phase 10 | Pending |
+| INFRA-05 | Phase 10 | Pending |
+| INFRA-06 | Phase 10 | Pending |
+| INFRA-07 | Phase 10 | Pending |
+| CONFIG-01 | Phase 10 | Pending |
+| CONFIG-04 | Phase 10 | Pending |
+| CONFIG-07 | Phase 10 | Pending |
 | AUTH-01 | Phase 2 | Complete |
 | AUTH-05 | Phase 2 | Complete |
 | AUTH-06 | Phase 2 | Complete |
-| AUTH-07 | Phase 2 | Complete |
+| AUTH-07 | Phase 9 | Pending |
 | AUTH-08 | Phase 2 | Complete |
 | PLAT-01 | Phase 2 | Complete |
 | PLAT-05 | Phase 2 | Complete |
@@ -291,7 +291,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | POST-06 | Phase 3 | Complete |
 | POST-09 | Phase 3 | Complete |
 | POST-10 | Phase 3 | Complete |
-| POST-11 | Phase 3 | Complete |
+| POST-11 | Phase 9 | Pending |
 | POST-12 | Phase 3 | Complete |
 | POST-14 | Phase 3 | Complete |
 | IMG-01 | Phase 3 | Complete |
@@ -320,7 +320,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LEARN-04 | Phase 4 | Complete |
 | LEARN-05 | Phase 4 | Complete |
 | LEARN-06 | Phase 4 | Complete |
-| LEARN-07 | Phase 4 | Complete |
+| LEARN-07 | Phase 9 | Pending |
 | LEARN-08 | Phase 4 | Complete |
 | POST-13 | Phase 4 | Complete |
 | SCHED-06 | Phase 4 | Complete |
@@ -359,29 +359,29 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ANLYT-10 | Phase 5 | Complete |
 | CONTENT-03 | Phase 5 | Complete |
 | CONTENT-04 | Phase 5 | Complete |
-| AUTH-02 | Phase 6 | Pending |
-| PLAT-02 | Phase 6 | Pending |
-| PLAT-06 | Phase 6 | Pending |
-| PLAT-07 | Phase 6 | Pending |
-| ANLYT-02 | Phase 6 | Pending |
-| POST-02 | Phase 6 | Pending |
+| AUTH-02 | Phase 10 | Pending |
+| PLAT-02 | Phase 10 | Pending |
+| PLAT-06 | Phase 10 | Pending |
+| PLAT-07 | Phase 10 | Pending |
+| ANLYT-02 | Phase 10 | Pending |
+| POST-02 | Phase 10 | Pending |
 | TEAM-01 | Phase 7 | Complete |
 | TEAM-02 | Phase 7 | Complete |
 | TEAM-03 | Phase 7 | Complete |
 | TEAM-04 | Phase 7 | Complete |
-| TEAM-05 | Phase 7 | Complete |
+| TEAM-05 | Phase 9 | Pending |
 | TEAM-06 | Phase 7 | Complete |
-| TEAM-07 | Phase 7 | Complete |
-| TEAM-08 | Phase 7 | Complete |
+| TEAM-07 | Phase 9 | Pending |
+| TEAM-08 | Phase 9 | Pending |
 | TEAM-09 | Phase 7 | Complete |
-| NOTIF-01 | Phase 7 | Complete |
-| NOTIF-02 | Phase 7 | Complete |
-| NOTIF-03 | Phase 7 | Complete |
-| NOTIF-04 | Phase 7 | Complete |
-| NOTIF-05 | Phase 7 | Complete |
-| NOTIF-06 | Phase 7 | Complete |
-| NOTIF-07 | Phase 7 | Complete |
-| NOTIF-08 | Phase 7 | Complete |
+| NOTIF-01 | Phase 9 | Pending |
+| NOTIF-02 | Phase 9 | Pending |
+| NOTIF-03 | Phase 9 | Pending |
+| NOTIF-04 | Phase 9 | Pending |
+| NOTIF-05 | Phase 9 | Pending |
+| NOTIF-06 | Phase 9 | Pending |
+| NOTIF-07 | Phase 9 | Pending |
+| NOTIF-08 | Phase 9 | Pending |
 | LEARN-09 | Phase 7 | Complete |
 | SERIES-07 | Phase 7 | Complete |
 | CONFIG-05 | Phase 7 | Complete |
@@ -396,7 +396,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | POST-04 | Phase 8 | Complete |
 | ENGAGE-01 | Phase 8 | Complete |
 | ENGAGE-02 | Phase 8 | Complete |
-| ENGAGE-03 | Phase 8 | Complete |
+| ENGAGE-03 | Phase 9 | Pending |
 | ENGAGE-04 | Phase 8 | Complete |
 | ENGAGE-05 | Phase 8 | Complete |
 | ENGAGE-06 | Phase 8 | Complete |
@@ -406,7 +406,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 - v1 requirements: 148 total
 - Mapped to phases: 148
 - Unmapped: 0
+- Pending (gap closure): 31 (15 Phase 9 wiring fixes, 16 Phase 10 documentation closure)
 
 ---
 *Requirements defined: 2026-02-18*
-*Last updated: 2026-02-18 after roadmap creation*
+*Last updated: 2026-02-19 after gap closure phase creation*
