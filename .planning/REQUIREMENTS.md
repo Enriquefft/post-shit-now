@@ -30,16 +30,16 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Voice Profiling
 
-- [ ] **VOICE-01**: User can complete a voice profiling interview that captures identity, voice patterns, boundaries, and platform preferences
-- [ ] **VOICE-02**: User can import existing content (X history, LinkedIn posts, blog posts) to bootstrap voice patterns
+- [x] **VOICE-01**: User can complete a voice profiling interview that captures identity, voice patterns, boundaries, and platform preferences
+- [x] **VOICE-02**: User can import existing content (X history, LinkedIn posts, blog posts) to bootstrap voice patterns
 - [x] **VOICE-03**: System generates a `personal.yaml` voice profile with language-agnostic traits and language-specific sections
 - [x] **VOICE-04**: Calibration mode tracks edit rates over first 10-15 posts and presents calibration reports
-- [ ] **VOICE-05**: Blank-slate users (no existing content) get a shorter personality-first interview with starter archetypes
-- [ ] **VOICE-06**: Bilingual users complete voice interview in both English and Spanish with language-specific voice sections
+- [x] **VOICE-05**: Blank-slate users (no existing content) get a shorter personality-first interview with starter archetypes
+- [x] **VOICE-06**: Bilingual users complete voice interview in both English and Spanish with language-specific voice sections
 - [x] **VOICE-07**: User can create brand-operator voice profiles per connected company
 - [x] **VOICE-08**: User can create brand-ambassador voice profiles that inherit from personal with company guardrails
 - [x] **VOICE-09**: User can do quick voice tweaks via `/psn:config voice` (add banned words, adjust formality)
-- [ ] **VOICE-10**: User can trigger full voice recalibration via `/psn:setup voice`
+- [x] **VOICE-10**: User can trigger full voice recalibration via `/psn:setup voice`
 
 ### Content Creation
 
@@ -276,16 +276,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCHED-04 | Phase 2 | Complete |
 | SCHED-05 | Phase 2 | Complete |
 | CONTENT-05 | Phase 2 | Complete |
-| VOICE-01 | Phase 3 | Pending |
-| VOICE-02 | Phase 3 | Pending |
+| VOICE-01 | Phase 3 | Complete |
+| VOICE-02 | Phase 3 | Complete |
 | VOICE-03 | Phase 3 | Complete |
 | VOICE-04 | Phase 3 | Complete |
-| VOICE-05 | Phase 3 | Pending |
-| VOICE-06 | Phase 3 | Pending |
+| VOICE-05 | Phase 3 | Complete |
+| VOICE-06 | Phase 3 | Complete |
 | VOICE-07 | Phase 3 | Complete |
 | VOICE-08 | Phase 3 | Complete |
 | VOICE-09 | Phase 3 | Complete |
-| VOICE-10 | Phase 3 | Pending |
+| VOICE-10 | Phase 3 | Complete |
 | POST-01 | Phase 3 | Complete |
 | POST-05 | Phase 3 | Complete |
 | POST-06 | Phase 3 | Complete |

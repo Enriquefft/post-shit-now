@@ -75,6 +75,10 @@ Recent decisions affecting current work:
 - [03-03]: Kling v2.6 endpoints via fal.ai for best quality realistic motion and native audio
 - [03-03]: Runway SDK constrains text-to-video to veo3.1 model (gen4.5 not in SDK types)
 - [03-03]: Content hint scoring pattern reused from image-gen for provider auto-selection
+- [03-04]: Interview engine is a library, not interactive CLI -- Claude drives conversation via slash commands
+- [03-04]: Experience detection uses keyword signal scoring plus imported content volume
+- [03-04]: Content analysis is heuristic string processing, not ML -- simple and deterministic
+- [03-04]: Blank-slate users get 5 starter archetypes as starting templates
 - [03-05]: Content brain is a context assembler, not a black-box generator -- Claude generates actual text using assembled voice context
 - [03-05]: Deterministic topic suggestions with angle rotation to avoid repetition across calls
 - [03-05]: Draft files use YAML frontmatter for metadata, stored as markdown in content/drafts/
