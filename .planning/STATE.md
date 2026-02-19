@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 5 of 8 (Intelligence, Ideation, and Planning)
-Plan: 3 of 6 in current phase
+Plan: 4 of 6 in current phase
 Status: Executing Phase 5
-Last activity: 2026-02-19 - Completed 05-03 (Idea bank with capture, lifecycle, CLI, preference feedback)
+Last activity: 2026-02-19 - Completed 05-04 (Scheduled tasks: trend collector, poller, idea expiry)
 
-Progress: [██████░░░░] 60%
+Progress: [██████░░░░] 63%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
+- Total plans completed: 21
 - Average duration: ~6min
-- Total execution time: ~2h 7min
+- Total execution time: ~2h 9min
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [██████░░░░] 60%
 | 2 | 4/4 | ~12min | ~3min |
 | 3 | 7/7 | ~21min | ~3min |
 | 4 | 5/5 | ~25min | ~5min |
-| 5 | 3/6 | ~8min | ~3min |
+| 5 | 4/6 | ~10min | ~3min |
 
 **Recent Trend:**
-- Last 5 plans: 04-04 (~5min), 04-05 (~4min), 05-01 (~2min), 05-02 (~2min), 05-03 (~4min)
+- Last 5 plans: 04-05 (~4min), 05-01 (~2min), 05-02 (~2min), 05-03 (~4min), 05-04 (~2min)
 - Trend: Phase 5 plans executing efficiently
 
 *Updated after each plan completion*
@@ -120,6 +120,10 @@ Recent decisions affecting current work:
 - [05-03]: CLI supports capture/list/ready/search/stats/stale/expire/killed subcommands
 - [05-03]: killedIdeaPatterns stored as jsonb on preference_model table for rejection learning
 - [05-03]: Graceful try/catch around killed idea query for when ideas table does not exist yet
+- [05-04]: Added unique index on trends (user_id, title, source) for upsert support
+- [05-04]: ON CONFLICT updates score only if new score is higher (GREATEST)
+- [05-04]: Poller does NOT prune old trends -- daily collector handles that
+- [05-04]: Lightweight YAML parsing reused from collector pattern for pillar loading
 
 ### Pending Todos
 
@@ -141,5 +145,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 05-03-PLAN.md
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
