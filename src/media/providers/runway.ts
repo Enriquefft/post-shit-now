@@ -30,6 +30,27 @@ async function downloadToBuffer(url: string): Promise<Buffer> {
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 
+// ─── Text-to-Video specific mappings ─────────────────────────────────────────
+
+type T2VRatio = "1280:720" | "720:1280" | "1080:1920" | "1920:1080";
+
+function mapT2VRatio(aspectRatio?: string): T2VRatio {
+	switch (aspectRatio) {
+		case "9:16":
+			return "720:1280";
+		default:
+			return "1280:720";
+	}
+}
+
+function mapT2VDuration(seconds: number): 4 | 6 | 8 {
+	if (seconds <= 4) return 4;
+	if (seconds <= 6) return 6;
+	return 8;
+}
+
+// ─── Provider ────────────────────────────────────────────────────────────────
+
 export const runwayProvider: VideoProvider = {
 	name: "runway",
 	strengths: ["stylized", "cinematic", "image-to-video", "consistent-characters"],
@@ -64,7 +85,7 @@ export const runwayProvider: VideoProvider = {
 					})
 					.waitForTaskOutput({ timeout: 300000 });
 			} else {
-				// Veo 3.1 for text-to-video (Runway's current text-to-video model)
+				// Veo 3.1 for text-to-video (Runway SDK supported model)
 				const t2vRatio = mapT2VRatio(params.aspectRatio);
 				taskResult = await client.textToVideo
 					.create({
@@ -97,25 +118,3 @@ export const runwayProvider: VideoProvider = {
 		}
 	},
 };
-
-// ─── Text-to-Video specific mappings ─────────────────────────────────────────
-
-type Veo31Ratio = "1280:720" | "720:1280" | "1080:1920" | "1920:1080";
-
-function mapT2VRatio(aspectRatio?: string): Veo31Ratio {
-	switch (aspectRatio) {
-		case "9:16":
-			return "720:1280";
-		case "1:1":
-			// Veo 3.1 doesn't support 1:1, default to landscape
-			return "1280:720";
-		default:
-			return "1280:720";
-	}
-}
-
-function mapT2VDuration(seconds: number): 4 | 6 | 8 {
-	if (seconds <= 4) return 4;
-	if (seconds <= 6) return 6;
-	return 8;
-}

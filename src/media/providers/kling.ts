@@ -49,7 +49,7 @@ export const klingProvider: VideoProvider = {
 		let input: Record<string, unknown>;
 
 		if (params.mode === "image-to-video" && params.sourceImage) {
-			endpoint = "fal-ai/kling-video/v1.6/pro/image-to-video";
+			endpoint = "fal-ai/kling-video/v2.6/pro/image-to-video";
 			input = {
 				prompt: params.prompt,
 				image_url: params.sourceImage,
@@ -57,7 +57,7 @@ export const klingProvider: VideoProvider = {
 				aspect_ratio: aspectRatio,
 			};
 		} else {
-			endpoint = "fal-ai/kling-video/v1.6/pro/text-to-video";
+			endpoint = "fal-ai/kling-video/v2.6/pro/text-to-video";
 			input = {
 				prompt: params.prompt,
 				duration,
