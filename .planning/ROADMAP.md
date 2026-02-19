@@ -187,8 +187,11 @@ Plans:
   4. calendarCommand in plan.ts uses getUnifiedCalendar — company hub posts visible during weekly planning
   5. generate.ts checks lockedSettings from locks.ts before applying preference model adjustments
 
+**Plans:** 2 plans
+
 Plans:
-- [ ] 09-01-PLAN.md — Wire notification dispatcher triggers, fix idea bank args, fix unified calendar, add lock checks
+- [ ] 09-01-PLAN.md — Wire notification dispatcher into publish-post, token-refresher, approval workflow, and engagement monitor
+- [ ] 09-02-PLAN.md — Fix checkIdeaBank args, switch to unified calendar, add locked settings checks in generate.ts
 
 ### Phase 10: Milestone Documentation Closure
 **Goal**: All v1.0 requirements have verification artifacts and REQUIREMENTS.md reflects actual completion status
@@ -220,5 +223,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6. LinkedIn and Multi-Platform | 2/2 | Complete | 2026-02-19 |
 | 7. Team Coordination and Notifications | 5/5 | Complete | 2026-02-19 |
 | 8. Instagram, TikTok, and Engagement | 6/6 | Complete | 2026-02-19 |
-| 9. Integration Wiring Fixes | 0/1 | Pending | — |
+| 9. Integration Wiring Fixes | 0/2 | Pending | — |
 | 10. Milestone Documentation Closure | 0/1 | Pending | — |
