@@ -1,4 +1,5 @@
 import type { Platform } from "../core/types/index.ts";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { PLATFORM_VIDEO_SPECS } from "./platform-specs.ts";
 import { klingProvider } from "./providers/kling.ts";
 import { pikaProvider } from "./providers/pika.ts";
@@ -12,7 +13,7 @@ export interface VideoProvider {
 	name: string;
 	strengths: string[];
 	supportedModes: VideoMode[];
-	generate(params: VideoGenParams): Promise<GeneratedVideo>;
+	generate(params: VideoGenParams, db: PostgresJsDatabase, hubId: string): Promise<GeneratedVideo>;
 }
 
 export interface VideoGenParams {
@@ -179,7 +180,7 @@ export interface GenerateVideoResult {
 	validation: VideoValidation;
 }
 
-export async function generateVideo(options: GenerateVideoOptions): Promise<GenerateVideoResult> {
+export async function generateVideo(options: GenerateVideoOptions, db: PostgresJsDatabase, hubId: string): Promise<GenerateVideoResult> {
 	const spec = PLATFORM_VIDEO_SPECS[options.platform];
 	const { provider, reason, suggestion } = selectVideoProvider(
 		options.contentHints ?? [],
@@ -201,7 +202,7 @@ export async function generateVideo(options: GenerateVideoOptions): Promise<Gene
 		duration,
 		aspectRatio,
 		withAudio: options.withAudio,
-	});
+	}, db, hubId);
 
 	const validation = validateVideoForPlatform(video, options.platform);
 

@@ -1,3 +1,5 @@
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { getApiKey } from "../../core/db/api-keys";
 import type { GeneratedVideo, VideoGenParams, VideoProvider } from "../video-gen.ts";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -56,12 +58,14 @@ export const runwayProvider: VideoProvider = {
 	strengths: ["stylized", "cinematic", "image-to-video", "consistent-characters"],
 	supportedModes: ["text-to-video", "image-to-video"],
 
-	async generate(params: VideoGenParams): Promise<GeneratedVideo> {
-		const apiSecret = process.env.RUNWAYML_API_SECRET;
+	async generate(
+		params: VideoGenParams,
+		db: PostgresJsDatabase,
+		hubId: string,
+	): Promise<GeneratedVideo> {
+		const apiSecret = await getApiKey(db, hubId, "runway");
 		if (!apiSecret) {
-			throw new Error(
-				"RUNWAYML_API_SECRET environment variable is required for Runway video generation",
-			);
+			throw new Error("API key lookup returned empty value");
 		}
 
 		const { default: RunwayML } = await import("@runwayml/sdk");
