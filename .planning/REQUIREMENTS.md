@@ -89,7 +89,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **ANLYT-02**: Analytics collector pulls metrics from LinkedIn API daily
 - [ ] **ANLYT-03**: Analytics collector pulls metrics from Instagram API daily (within 200 req/hr budget)
 - [ ] **ANLYT-04**: Analytics collector pulls metrics from TikTok API daily
-- [ ] **ANLYT-05**: Each post receives a composite engagement score (saves > shares > comments > likes)
+- [x] **ANLYT-05**: Each post receives a composite engagement score (saves > shares > comments > likes)
 - [ ] **ANLYT-06**: User can view performance analysis via `/psn:review` showing what worked and what didn't
 - [ ] **ANLYT-07**: Weekly review includes per-platform performance, per-post breakdown, and recommendations
 - [ ] **ANLYT-08**: Monthly deep analysis auto-escalates: voice drift detection, audience model update, risk budget recalibration
@@ -98,7 +98,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Learning Loop
 
-- [ ] **LEARN-01**: System tracks engagement signals (saves, shares, comments, follows) weighted by quality
+- [x] **LEARN-01**: System tracks engagement signals (saves, shares, comments, follows) weighted by quality
 - [ ] **LEARN-02**: System tracks edit signals (edit distance, patterns, categories) from every post review
 - [ ] **LEARN-03**: System prompts explicit feedback at key moments (3x above average, significant underperformance, high/low edit streaks)
 - [ ] **LEARN-04**: Preference model updates weekly during `/psn:review` with platform learnings, archetype performance, edit patterns
@@ -309,12 +309,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONFIG-02 | Phase 3 | Complete |
 | CONFIG-03 | Phase 3 | Complete |
 | ANLYT-01 | Phase 4 | Pending |
-| ANLYT-05 | Phase 4 | Pending |
+| ANLYT-05 | Phase 4 | Complete |
 | ANLYT-06 | Phase 4 | Pending |
 | ANLYT-07 | Phase 4 | Pending |
 | ANLYT-08 | Phase 4 | Pending |
 | ANLYT-09 | Phase 4 | Pending |
-| LEARN-01 | Phase 4 | Pending |
+| LEARN-01 | Phase 4 | Complete |
 | LEARN-02 | Phase 4 | Pending |
 | LEARN-03 | Phase 4 | Pending |
 | LEARN-04 | Phase 4 | Pending |
