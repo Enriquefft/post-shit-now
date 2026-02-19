@@ -2,6 +2,7 @@ import { isTopicFatigued } from "../analytics/fatigue.ts";
 import { resolveHub } from "../cli/post-finish.ts";
 import { createHubConnection } from "../core/db/connection.ts";
 import type { Platform } from "../core/types/index.ts";
+import { getLockedSettings, isSettingLocked } from "../learning/locks.ts";
 import { getPreferenceModel } from "../learning/preference-model.ts";
 import { loadProfile } from "../voice/profile.ts";
 import type { VoiceProfile } from "../voice/types.ts";
@@ -366,14 +367,36 @@ export async function generatePost(options: GeneratePostOptions): Promise<Genera
 
 	const profile = await loadProfile(profilePath);
 
-	// Check idea bank (POST-11 stub)
-	const ideaBankStatus = await checkIdeaBank();
+	// Create DB connection once for reuse (idea bank + locked settings)
+	const db = options.databaseUrl ? createHubConnection(options.databaseUrl) : undefined;
+
+	// Check idea bank (POST-11) — pass db and userId so ready ideas surface
+	const ideaBankStatus = await checkIdeaBank(db, options.userId);
 
 	// Pre-fetch preference learnings for topic suggestions
 	const earlyLearnings = await getPreferenceModelLearnings(options.platform, {
 		databaseUrl: options.databaseUrl,
 		userId: options.userId,
 	});
+
+	// Load locked settings (LEARN-07) — filter out locked fields from preference learnings
+	let lockedSettings = null;
+	if (db && options.userId) {
+		try {
+			lockedSettings = await getLockedSettings(db, options.userId);
+		} catch { /* graceful fallback — DB unavailable, all learnings apply */ }
+	}
+
+	// Filter preference learnings based on locked settings
+	if (earlyLearnings && lockedSettings && lockedSettings.length > 0) {
+		if (isSettingLocked(lockedSettings, "hooks")) {
+			earlyLearnings.hooks = [];
+		}
+		if (isSettingLocked(lockedSettings, "formats.preferences")) {
+			earlyLearnings.formats = [];
+		}
+		// Fatigue topics are never locked — always apply
+	}
 
 	// Topic suggestions if no topic provided
 	let topicSuggestions: TopicSuggestion[] | undefined;
