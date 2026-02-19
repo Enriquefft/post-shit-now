@@ -22,7 +22,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AUTH-01**: User can authenticate with X via OAuth 2.0 PKCE flow using Arctic library
 - [ ] **AUTH-02**: User can authenticate with LinkedIn via OAuth 2.0 3-legged flow using Arctic library
 - [x] **AUTH-03**: User can authenticate with Instagram via Facebook OAuth flow using Arctic library
-- [ ] **AUTH-04**: User can authenticate with TikTok via OAuth 2.0 flow using Arctic library
+- [x] **AUTH-04**: User can authenticate with TikTok via OAuth 2.0 flow using Arctic library
 - [x] **AUTH-05**: Token refresher task runs daily and proactively refreshes tokens within 7 days of expiry
 - [x] **AUTH-06**: OAuth token refresh uses Postgres row-level locking (`SELECT FOR UPDATE SKIP LOCKED`) to prevent race conditions
 - [x] **AUTH-07**: User is notified when token refresh fails and manual re-authorization is needed
@@ -189,7 +189,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PLAT-01**: X posting: text posts, threads (3-7 tweets), images, scheduling via Trigger.dev delayed runs
 - [ ] **PLAT-02**: LinkedIn posting: text posts, carousels (PDF), images, scheduling
 - [x] **PLAT-03**: Instagram posting: feed images, carousels (up to 10), Reels, scheduling
-- [ ] **PLAT-04**: TikTok posting: video, photos, scheduling
+- [x] **PLAT-04**: TikTok posting: video, photos, scheduling
 - [x] **PLAT-05**: Each platform has its own typed API client with rate limit awareness
 - [ ] **PLAT-06**: Platform-specific content adaptation (thread structure for X, carousel for LinkedIn, reel script for IG)
 - [ ] **PLAT-07**: Multi-platform posting with partial failure isolation (one platform failure doesn't block others)
@@ -387,9 +387,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONFIG-05 | Phase 7 | Complete |
 | CONFIG-06 | Phase 7 | Complete |
 | AUTH-03 | Phase 8 | Complete |
-| AUTH-04 | Phase 8 | Pending |
+| AUTH-04 | Phase 8 | Complete |
 | PLAT-03 | Phase 8 | Complete |
-| PLAT-04 | Phase 8 | Pending |
+| PLAT-04 | Phase 8 | Complete |
 | ANLYT-03 | Phase 8 | Pending |
 | ANLYT-04 | Phase 8 | Pending |
 | POST-03 | Phase 8 | Pending |
