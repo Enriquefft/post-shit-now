@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Core value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
-**Current focus:** Phase 8 - TikTok and Instagram Integration
+**Current focus:** Phase 9 - Integration Wiring Fixes
 
 ## Current Position
 
-Phase: 8 of 8 (Instagram, TikTok, and Engagement)
-Plan: 5 of 5 in current phase (COMPLETE)
-Status: Phase 8 Complete
-Last activity: 2026-02-19 - Completed 08-05 (Engagement sessions and reply drafting)
+Phase: 9 of 9 (Integration Wiring Fixes)
+Plan: 2 of 2 in current phase (COMPLETE)
+Status: Phase 9 Complete
+Last activity: 2026-02-19 - Completed 09-02 (Content flow integration wiring)
 
 Progress: [██████████] 100%
 
@@ -49,6 +49,7 @@ Progress: [██████████] 100%
 | Phase 08 P04 | 6min | 2 tasks | 8 files |
 | Phase 08 P03 | 6min | 2 tasks | 5 files |
 | Phase 08 P05 | 6min | 2 tasks | 5 files |
+| Phase 09 P02 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -198,6 +199,9 @@ Recent decisions affecting current work:
 - [Phase 08]: [08-05]: Thread tone analysis: 70/30 blend of user base style and thread tone
 - [Phase 08]: [08-05]: Scoring weight suggestions require human review (approval-tier pattern)
 - [Phase 08]: [08-05]: Content bridge suggests up to 5 ideas from high-relevance engaged opportunities
+- [Phase 09]: [09-02]: Reuse single DB connection for checkIdeaBank and getLockedSettings in generate.ts
+- [Phase 09]: [09-02]: calendarCommand returns UnifiedCalendar type (breaking return type change from CalendarState)
+- [Phase 09]: [09-02]: Inline type imports for HubConnection and HubDb in calendarCommand
 
 ### Pending Todos
 
@@ -219,5 +223,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 08-05-PLAN.md (Phase 8 complete, all phases complete)
-Resume file: N/A -- all plans executed
+Stopped at: Completed 09-02-PLAN.md (Content flow integration wiring)
+Resume file: N/A

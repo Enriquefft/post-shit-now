@@ -53,7 +53,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **POST-08**: Bilingual posts (`both`) are independently crafted per language, not translated
 - [x] **POST-09**: User reviews and edits every generated post before scheduling (human-in-the-loop)
 - [x] **POST-10**: Every edit is tracked with edit distance and edit patterns for the learning loop
-- [ ] **POST-11**: System checks idea bank for ready ideas before asking for a topic
+- [x] **POST-11**: System checks idea bank for ready ideas before asking for a topic
 - [x] **POST-12**: System offers 3 quick topic suggestions when no topic provided and no ready ideas exist
 - [x] **POST-13**: Semi-automated formats (video scripts, TikTok stitches) save script + talking points to drafts; user records then runs `/psn:post finish`
 - [x] **POST-14**: Generated content reflects learnings from preference model (best hooks, formats, fatigued topics)
@@ -104,7 +104,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **LEARN-04**: Preference model updates weekly during `/psn:review` with platform learnings, archetype performance, edit patterns
 - [x] **LEARN-05**: Autonomous adjustments: pillar weights (±5%/cycle), posting times, format preferences, topic fatigue, frequency (±1/week)
 - [x] **LEARN-06**: Transparent changelog shows all autonomous changes in weekly review ("what the brain changed this week")
-- [ ] **LEARN-07**: User overrides are permanent — system will not re-adjust locked settings
+- [x] **LEARN-07**: User overrides are permanent — system will not re-adjust locked settings
 - [x] **LEARN-08**: Content fatigue tracker cools down overused topics and formats
 - [x] **LEARN-09**: Company brand preference model in Company Hub DB shared across team members
 
@@ -181,7 +181,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **TEAM-05**: Company posts follow approval workflow: submit → notify approvers → approve/reject → schedule/cancel
 - [x] **TEAM-06**: `/psn:approve` shows pending posts with calendar context and related ideas
 - [x] **TEAM-07**: Team member leaving = delete connection file; personal data unaffected
-- [ ] **TEAM-08**: `/psn:calendar` merges Personal Hub + all connected Company Hubs into unified view
+- [x] **TEAM-08**: `/psn:calendar` merges Personal Hub + all connected Company Hubs into unified view
 - [x] **TEAM-09**: Calendar slot claiming with Company Hub conflict checking
 
 ### Platform Support
@@ -291,7 +291,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | POST-06 | Phase 3 | Complete |
 | POST-09 | Phase 3 | Complete |
 | POST-10 | Phase 3 | Complete |
-| POST-11 | Phase 9 | Pending |
+| POST-11 | Phase 9 | Complete |
 | POST-12 | Phase 3 | Complete |
 | POST-14 | Phase 3 | Complete |
 | IMG-01 | Phase 3 | Complete |
@@ -320,7 +320,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LEARN-04 | Phase 4 | Complete |
 | LEARN-05 | Phase 4 | Complete |
 | LEARN-06 | Phase 4 | Complete |
-| LEARN-07 | Phase 9 | Pending |
+| LEARN-07 | Phase 9 | Complete |
 | LEARN-08 | Phase 4 | Complete |
 | POST-13 | Phase 4 | Complete |
 | SCHED-06 | Phase 4 | Complete |
@@ -372,7 +372,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEAM-05 | Phase 9 | Pending |
 | TEAM-06 | Phase 7 | Complete |
 | TEAM-07 | Phase 9 | Pending |
-| TEAM-08 | Phase 9 | Pending |
+| TEAM-08 | Phase 9 | Complete |
 | TEAM-09 | Phase 7 | Complete |
 | NOTIF-01 | Phase 9 | Pending |
 | NOTIF-02 | Phase 9 | Pending |
