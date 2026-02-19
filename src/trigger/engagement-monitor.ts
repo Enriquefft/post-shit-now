@@ -8,6 +8,7 @@ import { discoverOpportunities, expireOldOpportunities } from "../engagement/mon
 import type { PlatformClients } from "../engagement/monitor.ts";
 import { XClient } from "../platforms/x/client.ts";
 import { InstagramClient } from "../platforms/instagram/client.ts";
+import { notificationDispatcherTask } from "./notification-dispatcher.ts";
 
 // ─── Engagement Monitor Task ────────────────────────────────────────────────
 
@@ -124,32 +125,33 @@ export const engagementMonitor = schedules.task({
 			(o) => o.score.composite >= 60 && o.score.composite < 70,
 		);
 
-		// High-score opportunities: trigger push notification
+		// High-score opportunities: trigger push notification via dispatcher
+		// Uses notificationDispatcherTask instead of raw INSERT to get fatigue prevention,
+		// quiet hours, and provider abstraction. Dispatcher writes to notification_log itself.
 		if (highScore.length > 0) {
-			try {
-				// Queue push notifications via notification log (dispatcher picks them up)
-				for (const opp of highScore) {
-					await db.execute(sql`
-						INSERT INTO notification_log (
-							id, user_id, event_type, tier, provider, recipient, status,
-							dedup_key, created_at
-						) VALUES (
-							gen_random_uuid(), ${userId}, 'post.viral', 'push', 'waha', '',
-							'pending',
-							${"engagement-" + opp.externalPostId},
-							NOW()
-						)
-						ON CONFLICT DO NOTHING
-					`);
+			for (const opp of highScore) {
+				try {
+					await notificationDispatcherTask.trigger({
+						eventType: "post.viral",
+						userId,
+						payload: {
+							postId: opp.externalPostId,
+							platform: opp.platform,
+							score: opp.score.composite,
+							authorHandle: opp.authorHandle ?? "",
+							postSnippet: (opp.postSnippet ?? "").slice(0, 100),
+						},
+					});
+				} catch (notifError) {
+					logger.warn("Failed to trigger engagement notification", {
+						externalPostId: opp.externalPostId,
+						error: notifError instanceof Error ? notifError.message : String(notifError),
+					});
 				}
-				logger.info("Queued push notifications for high-score opportunities", {
-					count: highScore.length,
-				});
-			} catch (err) {
-				logger.warn("Failed to queue engagement notifications", {
-					error: err instanceof Error ? err.message : String(err),
-				});
 			}
+			logger.info("Triggered push notifications for high-score opportunities", {
+				count: highScore.length,
+			});
 		}
 
 		// Medium-score opportunities: batch into digest
