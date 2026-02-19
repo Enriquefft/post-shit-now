@@ -50,12 +50,13 @@ Plans:
   3. User can schedule a post for a specific date/time and it publishes via Trigger.dev delayed run with retry and rate limit handling
   4. Multi-step media uploads (register, upload, attach) work for X images and threads
   5. Failed posts notify the user and scheduled/published posts are tracked in the Hub DB content queue
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — DB schema expansion, X OAuth 2.0 PKCE module, API types, setup integration
+- [ ] 02-02-PLAN.md — Thread auto-splitter and timezone utilities (TDD)
+- [ ] 02-03-PLAN.md — X API client with rate limits, media upload, token refresher cron
+- [ ] 02-04-PLAN.md — Publish-post task, post CLI, /psn:post command, watchdog update
 
 ### Phase 3: Voice Profiling and Content Generation
 **Goal**: User can generate posts in their authentic voice with image support, review and edit them, and manage drafts
@@ -165,7 +166,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation Infrastructure | 3/3 | Complete | 2026-02-18 |
-| 2. X Platform Pipeline | 0/3 | Not started | - |
+| 2. X Platform Pipeline | 0/4 | Planned | - |
 | 3. Voice Profiling and Content Generation | 0/3 | Not started | - |
 | 4. Analytics and Learning Loop | 0/2 | Not started | - |
 | 5. Intelligence, Ideation, and Planning | 0/3 | Not started | - |
