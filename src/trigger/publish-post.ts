@@ -1,7 +1,7 @@
 import { logger, task, wait } from "@trigger.dev/sdk";
 import { eq, sql } from "drizzle-orm";
 import { createHubConnection } from "../core/db/connection.ts";
-import { oauthTokens, posts } from "../core/db/schema.ts";
+import { oauthTokens, posts, preferenceModel } from "../core/db/schema.ts";
 import type { Platform, PlatformPublishResult } from "../core/types/index.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { splitIntoThread } from "../core/utils/thread-splitter.ts";
@@ -79,6 +79,44 @@ export const publishPost = task({
 			return { status: "skipped", reason: "post_not_found" };
 		}
 
+		// 2b. Approval gate for company posts
+		const postMetadata = (post.metadata ?? {}) as Record<string, unknown>;
+		if (postMetadata.hubId) {
+			// Company post — check approval status
+			if (post.approvalStatus !== "approved") {
+				if (post.approvalStatus === "submitted") {
+					// Tentatively scheduled post: skip (not fail) if unapproved at scheduled time
+					await db
+						.update(posts)
+						.set({
+							status: "draft",
+							updatedAt: new Date(),
+							metadata: {
+								...postMetadata,
+								skippedReason: "Unapproved at scheduled time",
+								skippedAt: new Date().toISOString(),
+							},
+						})
+						.where(eq(posts.id, post.id));
+
+					logger.info("Company post skipped: not approved by scheduled time", {
+						postId: post.id,
+						approvalStatus: post.approvalStatus,
+					});
+
+					return { status: "skipped", reason: "unapproved_at_scheduled_time" };
+				}
+
+				// Not submitted (draft/rejected) — should not be in publish queue
+				logger.warn("Company post not approved", {
+					postId: post.id,
+					approvalStatus: post.approvalStatus,
+				});
+				return { status: "skipped", reason: `not_approved_${post.approvalStatus ?? "draft"}` };
+			}
+			// approvalStatus === 'approved' — proceed with publish
+		}
+
 		// 3. Idempotency check — prevent double-publish
 		if (!["scheduled", "retry"].includes(post.status)) {
 			logger.warn("Post not in publishable state", {
@@ -154,6 +192,9 @@ export const publishPost = task({
 
 			// Advance series state if applicable
 			await advanceSeriesState(db, post);
+
+			// Update company brand preference model if this is a company post
+			await updateBrandPreferenceIfCompany(db, post);
 
 			logger.info("Post published", {
 				postId: post.id,
@@ -643,6 +684,82 @@ async function advanceSeriesState(
 		logger.error("Failed to advance series state (publish succeeded)", {
 			postId: id,
 			seriesId,
+			error: error instanceof Error ? error.message : String(error),
+		});
+	}
+}
+
+// ─── Brand Preference Model ────────────────────────────────────────────────
+
+/**
+ * Update company brand preference model after successful publish.
+ * The brand preference model is shared across all team members in a Company Hub.
+ * Uses userId = hubId for company-level preference records.
+ */
+async function updateBrandPreferenceIfCompany(
+	db: ReturnType<typeof createHubConnection>,
+	post: Record<string, unknown>,
+) {
+	const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+	const hubId = metadata.hubId as string | undefined;
+	if (!hubId) return; // Not a company post
+
+	try {
+		const platform = post.platform as string;
+		const postFormat = (metadata.format as string) ?? "text";
+		const postPillar = (metadata.pillar as string) ?? "general";
+
+		// Upsert the company-level preference model
+		// Uses hubId as the userId for company-wide tracking
+		const [existing] = await db
+			.select()
+			.from(preferenceModel)
+			.where(eq(preferenceModel.userId, hubId))
+			.limit(1);
+
+		if (!existing) {
+			// Create initial brand preference model
+			await db.insert(preferenceModel).values({
+				userId: hubId, // company-level record keyed by hubId
+				topFormats: [{ format: postFormat, avgScore: 0 }],
+				topPillars: [{ pillar: postPillar, avgScore: 0 }],
+				bestPostingTimes: [],
+				updatedAt: new Date(),
+			});
+			logger.info("Brand preference model created", { hubId, platform });
+		} else {
+			// Update existing brand model with new format/pillar data
+			const topFormats = (existing.topFormats ?? []) as Array<{ format: string; avgScore: number }>;
+			const topPillars = (existing.topPillars ?? []) as Array<{ pillar: string; avgScore: number }>;
+
+			// Track format usage (score updated later by analytics)
+			const formatEntry = topFormats.find((f) => f.format === postFormat);
+			if (!formatEntry) {
+				topFormats.push({ format: postFormat, avgScore: 0 });
+			}
+
+			// Track pillar usage
+			const pillarEntry = topPillars.find((p) => p.pillar === postPillar);
+			if (!pillarEntry) {
+				topPillars.push({ pillar: postPillar, avgScore: 0 });
+			}
+
+			await db
+				.update(preferenceModel)
+				.set({
+					topFormats,
+					topPillars,
+					updatedAt: new Date(),
+				})
+				.where(eq(preferenceModel.userId, hubId));
+
+			logger.info("Brand preference model updated", { hubId, format: postFormat, pillar: postPillar });
+		}
+	} catch (error) {
+		// Brand model update failure should never roll back a successful publish
+		logger.error("Failed to update brand preference model (publish succeeded)", {
+			postId: post.id as string,
+			hubId,
 			error: error instanceof Error ? error.message : String(error),
 		});
 	}

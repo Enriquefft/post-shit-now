@@ -1,6 +1,6 @@
 import { and, desc, eq, gt } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
-import { editHistory, postMetrics } from "../core/db/schema.ts";
+import { editHistory, postMetrics, preferenceModel } from "../core/db/schema.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -25,10 +25,7 @@ const LOW_EDIT_RATIO_THRESHOLD = 10;
  * Called during /psn:review to find key moments per LEARN-03.
  * Only prompts at exceptional moments, NOT every post.
  */
-export async function detectFeedbackMoments(
-	db: HubDb,
-	userId: string,
-): Promise<FeedbackMoment[]> {
+export async function detectFeedbackMoments(db: HubDb, userId: string): Promise<FeedbackMoment[]> {
 	const moments: FeedbackMoment[] = [];
 	const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
@@ -37,16 +34,10 @@ export async function detectFeedbackMoments(
 	const metrics = await db
 		.select()
 		.from(postMetrics)
-		.where(
-			and(
-				eq(postMetrics.userId, userId),
-				gt(postMetrics.collectedAt, sevenDaysAgo),
-			),
-		);
+		.where(and(eq(postMetrics.userId, userId), gt(postMetrics.collectedAt, sevenDaysAgo)));
 
 	if (metrics.length >= 2) {
-		const avgScore =
-			metrics.reduce((sum, m) => sum + m.engagementScore, 0) / metrics.length;
+		const avgScore = metrics.reduce((sum, m) => sum + m.engagementScore, 0) / metrics.length;
 
 		// High performers: >= 3x average
 		for (const m of metrics) {
@@ -112,4 +103,65 @@ export async function detectFeedbackMoments(
 	}
 
 	return moments;
+}
+
+// ─── Brand Preference Model (Company Hub) ───────────────────────────────────
+
+/**
+ * Update the company-wide brand preference model after a post publishes.
+ * Similar to personal preference model but scoped to Company Hub.
+ * Shared across all team members -- any member's successful post contributes.
+ *
+ * Uses the preference_model table in the Company Hub DB with userId = hubId.
+ */
+export async function updateBrandPreferenceModel(
+	companyDb: HubDb,
+	params: {
+		hubId: string;
+		postId: string;
+		platform: string;
+		format: string;
+		pillar: string;
+	},
+): Promise<void> {
+	const { hubId, format, pillar } = params;
+
+	const [existing] = await companyDb
+		.select()
+		.from(preferenceModel)
+		.where(eq(preferenceModel.userId, hubId))
+		.limit(1);
+
+	if (!existing) {
+		// Create initial brand preference model
+		await companyDb.insert(preferenceModel).values({
+			userId: hubId,
+			topFormats: [{ format, avgScore: 0 }],
+			topPillars: [{ pillar, avgScore: 0 }],
+			bestPostingTimes: [],
+			updatedAt: new Date(),
+		});
+		return;
+	}
+
+	// Update existing brand model
+	const topFormats = (existing.topFormats ?? []) as Array<{ format: string; avgScore: number }>;
+	const topPillars = (existing.topPillars ?? []) as Array<{ pillar: string; avgScore: number }>;
+
+	if (!topFormats.find((f) => f.format === format)) {
+		topFormats.push({ format, avgScore: 0 });
+	}
+
+	if (!topPillars.find((p) => p.pillar === pillar)) {
+		topPillars.push({ pillar, avgScore: 0 });
+	}
+
+	await companyDb
+		.update(preferenceModel)
+		.set({
+			topFormats,
+			topPillars,
+			updatedAt: new Date(),
+		})
+		.where(eq(preferenceModel.userId, hubId));
 }
