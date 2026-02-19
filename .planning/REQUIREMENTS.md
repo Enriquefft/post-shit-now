@@ -153,12 +153,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Engagement Engine
 
-- [ ] **ENGAGE-01**: Engagement monitor task checks for viral/trending posts in user's niche every 5-15 min during active hours
-- [ ] **ENGAGE-02**: Opportunities scored: relevance × author influence × post velocity × time window remaining
+- [x] **ENGAGE-01**: Engagement monitor task checks for viral/trending posts in user's niche every 5-15 min during active hours
+- [x] **ENGAGE-02**: Opportunities scored: relevance × author influence × post velocity × time window remaining
 - [ ] **ENGAGE-03**: Scores 60+: draft 2-3 reply options using voice profile's reply_style; 70+: push notify; 60-69: digest
 - [ ] **ENGAGE-04**: User can run `/psn:engage` for proactive 15-minute engagement sessions
 - [ ] **ENGAGE-05**: Human approves every reply — never auto-post
-- [ ] **ENGAGE-06**: Daily caps, cooldowns, and blocklists per platform enforced
+- [x] **ENGAGE-06**: Daily caps, cooldowns, and blocklists per platform enforced
 - [ ] **ENGAGE-07**: After engagement session, Claude bridges to content creation ("Any of these conversations spark a post idea?")
 
 ### Notifications
@@ -394,12 +394,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ANLYT-04 | Phase 8 | Pending |
 | POST-03 | Phase 8 | Pending |
 | POST-04 | Phase 8 | Pending |
-| ENGAGE-01 | Phase 8 | Pending |
-| ENGAGE-02 | Phase 8 | Pending |
+| ENGAGE-01 | Phase 8 | Complete |
+| ENGAGE-02 | Phase 8 | Complete |
 | ENGAGE-03 | Phase 8 | Pending |
 | ENGAGE-04 | Phase 8 | Pending |
 | ENGAGE-05 | Phase 8 | Pending |
-| ENGAGE-06 | Phase 8 | Pending |
+| ENGAGE-06 | Phase 8 | Complete |
 | ENGAGE-07 | Phase 8 | Pending |
 
 **Coverage:**

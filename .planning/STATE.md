@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 8 of 8 (Instagram, TikTok, and Engagement)
-Plan: 3 of 5 in current phase
+Plan: 5 of 5 in current phase
 Status: Executing
-Last activity: 2026-02-19 - Completed 08-02 (TikTok platform module)
+Last activity: 2026-02-19 - Completed 08-04 (Engagement engine foundation)
 
-Progress: [█████████░] 85%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -46,6 +46,7 @@ Progress: [█████████░] 85%
 | Phase 07 P05 | 4min | 3 tasks | 4 files |
 | Phase 08 P01 | 4min | 2 tasks | 8 files |
 | Phase 08 P02 | 6min | 2 tasks | 8 files |
+| Phase 08 P04 | 6min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -183,6 +184,10 @@ Recent decisions affecting current work:
 - [Phase 08]: [08-02]: Unaudited apps forced to SELF_ONLY privacy (draft-only mode) with clear user messaging
 - [Phase 08]: [08-02]: Creative Center scraping with graceful degradation (empty arrays on failure, never crashes)
 - [Phase 08]: [08-02]: TikTok token refresh window is 1 day before expiry (matching X pattern)
+- [Phase 08]: [08-04]: X searchRecent method added to XClient for engagement discovery (missing from existing client)
+- [Phase 08]: [08-04]: Instagram hashtag budget limited to 2 searches per monitoring run to preserve 30/week budget
+- [Phase 08]: [08-04]: Notification routing reuses existing notification_log table with dedup keys
+- [Phase 08]: [08-04]: NeonHttpQueryResult uses .rows[0] pattern for SELECT queries (not destructuring)
 
 ### Pending Todos
 
@@ -204,5 +209,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 08-02-PLAN.md
-Resume file: .planning/phases/08-instagram-tiktok-and-engagement/08-03-PLAN.md
+Stopped at: Completed 08-04-PLAN.md
+Resume file: .planning/phases/08-instagram-tiktok-and-engagement/08-05-PLAN.md
