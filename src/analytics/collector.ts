@@ -1,6 +1,7 @@
 import { and, eq, gt } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
 import { postMetrics, posts, preferenceModel } from "../core/db/schema.ts";
+import type { LinkedInClient } from "../platforms/linkedin/client.ts";
 import type { XClient } from "../platforms/x/client.ts";
 import {
 	aggregateThreadMetrics,
@@ -235,6 +236,192 @@ export async function collectAnalytics(
 
 	// 6. Track follower count
 	summary.followerCount = await trackFollowerCount(db, client, userId, summary);
+
+	return summary;
+}
+
+// ─── LinkedIn Analytics Collection ──────────────────────────────────────────
+
+/** LinkedIn engagement weights: reshares > comments > reactions */
+const LINKEDIN_ENGAGEMENT_WEIGHTS = {
+	reshares: 4, // high signal, equivalent to X retweets
+	comments: 3, // high quality on LinkedIn
+	reactions: 1, // engagement but lower signal
+} as const;
+
+/**
+ * Compute LinkedIn engagement score using LinkedIn-specific weights.
+ */
+function computeLinkedInEngagementScore(metrics: {
+	reactions: number;
+	comments: number;
+	reshares: number;
+}): number {
+	return (
+		metrics.reshares * LINKEDIN_ENGAGEMENT_WEIGHTS.reshares +
+		metrics.comments * LINKEDIN_ENGAGEMENT_WEIGHTS.comments +
+		metrics.reactions * LINKEDIN_ENGAGEMENT_WEIGHTS.reactions
+	);
+}
+
+/**
+ * Compute LinkedIn engagement rate in basis points.
+ */
+function computeLinkedInEngagementRateBps(
+	metrics: { reactions: number; comments: number; reshares: number },
+	impressions: number,
+): number {
+	if (!impressions || impressions === 0) return 0;
+	const totalEngagements = metrics.reactions + metrics.comments + metrics.reshares;
+	return Math.round((totalEngagements / impressions) * 10000);
+}
+
+/**
+ * Collect analytics for published LinkedIn posts.
+ * Follows the same pattern as X analytics collection:
+ *   - Query published LinkedIn posts from last 30 days
+ *   - Fetch per-post analytics via memberCreatorPostAnalytics API
+ *   - Compute engagement scores with LinkedIn-weighted metrics
+ *   - Per-post error isolation (catch, log, continue)
+ */
+export async function collectLinkedInAnalytics(
+	db: HubDb,
+	client: LinkedInClient,
+	userId: string,
+): Promise<CollectionSummary> {
+	const summary: CollectionSummary = {
+		postsCollected: 0,
+		followerCount: 0,
+		apiCallsMade: 0,
+		errors: 0,
+	};
+
+	// 1. Query published LinkedIn posts from last 30 days
+	const thirtyDaysAgo = new Date();
+	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+	const threeDaysAgoDate = new Date();
+	threeDaysAgoDate.setDate(threeDaysAgoDate.getDate() - 3);
+
+	const publishedPosts = await db
+		.select()
+		.from(posts)
+		.where(
+			and(
+				eq(posts.userId, userId),
+				eq(posts.platform, "linkedin"),
+				eq(posts.status, "published"),
+				gt(posts.publishedAt, thirtyDaysAgo),
+			),
+		);
+
+	if (publishedPosts.length === 0) {
+		return summary;
+	}
+
+	// 2. Apply tiered cadence filter (same as X)
+	const existingMetrics = await db
+		.select({
+			postId: postMetrics.postId,
+			collectedAt: postMetrics.collectedAt,
+		})
+		.from(postMetrics)
+		.where(eq(postMetrics.userId, userId));
+
+	const metricsMap = new Map(existingMetrics.map((m) => [m.postId, m.collectedAt]));
+
+	const postsToCollect = publishedPosts.filter((post) => {
+		if (!post.publishedAt) return false;
+		const ageMs = Date.now() - post.publishedAt.getTime();
+		const ageDays = ageMs / (1000 * 60 * 60 * 24);
+
+		if (ageDays <= 7) return true;
+
+		const lastCollected = metricsMap.get(post.id);
+		if (!lastCollected) return true;
+		return lastCollected < threeDaysAgoDate;
+	});
+
+	if (postsToCollect.length === 0) {
+		return summary;
+	}
+
+	// 3. Fetch analytics per post
+	for (const post of postsToCollect) {
+		try {
+			if (!post.externalPostId) continue;
+
+			const analyticsResponse = await client.getPostAnalytics(post.externalPostId);
+			summary.apiCallsMade++;
+
+			const element = analyticsResponse.elements[0];
+			if (!element) continue;
+
+			const stats = element.totalShareStatistics;
+
+			const linkedInMetrics = {
+				reactions: stats.likeCount,
+				comments: stats.commentCount,
+				reshares: stats.shareCount,
+			};
+
+			const score = computeLinkedInEngagementScore(linkedInMetrics);
+			const rateBps = computeLinkedInEngagementRateBps(linkedInMetrics, stats.impressionCount);
+
+			// Extract context from post metadata
+			const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+			const postFormat = (metadata.format as string) ?? null;
+			const postTopic = (metadata.topic as string) ?? null;
+			const postPillar = (metadata.pillar as string) ?? null;
+
+			// Upsert into postMetrics
+			await db
+				.insert(postMetrics)
+				.values({
+					userId,
+					postId: post.id,
+					platform: "linkedin",
+					externalPostId: post.externalPostId,
+					impressionCount: stats.impressionCount,
+					likeCount: stats.likeCount, // reactions
+					retweetCount: stats.shareCount, // reshares
+					quoteCount: 0, // LinkedIn doesn't have quotes
+					replyCount: stats.commentCount,
+					bookmarkCount: 0, // LinkedIn doesn't expose saves
+					urlLinkClicks: stats.clickCount ?? null,
+					userProfileClicks: null,
+					engagementScore: score,
+					engagementRateBps: rateBps,
+					postFormat,
+					postTopic,
+					postPillar,
+					collectedAt: new Date(),
+				})
+				.onConflictDoUpdate({
+					target: [postMetrics.postId, postMetrics.platform],
+					set: {
+						impressionCount: stats.impressionCount,
+						likeCount: stats.likeCount,
+						retweetCount: stats.shareCount,
+						quoteCount: 0,
+						replyCount: stats.commentCount,
+						bookmarkCount: 0,
+						urlLinkClicks: stats.clickCount ?? null,
+						engagementScore: score,
+						engagementRateBps: rateBps,
+						postFormat,
+						postTopic,
+						postPillar,
+						collectedAt: new Date(),
+					},
+				});
+
+			summary.postsCollected++;
+		} catch (_error) {
+			// Per-post error isolation — log and continue
+			summary.errors++;
+		}
+	}
 
 	return summary;
 }

@@ -178,6 +178,76 @@ export async function getPreferenceModelLearnings(
 	}
 }
 
+// ─── LinkedIn Content Guidance ───────────────────────────────────────────────
+
+/** Platform-specific content generation guidance constants */
+export const LINKEDIN_CONTENT_GUIDANCE = {
+	optimalLength: { min: 1000, max: 1300 },
+	maxLength: 3000,
+	patterns: [
+		"Use a strong hook in the first line (question, bold statement, or surprising fact)",
+		"Add line breaks after the hook for readability",
+		"Use short paragraphs (1-3 sentences each)",
+		"Include a CTA (call-to-action) at the end when appropriate",
+		"Add 3-5 relevant hashtags at the end (not inline)",
+		"Professional but authentic tone — not corporate speak",
+		"LinkedIn rewards vulnerability and personal experience",
+	],
+	hashtagLimit: 5,
+} as const;
+
+export const X_CONTENT_GUIDANCE = {
+	maxLength: 280,
+	patterns: [
+		"Short, punchy, and direct",
+		"Hook readers in the first few words",
+		"Use clear, conversational language",
+	],
+} as const;
+
+// ─── Content Adaptation ─────────────────────────────────────────────────────
+
+/**
+ * Adapt content from one platform format to another.
+ * Returns adapted content string with platform-appropriate adjustments.
+ *
+ * X -> LinkedIn: Expand short content, add hook + line breaks, add CTA, add hashtags
+ * LinkedIn -> X: Condense to key point, split to thread if needed
+ */
+export function adaptContentForPlatform(
+	content: string,
+	fromPlatform: Platform,
+	toPlatform: Platform,
+): string {
+	if (fromPlatform === toPlatform) return content;
+
+	if (fromPlatform === "x" && toPlatform === "linkedin") {
+		// X -> LinkedIn: content is likely short, needs expansion
+		const lines = content.split("\n").filter((l) => l.trim());
+		const adapted = [
+			lines[0] ?? content, // Hook (first line)
+			"", // Line break after hook (LinkedIn pattern)
+			...lines.slice(1),
+			"", // Space before hashtags
+			"#ContentCreation #SocialMedia", // Placeholder hashtags
+		];
+		return adapted.join("\n");
+	}
+
+	if (fromPlatform === "linkedin" && toPlatform === "x") {
+		// LinkedIn -> X: condense to key point
+		const lines = content.split("\n").filter((l) => l.trim());
+		// Take the hook (first line) and first substantive line
+		const hook = lines[0] ?? "";
+		// Strip hashtags from the condensed version
+		const condensed = hook.replace(/#\w+/g, "").trim();
+		return condensed.length > 280 ? `${condensed.slice(0, 277)}...` : condensed;
+	}
+
+	// Default: return as-is
+	return content;
+}
+
 // ─── Generate Post ──────────────────────────────────────────────────────────
 
 export async function generatePost(options: GeneratePostOptions): Promise<GeneratedDraft> {

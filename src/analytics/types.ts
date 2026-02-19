@@ -14,6 +14,38 @@ export {
 	UserPublicMetricsSchema,
 } from "../platforms/x/types.ts";
 
+// Re-export LinkedIn metric types
+export type {
+	LinkedInAnalyticsElement,
+	LinkedInPostAnalyticsResponse,
+} from "../platforms/linkedin/types.ts";
+
+// ─── LinkedIn Metrics ────────────────────────────────────────────────────────
+
+/** Normalized LinkedIn metrics for scoring and storage */
+export interface LinkedInMetrics {
+	platform: "linkedin";
+	impressions: number;
+	membersReached: number;
+	reactions: number;
+	comments: number;
+	reshares: number;
+}
+
+/** X metrics wrapper with discriminator */
+export interface XMetrics {
+	platform: "x";
+	impressions: number;
+	likes: number;
+	retweets: number;
+	quotes: number;
+	replies: number;
+	bookmarks: number;
+}
+
+/** Platform-agnostic metrics union */
+export type PlatformMetrics = XMetrics | LinkedInMetrics;
+
 // ─── Analytics-specific types ──────────────────────────────────────────────
 
 /** Result of computing engagement score and rate for a post */

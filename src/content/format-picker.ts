@@ -4,13 +4,15 @@ import type { Platform } from "../core/types/index.ts";
 
 export type PostFormat =
 	| "short-post"
+	| "long-post"
 	| "thread"
 	| "carousel"
 	| "image-post"
 	| "reel-script"
 	| "video-post"
 	| "quote-image"
-	| "infographic";
+	| "infographic"
+	| "linkedin-article";
 
 export interface FormatSuggestion {
 	recommended: PostFormat;
@@ -22,13 +24,25 @@ export interface FormatSuggestion {
 
 export const FORMAT_CONSTRAINTS: Record<PostFormat, { maxChars?: number; description: string }> = {
 	"short-post": { maxChars: 280, description: "Single short text post" },
+	"long-post": { maxChars: 3000, description: "Long-form LinkedIn text post (optimal 1000-1300 chars)" },
 	thread: { description: "Multi-part thread (X) or long-form post (LinkedIn)" },
-	carousel: { description: "Multi-slide visual content (LinkedIn, Instagram)" },
+	carousel: { description: "Multi-slide visual content (LinkedIn document post, Instagram)" },
 	"image-post": { description: "Text post with accompanying image" },
 	"reel-script": { description: "Short-form video script (Instagram Reels, TikTok)" },
 	"video-post": { description: "Video content with optional text caption" },
 	"quote-image": { description: "Quote or text rendered as an image" },
 	infographic: { description: "Data visualization or informational graphic" },
+	"linkedin-article": { description: "LinkedIn article with URL, title, and description" },
+};
+
+// ─── Platform Format Support Map ────────────────────────────────────────────
+
+/** Which formats are supported on each platform */
+export const PLATFORM_FORMAT_SUPPORT: Record<Platform, PostFormat[]> = {
+	x: ["short-post", "thread", "image-post", "video-post", "quote-image"],
+	linkedin: ["short-post", "long-post", "carousel", "image-post", "linkedin-article", "video-post", "quote-image", "infographic"],
+	instagram: ["image-post", "carousel", "reel-script", "video-post", "quote-image"],
+	tiktok: ["video-post", "reel-script"],
 };
 
 // ─── Content Type Keywords ──────────────────────────────────────────────────
@@ -148,6 +162,9 @@ function pickFormatX(
 	};
 }
 
+const LINKEDIN_LIST_KEYWORDS = ["list", "steps", "framework", "comparison", "how to", "tips", "guide", "walkthrough", "ranking"];
+const LINKEDIN_EXTERNAL_KEYWORDS = ["article", "blog", "link", "resource", "read", "check out"];
+
 function pickFormatLinkedIn(
 	type: string,
 	_hasMedia?: boolean,
@@ -161,32 +178,74 @@ function pickFormatLinkedIn(
 		};
 	}
 
-	if (hasKeywords(type, DATA_KEYWORDS) || hasKeywords(type, HOWTO_KEYWORDS)) {
+	// Lists, steps, frameworks, how-tos, comparisons -> carousel (auto-suggested)
+	if (hasKeywords(type, LINKEDIN_LIST_KEYWORDS) || hasKeywords(type, DATA_KEYWORDS)) {
 		return {
 			recommended: "carousel",
 			alternatives: [
-				{ format: "short-post", reason: "Quick insight post" },
+				{ format: "long-post", reason: "Long-form text version (1000-1300 chars)" },
 				{ format: "infographic", reason: "Single-image data visualization" },
 			],
-			reasoning: "Carousels dominate LinkedIn with 11.2x impressions vs text posts",
+			reasoning: "Carousels dominate LinkedIn with 11.2x impressions vs text — auto-suggested for list/step/framework content",
 		};
 	}
 
+	// Stories, experiences, lessons learned -> long-post
 	if (hasKeywords(type, STORY_KEYWORDS)) {
 		return {
-			recommended: "short-post",
-			alternatives: [{ format: "carousel", reason: "Visual storytelling carousel" }],
-			reasoning: "Personal stories perform well as text posts on LinkedIn",
+			recommended: "long-post",
+			alternatives: [
+				{ format: "carousel", reason: "Visual storytelling carousel" },
+				{ format: "image-post", reason: "Story with a key image" },
+			],
+			reasoning: "Personal stories perform well as long-form LinkedIn text posts (1000-1300 chars optimal)",
 		};
 	}
 
+	// External reference with commentary -> linkedin-article
+	if (hasKeywords(type, LINKEDIN_EXTERNAL_KEYWORDS)) {
+		return {
+			recommended: "linkedin-article",
+			alternatives: [
+				{ format: "long-post", reason: "Commentary without link preview" },
+				{ format: "carousel", reason: "Break down article points visually" },
+			],
+			reasoning: "External content works well as LinkedIn article posts with link preview",
+		};
+	}
+
+	// Quotes, inspiration -> quote-image
+	if (hasKeywords(type, QUOTE_KEYWORDS)) {
+		return {
+			recommended: "quote-image",
+			alternatives: [
+				{ format: "long-post", reason: "Text-based quote with context" },
+				{ format: "carousel", reason: "Quote collection carousel" },
+			],
+			reasoning: "Quote content works well as visual quote images on LinkedIn",
+		};
+	}
+
+	// Hot takes -> long-post (but recommend expanding for LinkedIn)
+	if (hasKeywords(type, TREND_KEYWORDS)) {
+		return {
+			recommended: "long-post",
+			alternatives: [
+				{ format: "carousel", reason: "Break down the take into slides" },
+				{ format: "short-post", reason: "Quick punchy take (expand recommended)" },
+			],
+			reasoning: "Hot takes perform well as longer LinkedIn posts with context and reasoning",
+		};
+	}
+
+	// Default to carousel on LinkedIn
 	return {
 		recommended: "carousel",
 		alternatives: [
-			{ format: "short-post", reason: "Quick engagement post" },
+			{ format: "long-post", reason: "Long-form text post" },
 			{ format: "image-post", reason: "Single image with insight" },
 		],
-		reasoning: "Default to carousel on LinkedIn for maximum reach",
+		reasoning: "Default to carousel on LinkedIn for maximum reach (11.2x impressions vs text)",
 	};
 }
 

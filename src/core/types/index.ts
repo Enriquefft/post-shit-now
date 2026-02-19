@@ -37,6 +37,20 @@ export type PostSubStatus =
 	| "thread_partial"
 	| null;
 
+export interface PlatformPublishResult {
+	platform: Platform;
+	status: "published" | "failed" | "skipped";
+	externalPostId?: string;
+	error?: string;
+}
+
+export interface PlatformStatus {
+	status: string;
+	externalPostId?: string;
+	error?: string;
+	retryCount?: number;
+}
+
 export interface PostMetadata {
 	triggerRunId?: string;
 	scheduledTimezone?: string;
@@ -45,6 +59,18 @@ export interface PostMetadata {
 	retryCount?: number;
 	rateLimitResetAt?: string;
 	watchdogRetryAt?: string;
+	/** Per-platform publish status for multi-platform posts */
+	platformStatus?: Record<string, PlatformStatus>;
+	/** Group ID linking related cross-platform posts */
+	multiPlatformGroupId?: string;
+	/** LinkedIn-specific format override */
+	linkedinFormat?: string;
+	/** Generic format hint */
+	format?: string;
+	/** Topic for content generation */
+	topic?: string;
+	/** Content pillar */
+	pillar?: string;
 }
 
 export interface ThreadTweet {

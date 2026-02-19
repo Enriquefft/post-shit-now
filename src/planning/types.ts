@@ -24,6 +24,8 @@ export interface PlanSlot {
 	ideaId?: string;
 	postId?: string;
 	status: PlanSlotStatus;
+	/** Target platforms for multi-platform posting (one slot, multiple platforms) */
+	targetPlatforms?: string[];
 }
 
 // ─── Weekly Plan ────────────────────────────────────────────────────────────
