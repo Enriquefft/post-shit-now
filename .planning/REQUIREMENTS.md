@@ -43,20 +43,20 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Content Creation
 
-- [ ] **POST-01**: User can generate a post for X in their voice using `/psn:post`
+- [x] **POST-01**: User can generate a post for X in their voice using `/psn:post`
 - [ ] **POST-02**: User can generate a post for LinkedIn in their voice using `/psn:post`
 - [ ] **POST-03**: User can generate a post for Instagram in their voice using `/psn:post`
 - [ ] **POST-04**: User can generate a post for TikTok in their voice using `/psn:post`
-- [ ] **POST-05**: Content brain picks optimal format per platform (text, thread, carousel, reel script, TikTok concept)
-- [ ] **POST-06**: User can choose posting persona (personal, brand operator, brand ambassador) per post
+- [x] **POST-05**: Content brain picks optimal format per platform (text, thread, carousel, reel script, TikTok concept)
+- [x] **POST-06**: User can choose posting persona (personal, brand operator, brand ambassador) per post
 - [ ] **POST-07**: User can choose language (en, es, both) per post with platform-specific defaults
 - [ ] **POST-08**: Bilingual posts (`both`) are independently crafted per language, not translated
-- [ ] **POST-09**: User reviews and edits every generated post before scheduling (human-in-the-loop)
+- [x] **POST-09**: User reviews and edits every generated post before scheduling (human-in-the-loop)
 - [ ] **POST-10**: Every edit is tracked with edit distance and edit patterns for the learning loop
-- [ ] **POST-11**: System checks idea bank for ready ideas before asking for a topic
-- [ ] **POST-12**: System offers 3 quick topic suggestions when no topic provided and no ready ideas exist
+- [x] **POST-11**: System checks idea bank for ready ideas before asking for a topic
+- [x] **POST-12**: System offers 3 quick topic suggestions when no topic provided and no ready ideas exist
 - [ ] **POST-13**: Semi-automated formats (video scripts, TikTok stitches) save script + talking points to drafts; user records then runs `/psn:post finish`
-- [ ] **POST-14**: Generated content reflects learnings from preference model (best hooks, formats, fatigued topics)
+- [x] **POST-14**: Generated content reflects learnings from preference model (best hooks, formats, fatigued topics)
 
 ### Scheduling
 
@@ -206,8 +206,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Content Management
 
-- [ ] **CONTENT-01**: Drafts stored in `content/drafts/` with auto-pruning 14 days after publishing
-- [ ] **CONTENT-02**: Generated media stored in `content/media/` with auto-pruning 7 days after posting
+- [x] **CONTENT-01**: Drafts stored in `content/drafts/` with auto-pruning 14 days after publishing
+- [x] **CONTENT-02**: Generated media stored in `content/media/` with auto-pruning 7 days after posting
 - [ ] **CONTENT-03**: Content remixing: system suggests re-angling high-performing content for different platforms
 - [ ] **CONTENT-04**: Content recycling: system surfaces past top performers with fresh angles during `/psn:plan`
 - [x] **CONTENT-05**: Content queue in Hub DB `posts` table is source of truth for scheduled/published posts
@@ -286,14 +286,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VOICE-08 | Phase 3 | Pending |
 | VOICE-09 | Phase 3 | Complete |
 | VOICE-10 | Phase 3 | Pending |
-| POST-01 | Phase 3 | Pending |
-| POST-05 | Phase 3 | Pending |
-| POST-06 | Phase 3 | Pending |
-| POST-09 | Phase 3 | Pending |
+| POST-01 | Phase 3 | Complete |
+| POST-05 | Phase 3 | Complete |
+| POST-06 | Phase 3 | Complete |
+| POST-09 | Phase 3 | Complete |
 | POST-10 | Phase 3 | Pending |
-| POST-11 | Phase 3 | Pending |
-| POST-12 | Phase 3 | Pending |
-| POST-14 | Phase 3 | Pending |
+| POST-11 | Phase 3 | Complete |
+| POST-12 | Phase 3 | Complete |
+| POST-14 | Phase 3 | Complete |
 | IMG-01 | Phase 3 | Complete |
 | IMG-02 | Phase 3 | Complete |
 | IMG-03 | Phase 3 | Complete |
@@ -304,8 +304,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VID-03 | Phase 3 | Complete |
 | VID-04 | Phase 3 | Complete |
 | VID-05 | Phase 3 | Complete |
-| CONTENT-01 | Phase 3 | Pending |
-| CONTENT-02 | Phase 3 | Pending |
+| CONTENT-01 | Phase 3 | Complete |
+| CONTENT-02 | Phase 3 | Complete |
 | CONFIG-02 | Phase 3 | Complete |
 | CONFIG-03 | Phase 3 | Pending |
 | ANLYT-01 | Phase 4 | Pending |

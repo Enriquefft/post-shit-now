@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 3 of 8 (Voice Profiling and Content Generation)
-Plan: 3 of 7 in current phase (03-03 complete)
-Status: Completed 03-03 (Video Generation)
-Last activity: 2026-02-19 - Completed 03-03: Video generation with Kling, Runway, Pika and smart provider selection
+Plan: 6 of 7 in current phase (03-06 complete)
+Status: Completed 03-06 (Voice Calibration)
+Last activity: 2026-02-19 - Completed 03-06: Edit tracking, calibration engine, and brand voice profiles
 
-Progress: [████░░░░░░] 36%
+Progress: [██████░░░░] 46%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: ~9min
-- Total execution time: ~1h 33min
+- Total plans completed: 12
+- Average duration: ~8min
+- Total execution time: ~1h 35min
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [████░░░░░░] 36%
 |-------|-------|-------|----------|
 | 1 | 3/3 | ~60min | ~20min |
 | 2 | 4/4 | ~12min | ~3min |
-| 3 | 3/7 | ~12min | ~4min |
+| 3 | 5/7 | ~14min | ~3min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (~2min), 02-04 (~4min), 03-01 (~5min), 03-02 (~5min), 03-03 (~2min)
+- Last 5 plans: 03-01 (~5min), 03-02 (~5min), 03-03 (~2min), 03-04 (~1min), 03-05 (~1min)
 - Trend: Consistently fast (clear specs + existing patterns)
 
 *Updated after each plan completion*
@@ -75,6 +75,10 @@ Recent decisions affecting current work:
 - [03-03]: Kling v2.6 endpoints via fal.ai for best quality realistic motion and native audio
 - [03-03]: Runway SDK constrains text-to-video to veo3.1 model (gen4.5 not in SDK types)
 - [03-03]: Content hint scoring pattern reused from image-gen for provider auto-selection
+- [03-05]: Content brain is a context assembler, not a black-box generator -- Claude generates actual text using assembled voice context
+- [03-05]: Deterministic topic suggestions with angle rotation to avoid repetition across calls
+- [03-05]: Draft files use YAML frontmatter for metadata, stored as markdown in content/drafts/
+- [03-05]: Published drafts pruned after 14 days (CONTENT-01), media after 7 days (CONTENT-02)
 
 ### Pending Todos
 
@@ -96,5 +100,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 03-03-PLAN.md
+Stopped at: Completed 03-05-PLAN.md
 Resume file: None
