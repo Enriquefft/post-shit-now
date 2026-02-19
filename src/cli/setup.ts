@@ -73,6 +73,165 @@ export async function runSetupSubcommand(
 			});
 			return { steps: [result], validation: null, completed: result.status === "success" };
 		}
+		case "invite": {
+			const slug = params.slug ?? "";
+			const userId = params.userId ?? "default";
+
+			const connection = await getHubConnection(projectRoot, slug);
+			if (!connection) {
+				return {
+					steps: [{ step: "invite", status: "error", message: `No connection found for hub "${slug}"` }],
+					validation: null,
+					completed: false,
+				};
+			}
+
+			const db = getHubDb(connection);
+			const adminCheck = await isAdmin(db, { userId, hubId: connection.hubId });
+			if (!adminCheck) {
+				return {
+					steps: [{ step: "invite", status: "error", message: "Only hub admins can generate invite codes" }],
+					validation: null,
+					completed: false,
+				};
+			}
+
+			const code = await generateInviteCode(db, { hubId: connection.hubId, createdBy: userId });
+
+			// Build invite bundle (base64 JSON with connection details + code)
+			const bundle = Buffer.from(
+				JSON.stringify({
+					code,
+					slug: connection.slug,
+					displayName: connection.displayName,
+					databaseUrl: connection.databaseUrl,
+					triggerProjectId: connection.triggerProjectId,
+					encryptionKey: connection.encryptionKey,
+				}),
+			).toString("base64");
+
+			return {
+				steps: [{
+					step: "invite",
+					status: "success",
+					message: `Invite code generated for ${connection.displayName}`,
+					data: { bundle, expiresIn: "48 hours", oneTimeUse: true },
+				}],
+				validation: null,
+				completed: true,
+			};
+		}
+		case "team": {
+			const slug = params.slug ?? "";
+			const connection = await getHubConnection(projectRoot, slug);
+			if (!connection) {
+				return {
+					steps: [{ step: "team", status: "error", message: `No connection found for hub "${slug}"` }],
+					validation: null,
+					completed: false,
+				};
+			}
+
+			const db = getHubDb(connection);
+			const members = await listTeamMembers(db, connection.hubId);
+
+			return {
+				steps: [{
+					step: "team",
+					status: "success",
+					message: `${members.length} members in ${connection.displayName}`,
+					data: {
+						hubName: connection.displayName,
+						members: members.map((m) => ({
+							userId: m.userId,
+							role: m.role,
+							displayName: m.displayName,
+							email: m.email,
+							joinedAt: m.joinedAt.toISOString(),
+						})),
+					},
+				}],
+				validation: null,
+				completed: true,
+			};
+		}
+		case "promote": {
+			const slug = params.slug ?? "";
+			const userId = params.userId ?? "default";
+			const targetUserId = params.targetUserId ?? "";
+
+			if (!targetUserId) {
+				return {
+					steps: [{ step: "promote", status: "error", message: "Target userId is required" }],
+					validation: null,
+					completed: false,
+				};
+			}
+
+			const connection = await getHubConnection(projectRoot, slug);
+			if (!connection) {
+				return {
+					steps: [{ step: "promote", status: "error", message: `No connection found for hub "${slug}"` }],
+					validation: null,
+					completed: false,
+				};
+			}
+
+			const db = getHubDb(connection);
+			const adminCheck = await isAdmin(db, { userId, hubId: connection.hubId });
+			if (!adminCheck) {
+				return {
+					steps: [{ step: "promote", status: "error", message: "Only hub admins can promote members" }],
+					validation: null,
+					completed: false,
+				};
+			}
+
+			try {
+				await promoteToAdmin(db, { userId: targetUserId, hubId: connection.hubId });
+			} catch (err) {
+				return {
+					steps: [{
+						step: "promote",
+						status: "error",
+						message: err instanceof Error ? err.message : String(err),
+					}],
+					validation: null,
+					completed: false,
+				};
+			}
+
+			return {
+				steps: [{
+					step: "promote",
+					status: "success",
+					message: `${targetUserId} promoted to admin of ${connection.displayName}`,
+				}],
+				validation: null,
+				completed: true,
+			};
+		}
+		case "notifications": {
+			// Notification setup is guided by Claude through the slash command.
+			// This handler returns the current state so Claude can walk the user through configuration.
+			return {
+				steps: [{
+					step: "notifications",
+					status: "need_input",
+					message: "WhatsApp notification setup requires interactive configuration",
+					data: {
+						providers: ["waha", "twilio"],
+						preferences: ["pushEnabled", "digestFrequency", "quietHoursStart", "quietHoursEnd"],
+						instructions: {
+							waha: "Provide WAHA server URL and session name",
+							twilio: "Provide Account SID, Auth Token, and From number",
+						},
+					},
+				}],
+				validation: null,
+				completed: false,
+			};
+		}
 		default:
 			return null; // Not a recognized subcommand — fall through to default setup
 	}
