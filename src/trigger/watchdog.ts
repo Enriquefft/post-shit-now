@@ -2,6 +2,9 @@ import { logger, schedules } from "@trigger.dev/sdk";
 import { and, eq, lt, sql } from "drizzle-orm";
 import { createHubConnection } from "../core/db/connection.ts";
 import { posts } from "../core/db/schema.ts";
+import { publishPost } from "./publish-post.ts";
+
+const MAX_WATCHDOG_RETRIES = 3;
 
 export interface WatchdogResult {
 	checked: number;
@@ -39,6 +42,7 @@ export async function findStuckPublishing(db: ReturnType<typeof createHubConnect
 /**
  * Post watchdog cron task.
  * Runs every 15 minutes to detect and handle stuck posts.
+ * Re-triggers stuck posts via publishPost task with retry counting (max 3).
  */
 export const postWatchdog = schedules.task({
 	id: "post-watchdog",
@@ -58,24 +62,65 @@ export const postWatchdog = schedules.task({
 		result.checked += stuckScheduled.length;
 
 		for (const post of stuckScheduled) {
+			const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+			const retryCount = (metadata.retryCount as number) ?? 0;
+
 			logger.warn("Stuck scheduled post detected", {
 				postId: post.id,
 				scheduledAt: post.scheduledAt?.toISOString(),
 				platform: post.platform,
+				retryCount,
 			});
 
-			// Mark for retry — Phase 2 will add actual re-trigger logic
+			// Check retry limit (SCHED-04: 3 retries max)
+			if (retryCount >= MAX_WATCHDOG_RETRIES) {
+				await db
+					.update(posts)
+					.set({
+						status: "failed",
+						failReason: "max_retries_exceeded",
+						updatedAt: new Date(),
+						metadata: {
+							...metadata,
+							failedAt: new Date().toISOString(),
+							failReason: "Exceeded maximum watchdog retries",
+						},
+					})
+					.where(eq(posts.id, post.id));
+
+				logger.error("Post exceeded max retries — marking as failed", {
+					postId: post.id,
+					retryCount,
+				});
+
+				result.stuck++;
+				result.failed++;
+				continue;
+			}
+
+			// Re-trigger via publishPost task
+			const handle = await publishPost.trigger({ postId: post.id });
+
 			await db
 				.update(posts)
 				.set({
 					status: "retry",
+					triggerRunId: handle.id,
 					updatedAt: new Date(),
 					metadata: {
-						...(post.metadata as Record<string, unknown> | undefined),
+						...metadata,
+						retryCount: retryCount + 1,
 						watchdogRetryAt: new Date().toISOString(),
+						lastTriggerRunId: handle.id,
 					},
 				})
 				.where(eq(posts.id, post.id));
+
+			logger.info("Re-triggered stuck post via publishPost", {
+				postId: post.id,
+				triggerRunId: handle.id,
+				retryCount: retryCount + 1,
+			});
 
 			result.stuck++;
 			result.retried++;
@@ -96,6 +141,7 @@ export const postWatchdog = schedules.task({
 				.update(posts)
 				.set({
 					status: "failed",
+					failReason: "watchdog_timeout",
 					updatedAt: new Date(),
 					metadata: {
 						...(post.metadata as Record<string, unknown> | undefined),
