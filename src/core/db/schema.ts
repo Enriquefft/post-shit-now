@@ -589,6 +589,98 @@ export const notificationLog = pgTable(
 
 // ─── WhatsApp Sessions ───────────────────────────────────────────────────────
 
+// ─── Engagement Opportunities ────────────────────────────────────────────────
+
+export const engagementOpportunities = pgTable(
+	"engagement_opportunities",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		platform: text("platform").notNull(), // x | linkedin | instagram | tiktok
+		externalPostId: text("external_post_id").notNull(),
+		authorHandle: text("author_handle").notNull(),
+		authorFollowerCount: integer("author_follower_count"),
+		postSnippet: text("post_snippet").notNull(),
+		postUrl: text("post_url"),
+		postedAt: timestamp("posted_at", { withTimezone: true }),
+		compositeScoreBps: integer("composite_score_bps").notNull(),
+		relevanceScoreBps: integer("relevance_score_bps").notNull(),
+		recencyScoreBps: integer("recency_score_bps").notNull(),
+		reachScoreBps: integer("reach_score_bps").notNull(),
+		potentialScoreBps: integer("potential_score_bps").notNull(),
+		status: text("status").notNull().default("pending"), // pending | triaged_yes | triaged_no | drafted | engaged | expired
+		suggestedType: text("suggested_type"), // reply | quote | repost | duet | stitch | comment
+		draftContent: text("draft_content"),
+		engagedAt: timestamp("engaged_at", { withTimezone: true }),
+		detectedAt: timestamp("detected_at", { withTimezone: true }).defaultNow(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("engagement_opp_ext_platform_idx").on(table.externalPostId, table.platform),
+		pgPolicy("engagement_opportunities_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── Engagement Config ──────────────────────────────────────────────────────
+
+export const engagementConfig = pgTable(
+	"engagement_config",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull().unique(),
+		nicheKeywords: jsonb("niche_keywords").$type<string[]>(),
+		platformToggles: jsonb("platform_toggles").$type<Record<string, boolean>>(),
+		dailyCaps: jsonb("daily_caps").$type<Record<string, number>>(),
+		cooldownMinutes: jsonb("cooldown_minutes").$type<Record<string, number>>(),
+		blocklist: jsonb("blocklist").$type<string[]>(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		pgPolicy("engagement_config_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── Engagement Log ─────────────────────────────────────────────────────────
+
+export const engagementLog = pgTable(
+	"engagement_log",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		opportunityId: uuid("opportunity_id").notNull(),
+		platform: text("platform").notNull(),
+		engagementType: text("engagement_type").notNull(), // reply | quote | repost | duet | stitch | comment
+		content: text("content").notNull(),
+		externalReplyId: text("external_reply_id"),
+		outcome: jsonb("outcome").$type<{ impressions?: number; likes?: number; replies?: number }>(),
+		engagedAt: timestamp("engaged_at", { withTimezone: true }).defaultNow().notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		pgPolicy("engagement_log_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── WhatsApp Sessions ───────────────────────────────────────────────────────
+
 export const whatsappSessions = pgTable(
 	"whatsapp_sessions",
 	{
