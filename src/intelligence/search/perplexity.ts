@@ -1,15 +1,21 @@
 import type { SearchResult } from "../types.ts";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { getApiKey } from "../../core/db/api-keys";
 
 /**
  * Search via Perplexity AI's sonar model.
- * POST to chat/completions endpoint with the query as a user message.
- * Requires PERPLEXITY_API_KEY env var. Returns empty array if missing.
+ * POST to chat/completions endpoint with query as a user message.
+ * Uses getApiKey() to retrieve hub-scoped key. Throws error if key not found.
  */
 export async function searchPerplexity(
 	query: string,
+	db: PostgresJsDatabase,
+	hubId: string,
 ): Promise<SearchResult[]> {
-	const apiKey = process.env.PERPLEXITY_API_KEY;
-	if (!apiKey) return [];
+	const apiKey = await getApiKey(db, hubId, "perplexity");
+	if (!apiKey) {
+		throw new Error("API key lookup returned empty value");
+	}
 
 	const response = await fetch(
 		"https://api.perplexity.ai/chat/completions",
@@ -50,7 +56,7 @@ export async function searchPerplexity(
 	const citations = json.citations ?? [];
 
 	// Map citations to SearchResult format
-	// Perplexity returns citations as URLs referenced in the response
+	// Perplexity returns citations as URLs referenced in response
 	const results: SearchResult[] = citations.map((url, i) => ({
 		title: `Result ${i + 1}`,
 		url,

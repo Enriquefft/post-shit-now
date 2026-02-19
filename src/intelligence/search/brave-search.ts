@@ -1,13 +1,21 @@
 import type { SearchResult } from "../types.ts";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { getApiKey } from "../../core/db/api-keys";
 
 /**
  * Search via Brave Search API.
  * GET to /res/v1/web/search with query params and X-Subscription-Token header.
- * Requires BRAVE_API_KEY env var. Returns empty array if missing.
+ * Uses getApiKey() to retrieve hub-scoped key. Throws error if key not found.
  */
-export async function searchBrave(query: string): Promise<SearchResult[]> {
-	const apiKey = process.env.BRAVE_API_KEY;
-	if (!apiKey) return [];
+export async function searchBrave(
+	query: string,
+	db: PostgresJsDatabase,
+	hubId: string,
+): Promise<SearchResult[]> {
+	const apiKey = await getApiKey(db, hubId, "brave");
+	if (!apiKey) {
+		throw new Error("API key lookup returned empty value");
+	}
 
 	const params = new URLSearchParams({
 		q: query,

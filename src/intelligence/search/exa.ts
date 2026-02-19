@@ -1,13 +1,21 @@
 import type { SearchResult } from "../types.ts";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { getApiKey } from "../../core/db/api-keys";
 
 /**
  * Search via Exa AI's neural search.
  * POST to /search endpoint with query, type "auto", numResults 5.
- * Requires EXA_API_KEY env var. Returns empty array if missing.
+ * Uses getApiKey() to retrieve hub-scoped key. Throws error if key not found.
  */
-export async function searchExa(query: string): Promise<SearchResult[]> {
-	const apiKey = process.env.EXA_API_KEY;
-	if (!apiKey) return [];
+export async function searchExa(
+	query: string,
+	db: PostgresJsDatabase,
+	hubId: string,
+): Promise<SearchResult[]> {
+	const apiKey = await getApiKey(db, hubId, "exa");
+	if (!apiKey) {
+		throw new Error("API key lookup returned empty value");
+	}
 
 	const response = await fetch("https://api.exa.ai/search", {
 		method: "POST",
