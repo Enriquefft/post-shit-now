@@ -1,7 +1,9 @@
 import { and, eq, gt } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
 import { postMetrics, posts, preferenceModel } from "../core/db/schema.ts";
+import type { InstagramClient } from "../platforms/instagram/client.ts";
 import type { LinkedInClient } from "../platforms/linkedin/client.ts";
+import type { TikTokClient } from "../platforms/tiktok/client.ts";
 import type { XClient } from "../platforms/x/client.ts";
 import {
 	aggregateThreadMetrics,
@@ -421,6 +423,403 @@ export async function collectLinkedInAnalytics(
 			// Per-post error isolation — log and continue
 			summary.errors++;
 		}
+	}
+
+	return summary;
+}
+
+// ─── Instagram Analytics Collection ─────────────────────────────────────────
+
+/** Instagram engagement weights */
+const INSTAGRAM_ENGAGEMENT_WEIGHTS = {
+	shares: 4, // highest signal — viral amplification
+	saved: 3, // strong intent signal on Instagram
+	comments: 2, // engagement
+	likes: 1, // lowest signal but still counts
+} as const;
+
+function computeInstagramEngagementScore(metrics: {
+	likes: number;
+	comments: number;
+	shares: number;
+	saved: number;
+}): number {
+	return (
+		metrics.shares * INSTAGRAM_ENGAGEMENT_WEIGHTS.shares +
+		metrics.saved * INSTAGRAM_ENGAGEMENT_WEIGHTS.saved +
+		metrics.comments * INSTAGRAM_ENGAGEMENT_WEIGHTS.comments +
+		metrics.likes * INSTAGRAM_ENGAGEMENT_WEIGHTS.likes
+	);
+}
+
+function computeInstagramEngagementRateBps(
+	metrics: { likes: number; comments: number; shares: number; saved: number },
+	impressions: number,
+): number {
+	if (!impressions || impressions === 0) return 0;
+	const totalEngagements = metrics.likes + metrics.comments + metrics.shares + metrics.saved;
+	return Math.round((totalEngagements / impressions) * 10000);
+}
+
+/**
+ * Collect analytics for published Instagram posts.
+ * Follows the same tiered cadence as X/LinkedIn:
+ *   - 0-7 day posts: every run
+ *   - 8-30 day posts: only if not collected in 3 days
+ *
+ * Rate limit budget: ~50 req/hr reserved for analytics (from 200/hr total).
+ * Per-post error isolation (catch, log, continue).
+ */
+export async function collectInstagramAnalytics(
+	client: InstagramClient,
+	db: HubDb,
+	userId: string,
+): Promise<CollectionSummary> {
+	const summary: CollectionSummary = {
+		postsCollected: 0,
+		followerCount: 0,
+		apiCallsMade: 0,
+		errors: 0,
+	};
+
+	// Rate limit budget for analytics: cap at 50 API calls
+	const ANALYTICS_BUDGET = 50;
+
+	// 1. Query published Instagram posts from last 30 days
+	const thirtyDaysAgo = new Date();
+	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+	const threeDaysAgoDate = new Date();
+	threeDaysAgoDate.setDate(threeDaysAgoDate.getDate() - 3);
+
+	const publishedPosts = await db
+		.select()
+		.from(posts)
+		.where(
+			and(
+				eq(posts.userId, userId),
+				eq(posts.platform, "instagram"),
+				eq(posts.status, "published"),
+				gt(posts.publishedAt, thirtyDaysAgo),
+			),
+		);
+
+	if (publishedPosts.length === 0) {
+		return summary;
+	}
+
+	// 2. Apply tiered cadence filter
+	const existingMetrics = await db
+		.select({
+			postId: postMetrics.postId,
+			collectedAt: postMetrics.collectedAt,
+		})
+		.from(postMetrics)
+		.where(eq(postMetrics.userId, userId));
+
+	const metricsMap = new Map(existingMetrics.map((m) => [m.postId, m.collectedAt]));
+
+	const postsToCollect = publishedPosts.filter((post) => {
+		if (!post.publishedAt) return false;
+		const ageMs = Date.now() - post.publishedAt.getTime();
+		const ageDays = ageMs / (1000 * 60 * 60 * 24);
+
+		if (ageDays <= 7) return true;
+
+		const lastCollected = metricsMap.get(post.id);
+		if (!lastCollected) return true;
+		return lastCollected < threeDaysAgoDate;
+	});
+
+	if (postsToCollect.length === 0) {
+		return summary;
+	}
+
+	// 3. Fetch insights per post (one API call per post)
+	for (const post of postsToCollect) {
+		// Respect analytics rate limit budget
+		if (summary.apiCallsMade >= ANALYTICS_BUDGET) break;
+
+		try {
+			// Get the Instagram media ID from platformPostIds or externalPostId
+			const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+			const platformPostIds = metadata.platformPostIds as Record<string, string> | undefined;
+			const mediaId = platformPostIds?.instagram ?? post.externalPostId;
+			if (!mediaId) continue;
+
+			const insights = await client.getMediaInsights(mediaId);
+			summary.apiCallsMade++;
+
+			const igMetrics = {
+				likes: insights.likes ?? 0,
+				comments: insights.comments ?? 0,
+				shares: insights.shares ?? 0,
+				saved: insights.saved ?? 0,
+			};
+
+			const impressions = insights.impressions ?? 0;
+			const score = computeInstagramEngagementScore(igMetrics);
+			const rateBps = computeInstagramEngagementRateBps(igMetrics, impressions);
+
+			const postFormat = (metadata.format as string) ?? null;
+			const postTopic = (metadata.topic as string) ?? null;
+			const postPillar = (metadata.pillar as string) ?? null;
+
+			await db
+				.insert(postMetrics)
+				.values({
+					userId,
+					postId: post.id,
+					platform: "instagram",
+					externalPostId: mediaId,
+					impressionCount: impressions,
+					likeCount: igMetrics.likes,
+					retweetCount: igMetrics.shares, // shares mapped to retweetCount column
+					quoteCount: 0, // Instagram has no quotes
+					replyCount: igMetrics.comments,
+					bookmarkCount: igMetrics.saved,
+					urlLinkClicks: null,
+					userProfileClicks: insights.reach ?? null, // reach stored in profile clicks column
+					engagementScore: score,
+					engagementRateBps: rateBps,
+					postFormat,
+					postTopic,
+					postPillar,
+					collectedAt: new Date(),
+				})
+				.onConflictDoUpdate({
+					target: [postMetrics.postId, postMetrics.platform],
+					set: {
+						impressionCount: impressions,
+						likeCount: igMetrics.likes,
+						retweetCount: igMetrics.shares,
+						quoteCount: 0,
+						replyCount: igMetrics.comments,
+						bookmarkCount: igMetrics.saved,
+						urlLinkClicks: null,
+						userProfileClicks: insights.reach ?? null,
+						engagementScore: score,
+						engagementRateBps: rateBps,
+						postFormat,
+						postTopic,
+						postPillar,
+						collectedAt: new Date(),
+					},
+				});
+
+			summary.postsCollected++;
+		} catch (_error) {
+			// Per-post error isolation — log and continue
+			summary.errors++;
+		}
+	}
+
+	return summary;
+}
+
+// ─── TikTok Analytics Collection ────────────────────────────────────────────
+
+/** TikTok engagement weights */
+const TIKTOK_ENGAGEMENT_WEIGHTS = {
+	shares: 4, // viral signal
+	comments: 2, // engagement signal
+	likes: 1, // basic engagement
+} as const;
+
+function computeTikTokEngagementScore(metrics: {
+	likes: number;
+	comments: number;
+	shares: number;
+}): number {
+	return (
+		metrics.shares * TIKTOK_ENGAGEMENT_WEIGHTS.shares +
+		metrics.comments * TIKTOK_ENGAGEMENT_WEIGHTS.comments +
+		metrics.likes * TIKTOK_ENGAGEMENT_WEIGHTS.likes
+	);
+}
+
+function computeTikTokEngagementRateBps(
+	metrics: { likes: number; comments: number; shares: number },
+	views: number,
+): number {
+	if (!views || views === 0) return 0;
+	const totalEngagements = metrics.likes + metrics.comments + metrics.shares;
+	return Math.round((totalEngagements / views) * 10000);
+}
+
+/**
+ * Collect analytics for published TikTok posts.
+ * TikTok video.list returns metrics inline — no separate insights call needed (more efficient).
+ * Follows the same tiered cadence as X/LinkedIn/Instagram.
+ * Per-post error isolation (catch, log, continue).
+ */
+export async function collectTikTokAnalytics(
+	client: TikTokClient,
+	db: HubDb,
+	userId: string,
+): Promise<CollectionSummary> {
+	const summary: CollectionSummary = {
+		postsCollected: 0,
+		followerCount: 0,
+		apiCallsMade: 0,
+		errors: 0,
+	};
+
+	// 1. Query published TikTok posts from last 30 days
+	const thirtyDaysAgo = new Date();
+	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+	const threeDaysAgoDate = new Date();
+	threeDaysAgoDate.setDate(threeDaysAgoDate.getDate() - 3);
+
+	const publishedPosts = await db
+		.select()
+		.from(posts)
+		.where(
+			and(
+				eq(posts.userId, userId),
+				eq(posts.platform, "tiktok"),
+				eq(posts.status, "published"),
+				gt(posts.publishedAt, thirtyDaysAgo),
+			),
+		);
+
+	if (publishedPosts.length === 0) {
+		return summary;
+	}
+
+	// 2. Apply tiered cadence filter
+	const existingMetrics = await db
+		.select({
+			postId: postMetrics.postId,
+			collectedAt: postMetrics.collectedAt,
+		})
+		.from(postMetrics)
+		.where(eq(postMetrics.userId, userId));
+
+	const metricsMap = new Map(existingMetrics.map((m) => [m.postId, m.collectedAt]));
+
+	const postsToCollect = publishedPosts.filter((post) => {
+		if (!post.publishedAt) return false;
+		const ageMs = Date.now() - post.publishedAt.getTime();
+		const ageDays = ageMs / (1000 * 60 * 60 * 24);
+
+		if (ageDays <= 7) return true;
+
+		const lastCollected = metricsMap.get(post.id);
+		if (!lastCollected) return true;
+		return lastCollected < threeDaysAgoDate;
+	});
+
+	if (postsToCollect.length === 0) {
+		return summary;
+	}
+
+	// 3. Fetch video list from TikTok (metrics returned inline — efficient)
+	// Build a map of TikTok video ID -> post for matching
+	const tiktokIdToPost = new Map<string, (typeof postsToCollect)[number]>();
+	for (const post of postsToCollect) {
+		const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+		const platformPostIds = metadata.platformPostIds as Record<string, string> | undefined;
+		const tiktokId = platformPostIds?.tiktok ?? post.externalPostId;
+		if (tiktokId) {
+			tiktokIdToPost.set(tiktokId, post);
+		}
+	}
+
+	if (tiktokIdToPost.size === 0) {
+		return summary;
+	}
+
+	// Fetch videos with metrics (paginate if needed)
+	try {
+		let cursor: number | undefined;
+		let hasMore = true;
+
+		while (hasMore) {
+			const videoList = await client.getVideoList(cursor, 20);
+			summary.apiCallsMade++;
+
+			const videos = videoList.data.videos ?? [];
+			for (const video of videos) {
+				try {
+					const post = tiktokIdToPost.get(video.id);
+					if (!post) continue;
+
+					const ttMetrics = {
+						likes: video.like_count ?? 0,
+						comments: video.comment_count ?? 0,
+						shares: video.share_count ?? 0,
+					};
+					const views = video.view_count ?? 0;
+
+					const score = computeTikTokEngagementScore(ttMetrics);
+					const rateBps = computeTikTokEngagementRateBps(ttMetrics, views);
+
+					const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+					const postFormat = (metadata.format as string) ?? null;
+					const postTopic = (metadata.topic as string) ?? null;
+					const postPillar = (metadata.pillar as string) ?? null;
+
+					await db
+						.insert(postMetrics)
+						.values({
+							userId,
+							postId: post.id,
+							platform: "tiktok",
+							externalPostId: video.id,
+							impressionCount: views, // views as impressions for TikTok
+							likeCount: ttMetrics.likes,
+							retweetCount: ttMetrics.shares, // shares mapped to retweetCount
+							quoteCount: 0, // TikTok has no quotes
+							replyCount: ttMetrics.comments,
+							bookmarkCount: 0, // TikTok doesn't expose bookmarks via API
+							urlLinkClicks: null,
+							userProfileClicks: null,
+							engagementScore: score,
+							engagementRateBps: rateBps,
+							postFormat,
+							postTopic,
+							postPillar,
+							collectedAt: new Date(),
+						})
+						.onConflictDoUpdate({
+							target: [postMetrics.postId, postMetrics.platform],
+							set: {
+								impressionCount: views,
+								likeCount: ttMetrics.likes,
+								retweetCount: ttMetrics.shares,
+								quoteCount: 0,
+								replyCount: ttMetrics.comments,
+								bookmarkCount: 0,
+								engagementScore: score,
+								engagementRateBps: rateBps,
+								postFormat,
+								postTopic,
+								postPillar,
+								collectedAt: new Date(),
+							},
+						});
+
+					summary.postsCollected++;
+					// Remove matched post to track completion
+					tiktokIdToPost.delete(video.id);
+				} catch (_error) {
+					// Per-post error isolation
+					summary.errors++;
+				}
+			}
+
+			// Check pagination
+			hasMore = videoList.data.has_more ?? false;
+			cursor = videoList.data.cursor;
+
+			// Stop if all posts matched or no more pages
+			if (tiktokIdToPost.size === 0) break;
+		}
+	} catch (_error) {
+		// Video list fetch failed entirely
+		summary.errors++;
 	}
 
 	return summary;
