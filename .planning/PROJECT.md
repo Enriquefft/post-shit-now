@@ -2,11 +2,11 @@
 
 ## What This Is
 
-A Claude Code-first social media growth system where users interact through slash commands in their terminal. Trigger.dev Cloud handles automation (scheduling, posting, analytics, intelligence, notifications). No web app, no dashboard — just commands + a thin automation backend. Distributed as a git repo that users clone as their personal "social media workspace."
+A Claude Code-first social media growth system where users interact entirely through slash commands in their terminal. Trigger.dev Cloud handles the automation layer (scheduling, posting, analytics collection, intelligence gathering, notifications). No web app, no dashboard — just commands + a thin automation backend. Distributed as a git repo that users clone as their personal "social media workspace."
 
 ## Core Value
 
-Make posting so frictionless that people who rarely post become consistent creators — one command to generate, review, and schedule a post in their authentic voice.
+Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently — one command to generate, review, and schedule a post.
 
 ## Requirements
 
@@ -16,92 +16,89 @@ Make posting so frictionless that people who rarely post become consistent creat
 
 ### Active
 
-- [ ] Personal Hub setup (Neon Postgres + Trigger.dev Cloud) via `/psn:setup`
-- [ ] Voice profiling system (interview + content import + calibration)
-- [ ] Content creation via `/psn:post` (X, LinkedIn, Instagram, TikTok)
-- [ ] Weekly planning via `/psn:plan` (ideation + batch generation + scheduling)
-- [ ] Quick capture via `/psn:capture` (save or post now)
-- [ ] Engagement engine via `/psn:engage` (strategic replies to viral posts)
-- [ ] Performance review via `/psn:review` (analytics + strategy adjustments)
-- [ ] Company Hub setup with team coordination
-- [ ] Approval workflow via `/psn:approve`
-- [ ] Content series management via `/psn:series`
-- [ ] Idea bank with maturity pipeline (spark → seed → ready → used/killed)
-- [ ] Intelligence layer (trend collection, on-demand research, competitor monitoring)
-- [ ] Learning loop (engagement signals, edit tracking, preference model)
-- [ ] WhatsApp notifications (WAHA/Twilio) with structured command interaction
-- [ ] Multi-language support (English + Spanish, per-post choice)
-- [ ] Three voice profile types (personal, brand-operator, brand-ambassador)
-- [ ] Content calendar with cross-hub coordination
-- [ ] Image and video generation integration
-- [ ] Employee advocacy features (team analytics, content remixing)
-- [ ] OAuth token management with automatic refresh
+- [ ] Two-Hub architecture: mandatory Personal Hub (Neon Postgres + Trigger.dev) for every user, optional Company Hubs for teams
+- [ ] 10 slash commands: `/psn:post`, `/psn:plan`, `/psn:capture`, `/psn:engage`, `/psn:review`, `/psn:approve`, `/psn:series`, `/psn:config`, `/psn:setup`, `/psn:calendar`
+- [ ] Voice profiling system with deep interview, content import, and calibration loop
+- [ ] Three voice profile types: personal, brand-operator (per company), brand-ambassador (per company)
+- [ ] Learning loop (RLHF for your brand): engagement signals, edit signals, explicit feedback → preference model
+- [ ] Intelligence layer: scheduled trend collection (HN, Reddit, PH, RSS, Google Trends) + on-demand research (Perplexity, Exa, Tavily, Brave)
+- [ ] Idea bank with maturity pipeline: spark → seed → ready → claimed → developed → used/killed
+- [ ] Content series system: recurring formats with cadence, format templates, and performance tracking
+- [ ] Engagement engine: semi-automated replies to viral/trending posts with human-in-the-loop approval
+- [ ] 4 platform support: X, LinkedIn, Instagram, TikTok (incremental rollout starting with X)
+- [ ] Bilingual content creation: English + Spanish, per-post language choice, language-specific voice sections
+- [ ] WhatsApp notifications via WAHA (push, digest, standard tiers) with structured command interaction
+- [ ] Company coordination: approval workflows, content calendar, invite code onboarding, team idea surfacing
+- [ ] Image generation integration (GPT Image, Ideogram 3, Flux 2)
+- [ ] Trigger.dev tasks: post-scheduler, analytics-collector, trend-collector, trend-alerter, engagement-monitor, token-refresher, notifier, whatsapp-handler
+- [ ] BYOK (Bring Your Own Keys) for all APIs
+- [ ] Postgres RLS for per-user data isolation in both Hub types
+- [ ] Drizzle ORM with migration infrastructure (Drizzle Kit)
 
 ### Out of Scope
 
 - Web app / dashboard / frontend — CLI-only by design
-- Self-hosted Trigger.dev or database — cloud managed services only
-- Languages beyond English and Spanish — v1 bilingual only
-- Automated posting without human review — human-in-the-loop always
-- LinkedIn content discovery API scraping — walled garden, manual only
+- Self-hosted Trigger.dev — Cloud-only for simplicity
 - Real-time chat features — not core to content creation
-- Mobile app — terminal-first
+- Languages beyond English and Spanish — two is enough for v1
+- Offline/degraded mode — managed services have 99.9%+ uptime, not worth the complexity
+- Claude-powered WhatsApp chatbot — future upgrade, structured commands first
+- Cloud media storage (S3/R2) — future, local git for now
 
 ## Context
 
-**Architecture — Two-Hub model:**
-- Every user has a mandatory **Personal Hub** (Neon Postgres + Trigger.dev Cloud) for personal data
-- Companies have separate **Company Hubs** that team members connect to via invite codes
-- Personal data never touches Company Hubs; company data never touches Personal Hubs
-- Local git stores: content drafts, voice profiles, strategy config, media
-- Hub DB stores: analytics, posts archive, ideas, preference models, series, OAuth tokens, trends
+### Target Users
+- **Primary:** Individual team members (30+) who have Claude Code, basic CLI comfort, want to grow personal social media but rarely post
+- **Secondary:** Company account managers (3-10/company) who post on behalf of company accounts with coordination needs
+- **Tertiary:** Company owners/social media leads who define strategy, review posts, analyze performance
 
-**Platform landscape:**
-- X: Pay-per-use API (Jan 2026), $0.01/post, $0.005/read — easiest entry
-- LinkedIn: Partner approval required (weeks), tokens expire 60 days, no content discovery API
-- Instagram: 200 req/hr rate limit, Business account required
-- TikTok: Audit required for public posting, weeks timeline
-- No platform offers native scheduling — all via Trigger.dev delayed runs
+### Data Architecture
+- **Local git:** content drafts, media, strategy config, voice profiles, series config, company config
+- **Personal Hub DB:** content queue, preference model, idea bank, analytics, published archive, series, trends, OAuth tokens, WhatsApp sessions
+- **Company Hub DB:** content queue, analytics, published archive, OAuth tokens, team registry, idea bank, brand preferences, series, trends
 
-**Intelligence sources:**
-- Layer 1 (scheduled): HN, Reddit, Product Hunt, Google Trends RSS, RSS feeds, competitor accounts
-- Layer 2 (on-demand): Perplexity Sonar, Exa, Tavily, Brave Search
-- Layer 3 (manual): `/psn:capture` for LinkedIn/TikTok (no public APIs)
+### Platform API Landscape
+- X: pay-per-use API (Jan 2026), $0.01/post, $0.005/read — easiest access
+- LinkedIn: partner approval required (weeks), tokens expire 60 days, NO content discovery API
+- Instagram: 200 req/hr rate limit, 30 hashtags/week for search, Business account required
+- TikTok: audit required for public posting, EnsembleData (~$100/mo) for real-time monitoring optional
 
-**Content philosophy:**
-- Three personas per user: Personal, Brand Operator, Brand Ambassador
-- Content archetypes balanced (reaction, story, framework, BTS, observation, etc.)
-- Content atoms: one idea → multiple platform-specific expressions
-- Series are optional but first-class (recurring formats with audience expectation)
+### Three Posting Personas
+- **Personal:** your opinions, your voice, unfiltered within comfort zone
+- **Brand Operator:** you disappear, the brand speaks, polished and consistent
+- **Brand Ambassador:** hybrid — your face + voice with company context
 
-**Target users:**
-- Primary: Individual team members (30+) who want to grow personal social media
-- Secondary: Company account managers (3-10 per company)
-- Tertiary: Company owners / social media leads
+### Content Intelligence
+- 12 content archetypes (reaction, story, framework, behind-the-scenes, observation, question, data/research, curation, prediction, celebration, contrarian, tutorial)
+- Content remixing: one core idea → 5-10 pieces across platforms/formats
+- Content recycling: high-performing past content surfaced with fresh angles
+- Competitive intelligence: track competitors to find gaps, not to copy
 
 ## Constraints
 
-- **Tech stack**: Claude Code slash commands + Trigger.dev Cloud + Neon Postgres + Drizzle ORM
-- **BYOK**: All API keys provided by users — no central billing
-- **Platform-aware**: Features scoped to enabled platforms only — disabled platforms cost nothing
-- **No offline mode**: Cloud services with 99.9%+ uptime, clear error on failure
-- **Security**: Postgres RLS for per-user data isolation, OAuth tokens encrypted in DB, invite codes for team onboarding (no raw credential sharing)
-- **Cost**: Free tier viable for light usage ($0/mo), ~$30/mo per hub for active users
+- **Tech stack:** Neon Postgres (Drizzle ORM) + Trigger.dev Cloud — no alternatives
+- **Distribution:** Git repo clone model — no package manager, no installer
+- **API access:** LinkedIn partner approval and TikTok audit take weeks — start with X
+- **Cost:** Free tiers for light usage; ~$30/mo per Hub for active Trigger.dev usage
+- **Platform APIs:** No native scheduling on any platform — all via Trigger.dev delayed runs
+- **Media uploads:** Multi-step everywhere (register → upload → attach)
+- **Token refresh:** Mandatory for LinkedIn (60 days) and Instagram — `token-refresher` task required
+- **Rate limits:** Instagram 200 req/hr is the real bottleneck — batching and backoff essential
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Claude Code commands, not a web app | Users are Claude Code users. Commands are infinitely flexible. No maintenance burden. | — Pending |
-| Personal Hub mandatory for all users | Your data is always yours. Leaving a company = delete a connection file. | — Pending |
-| Neon Postgres + Drizzle ORM | RLS for isolation, standard Postgres (zero vendor lock-in), Drizzle for type-safe queries | — Pending |
-| Trigger.dev Cloud (not self-hosted) | Free tier covers light usage, warm starts, auto-scaling, no infra maintenance | — Pending |
-| BYOK for all APIs | Each user controls costs and access. No central billing complexity. | — Pending |
+| Personal Hub mandatory for all users | Your data is always yours. Leaving company = delete a connection file. | — Pending |
+| BYOK for all APIs | Each user/company controls own costs and rate limits. No central billing. | — Pending |
+| Neon Postgres + Drizzle ORM | Full Postgres ecosystem, RLS for isolation, zero vendor lock-in. | — Pending |
+| Trigger.dev Cloud (not self-hosted) | Free tier for light usage, warm starts, auto-scaling, no infra maintenance. | — Pending |
 | Semi-automated engagement only | Fully automated replies get accounts banned. Human approves every reply. | — Pending |
-| WhatsApp for notifications (WAHA/Twilio) | Interactive, not just notification-only. Structured commands for quick action. | — Pending |
-| English + Spanish bilingual | Per-post language choice. Voice profiles have language-specific sections. Not translations. | — Pending |
-| Phased rollout starting with X | Easiest API access, apply for LinkedIn/TikTok immediately, add when approved | — Pending |
-| Learning loop mostly autonomous | System is your social media manager, not consultant. Tactical changes auto, identity changes confirm. | — Pending |
+| Incremental platform rollout | X first (easiest API), then LinkedIn, then IG/TikTok. Matches approval timelines. | — Pending |
+| Bilingual (en/es) not translation | Each language independently crafted. Voice profiles have language-specific sections. | — Pending |
+| Invite code flow for team onboarding | No raw credential sharing. One-time use, time-limited codes. | — Pending |
+| Learning loop mostly autonomous | System is a social media manager, not a consultant. Makes tactical decisions, reports back. | — Pending |
 
 ---
 *Last updated: 2026-02-18 after initialization*
