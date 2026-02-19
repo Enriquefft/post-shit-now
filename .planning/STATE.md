@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 ## Current Position
 
-Phase: 8 of 8 (TikTok and Instagram Integration)
-Plan: 1 of 5 in current phase
+Phase: 8 of 8 (Instagram, TikTok, and Engagement)
+Plan: 2 of 5 in current phase
 Status: Executing
-Last activity: 2026-02-19 - Completed 07-05 (Slash commands for team coordination)
+Last activity: 2026-02-19 - Completed 08-01 (Instagram platform module)
 
 Progress: [█████████░] 85%
 
@@ -44,6 +44,7 @@ Progress: [█████████░] 85%
 | Phase 07 P03 | 4min | 3 tasks | 4 files |
 | Phase 07 P04 | 5min | 4 tasks | 8 files |
 | Phase 07 P05 | 4min | 3 tasks | 4 files |
+| Phase 08 P01 | 4min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -171,6 +172,11 @@ Recent decisions affecting current work:
 - [Phase 07]: [07-05]: Approval rejection reason is required for good team communication
 - [Phase 07]: [07-05]: Calendar cross-hub overlap allowed (different audiences per CONTEXT.md)
 - [Phase 07]: [07-05]: Notification setup returns interactive scaffold for Claude-guided configuration
+- [Phase 08]: [08-01]: Instagram OAuth uses raw fetch (no Arctic provider available) for direct login flow
+- [Phase 08]: [08-01]: Instagram has no refresh tokens -- access token itself refreshed via ig_refresh_token grant
+- [Phase 08]: [08-01]: Container status polling every 5s, max 60 attempts (5 min timeout)
+- [Phase 08]: [08-01]: Hashtag pool cached locally with 7-day rolling window budget tracking (30 searches/week)
+- [Phase 08]: [08-01]: Default 15 hashtags per post (Instagram allows 30, use half for safety)
 
 ### Pending Todos
 
@@ -192,5 +198,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 07-05-PLAN.md (Phase 7 complete)
-Resume file: .planning/phases/08-tiktok-instagram/08-01-PLAN.md
+Stopped at: Completed 08-01-PLAN.md
+Resume file: .planning/phases/08-instagram-tiktok-and-engagement/08-02-PLAN.md
