@@ -33,11 +33,11 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **VOICE-01**: User can complete a voice profiling interview that captures identity, voice patterns, boundaries, and platform preferences
 - [ ] **VOICE-02**: User can import existing content (X history, LinkedIn posts, blog posts) to bootstrap voice patterns
 - [x] **VOICE-03**: System generates a `personal.yaml` voice profile with language-agnostic traits and language-specific sections
-- [ ] **VOICE-04**: Calibration mode tracks edit rates over first 10-15 posts and presents calibration reports
+- [x] **VOICE-04**: Calibration mode tracks edit rates over first 10-15 posts and presents calibration reports
 - [ ] **VOICE-05**: Blank-slate users (no existing content) get a shorter personality-first interview with starter archetypes
 - [ ] **VOICE-06**: Bilingual users complete voice interview in both English and Spanish with language-specific voice sections
-- [ ] **VOICE-07**: User can create brand-operator voice profiles per connected company
-- [ ] **VOICE-08**: User can create brand-ambassador voice profiles that inherit from personal with company guardrails
+- [x] **VOICE-07**: User can create brand-operator voice profiles per connected company
+- [x] **VOICE-08**: User can create brand-ambassador voice profiles that inherit from personal with company guardrails
 - [x] **VOICE-09**: User can do quick voice tweaks via `/psn:config voice` (add banned words, adjust formality)
 - [ ] **VOICE-10**: User can trigger full voice recalibration via `/psn:setup voice`
 
@@ -52,7 +52,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **POST-07**: User can choose language (en, es, both) per post with platform-specific defaults
 - [ ] **POST-08**: Bilingual posts (`both`) are independently crafted per language, not translated
 - [x] **POST-09**: User reviews and edits every generated post before scheduling (human-in-the-loop)
-- [ ] **POST-10**: Every edit is tracked with edit distance and edit patterns for the learning loop
+- [x] **POST-10**: Every edit is tracked with edit distance and edit patterns for the learning loop
 - [x] **POST-11**: System checks idea bank for ready ideas before asking for a topic
 - [x] **POST-12**: System offers 3 quick topic suggestions when no topic provided and no ready ideas exist
 - [ ] **POST-13**: Semi-automated formats (video scripts, TikTok stitches) save script + talking points to drafts; user records then runs `/psn:post finish`
@@ -279,18 +279,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VOICE-01 | Phase 3 | Pending |
 | VOICE-02 | Phase 3 | Pending |
 | VOICE-03 | Phase 3 | Complete |
-| VOICE-04 | Phase 3 | Pending |
+| VOICE-04 | Phase 3 | Complete |
 | VOICE-05 | Phase 3 | Pending |
 | VOICE-06 | Phase 3 | Pending |
-| VOICE-07 | Phase 3 | Pending |
-| VOICE-08 | Phase 3 | Pending |
+| VOICE-07 | Phase 3 | Complete |
+| VOICE-08 | Phase 3 | Complete |
 | VOICE-09 | Phase 3 | Complete |
 | VOICE-10 | Phase 3 | Pending |
 | POST-01 | Phase 3 | Complete |
 | POST-05 | Phase 3 | Complete |
 | POST-06 | Phase 3 | Complete |
 | POST-09 | Phase 3 | Complete |
-| POST-10 | Phase 3 | Pending |
+| POST-10 | Phase 3 | Complete |
 | POST-11 | Phase 3 | Complete |
 | POST-12 | Phase 3 | Complete |
 | POST-14 | Phase 3 | Complete |

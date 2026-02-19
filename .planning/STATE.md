@@ -19,9 +19,9 @@ Progress: [██████░░░░] 46%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: ~8min
-- Total execution time: ~1h 35min
+- Total plans completed: 13
+- Average duration: ~7min
+- Total execution time: ~1h 39min
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [██████░░░░] 46%
 |-------|-------|-------|----------|
 | 1 | 3/3 | ~60min | ~20min |
 | 2 | 4/4 | ~12min | ~3min |
-| 3 | 5/7 | ~14min | ~3min |
+| 3 | 6/7 | ~18min | ~3min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (~5min), 03-02 (~5min), 03-03 (~2min), 03-04 (~1min), 03-05 (~1min)
+- Last 5 plans: 03-02 (~5min), 03-03 (~2min), 03-04 (~1min), 03-05 (~1min), 03-06 (~4min)
 - Trend: Consistently fast (clear specs + existing patterns)
 
 *Updated after each plan completion*
@@ -79,6 +79,10 @@ Recent decisions affecting current work:
 - [03-05]: Deterministic topic suggestions with angle rotation to avoid repetition across calls
 - [03-05]: Draft files use YAML frontmatter for metadata, stored as markdown in content/drafts/
 - [03-05]: Published drafts pruned after 14 days (CONTENT-01), media after 7 days (CONTENT-02)
+- [03-06]: Edit distance uses diff package word-level diffing, not character-level
+- [03-06]: Calibration convergence: 10 consecutive posts below 15% edit ratio
+- [03-06]: Brand-operator profiles standalone; brand-ambassador inherits personal with guardrails
+- [03-06]: Thread content (JSON arrays) normalized by joining before diffing
 
 ### Pending Todos
 
@@ -100,5 +104,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 03-05-PLAN.md
+Stopped at: Completed 03-06-PLAN.md
 Resume file: None
