@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 ## Current Position
 
-Phase: 9 of 9 (Integration Wiring Fixes)
-Plan: 2 of 2 in current phase (COMPLETE)
-Status: Phase 9 Complete
-Last activity: 2026-02-19 - Completed 09-01 (Notification dispatcher wiring)
+Phase: 11 of 11 (Tech Debt Remediation)
+Plan: 1 of 6 in current phase
+Status: Phase 11 in progress
+Last activity: 2026-02-19 - Completed 11-01 (API key management functions)
 
-Progress: [██████████] 100%
+Progress: [█         ] 17%
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [██████████] 100%
 | Phase 08 P05 | 6min | 2 tasks | 5 files |
 | Phase 09 P01 | 2min | 2 tasks | 4 files |
 | Phase 09 P02 | 2min | 2 tasks | 2 files |
+| Phase 11 P01 | 5 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -210,6 +211,10 @@ Recent decisions affecting current work:
 - [Phase 09]: [09-02]: Reuse single DB connection for checkIdeaBank and getLockedSettings in generate.ts
 - [Phase 09]: [09-02]: calendarCommand returns UnifiedCalendar type (breaking return type change from CalendarState)
 - [Phase 09]: [09-02]: Inline type imports for HubConnection and HubDb in calendarCommand
+- [Phase 11-tech-debt-remediation]: HUB_ENCRYPTION_KEY environment variable used for all encryption/decryption
+- [Phase 11-tech-debt-remediation]: Hub-scoped keys: userId = hubId (user ID for Personal Hub, hub ID for Company Hub)
+- [Phase 11-tech-debt-remediation]: listKeys() does NOT decrypt values (security best practice)
+- [Phase 11-tech-debt-remediation]: Unique index on (userId, service) for O(1) key lookups
 
 ### Pending Todos
 

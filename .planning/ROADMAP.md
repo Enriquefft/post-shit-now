@@ -211,7 +211,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -225,6 +225,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 8. Instagram, TikTok, and Engagement | 6/6 | Complete | 2026-02-19 |
 | 9. Integration Wiring Fixes | 2/2 | Complete | 2026-02-19 |
 | 10. Milestone Documentation Closure | 1/1 | Complete | 2026-02-19 |
+| 11. Tech Debt Remediation | 1/6 | In Progress|  |
+| 12. Solo Founder Experience | 0/3 | Pending | — |
+| 13. Academic Content Support | 0/1 | Pending | — |
 
 ### Phase 11: Tech Debt Remediation - CONFIG-04 + IMG/VID Provider Migration
 
@@ -238,7 +241,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
   4. All video providers (Kling, Runway, Pika) use getApiKey() when db + hubId provided
   5. /psn:setup collects and stores provider keys per hub (encrypted in DB)
   6. Hub context flows from CLI/Trigger tasks to providers via db + hubId parameters
-**Plans:** 6 plans
+**Plans:** 1/6 plans executed
 
 Plans:
 - [ ] 11-01-PLAN.md — Create getApiKey/setApiKey/listKeys functions for encrypted key storage
@@ -247,3 +250,36 @@ Plans:
 - [ ] 11-04-PLAN.md — Migrate video providers (Kling, Runway, Pika) to DB keys
 - [ ] 11-05-PLAN.md — Extend /psn:setup to collect and store provider keys per hub
 - [ ] 11-06-PLAN.md — Wire search and media generation calls with hub context passing
+
+### Phase 12: Solo Founder Experience
+
+**Goal:** Solo founders with multiple projects can maintain distinct voices per entity without Company Hub overhead, and new users get maturity-appropriate guidance through unified setup flow.
+**Depends on:** Phase 11
+**Requirements:** VOICE-11 (new), SETUP-01 (new), PLAN-11 (new)
+**Success Criteria** (what must be TRUE):
+  1. User can create entity-scoped voice profiles (e.g., `psn-founder.yaml`, `side-project.yaml`) without creating Company Hubs
+  2. `/psn:setup` absorbs voice interview functionality — single command for all configuration (infrastructure, voice, connections)
+  3. Voice interview captures social maturity level (never posted / sporadic / consistent / very active)
+  4. `/psn:plan` adapts prescriptiveness based on user maturity: more hand-holding for cold-start users, more autonomous for mature users
+  5. `/psn:setup` detects what's already configured and offers targeted updates (voice only, add platform, manage connections)
+**Plans:** 3 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Entity-scoped voice profiles: schema extension, profile selection during `/psn:post`, persona routing without Company Hub dependency
+- [ ] 12-02-PLAN.md — Merge `/psn:voice` into `/psn:setup`: unified configuration flow, smart detection of existing config, targeted update prompts
+- [ ] 12-03-PLAN.md — Social maturity capture and maturity-aware planning: maturity field in voice profile, `/psn:plan` behavior adaptation, progressive autonomy
+
+### Phase 13: Academic Content Support
+
+**Goal:** Users publishing papers or research content have purpose-built archetypes and templates for academic-style posts across platforms.
+**Depends on:** Phase 12 (voice system extensions)
+**Requirements:** CONTENT-06 (new), ARCHETYPE-01 (new)
+**Success Criteria** (what must be TRUE):
+  1. `paper` or `research` content archetype exists with templates for paper announcements, thread breakdowns, and "what this means" translations
+  2. Format picker recognizes research content and suggests appropriate formats per platform (LinkedIn carousel for findings, X thread for breakdowns)
+  3. Templates include citation-ready formatting and hooks optimized for academic communities
+  4. Archetype balances technical accuracy with accessibility for broader audiences
+**Plans:** 1 plan
+
+Plans:
+- [ ] 13-01-PLAN.md — Academic archetype: template definitions, format picker integration, hook patterns for research content
