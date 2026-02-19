@@ -33,12 +33,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Hub connector establishes typed database connections and CLI scripts can read/write to the Hub
   4. Post watchdog task detects stuck Trigger.dev runs and re-triggers them
   5. All secrets are gitignored and the project builds with TypeScript 5.7+, pnpm, Biome, and Vitest
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — Project scaffolding, Drizzle schema with RLS, connection factory, migration infra, crypto utils
+- [ ] 01-02-PLAN.md — Hub provisioning setup flow (/psn:setup wizard with neonctl + trigger CLI)
+- [ ] 01-03-PLAN.md — Trigger.dev tasks (post watchdog cron, health check)
 
 ### Phase 2: X Platform Pipeline
 **Goal**: User can authenticate with X, schedule posts, and have them reliably published at the scheduled time
