@@ -9,29 +9,29 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 ## Current Position
 
-Phase: 1 of 8 (Foundation Infrastructure)
-Plan: 1 of 3 in current phase
-Status: Executing (Wave 2 next: plans 01-02, 01-03)
-Last activity: 2026-02-18 — Plan 01-01 complete (project scaffold + core infra)
+Phase: 1 of 8 (Foundation Infrastructure) — COMPLETE
+Plan: 3 of 3 in current phase
+Status: Phase 1 complete, ready for Phase 2
+Last activity: 2026-02-18 — All 3 plans executed (scaffold, setup CLI, trigger tasks)
 
-Progress: [█░░░░░░░░░] 4%
+Progress: [█░░░░░░░░░] 12%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: ~35min
-- Total execution time: ~0.6 hours
+- Total plans completed: 3
+- Average duration: ~20min
+- Total execution time: ~1 hour
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 | 1/3 | ~35min | ~35min |
+| 1 | 3/3 | ~60min | ~20min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (~35min)
-- Trend: Starting
+- Last 5 plans: 01-01 (~35min), 01-02 (~15min), 01-03 (~10min)
+- Trend: Accelerating (shared infrastructure pays off)
 
 *Updated after each plan completion*
 
@@ -46,6 +46,10 @@ Recent decisions affecting current work:
 - [Roadmap]: Submit LinkedIn partner API + TikTok audit applications in Phase 1 (multi-week lead times)
 - [Roadmap]: X is first platform (easiest API access, no approval gates)
 - [Roadmap]: Voice profiling is Phase 3 (core differentiator, needs infrastructure first)
+- [01-01]: Biome 2.4.2 config schema differs from 2.0 docs — organizeImports moved to assist.actions.source
+- [01-01]: drizzle.config.ts uses placeholder DATABASE_URL to avoid requiring live DB for generation
+- [01-02]: CLI scripts output JSON to stdout for Claude to interpret (not human-readable)
+- [01-03]: Watchdog marks stuck posts as retry/failed — actual re-publish comes in Phase 2
 
 ### Pending Todos
 
@@ -61,5 +65,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Plan 01-01 complete, executing Wave 2 (plans 01-02, 01-03)
+Stopped at: Phase 1 complete, ready to plan Phase 2
 Resume file: None

@@ -12,7 +12,7 @@ Post Shit Now delivers a Claude Code-first social media growth system in 8 phase
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation Infrastructure** - Project scaffolding, @psn/core package, Personal Hub provisioning, Drizzle migrations, BYOK setup
+- [x] **Phase 1: Foundation Infrastructure** - Project scaffolding, @psn/core package, Personal Hub provisioning, Drizzle migrations, BYOK setup
 - [ ] **Phase 2: X Platform Pipeline** - OAuth for X, token management with race condition protection, post scheduling, media uploads
 - [ ] **Phase 3: Voice Profiling and Content Generation** - Voice interviews, content import, calibration, post generation in user's voice, image generation, draft management
 - [ ] **Phase 4: Analytics and Learning Loop** - X analytics collection, engagement scoring, performance review, 3-channel learning loop, preference model
@@ -36,9 +36,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Project scaffolding, Drizzle schema with RLS, connection factory, migration infra, crypto utils
-- [ ] 01-02-PLAN.md — Hub provisioning setup flow (/psn:setup wizard with neonctl + trigger CLI)
-- [ ] 01-03-PLAN.md — Trigger.dev tasks (post watchdog cron, health check)
+- [x] 01-01-PLAN.md — Project scaffolding, Drizzle schema with RLS, connection factory, migration infra, crypto utils
+- [x] 01-02-PLAN.md — Hub provisioning setup flow (/psn:setup wizard with neonctl + trigger CLI)
+- [x] 01-03-PLAN.md — Trigger.dev tasks (post watchdog cron, health check)
 
 ### Phase 2: X Platform Pipeline
 **Goal**: User can authenticate with X, schedule posts, and have them reliably published at the scheduled time
@@ -164,7 +164,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation Infrastructure | 0/3 | Not started | - |
+| 1. Foundation Infrastructure | 3/3 | Complete | 2026-02-18 |
 | 2. X Platform Pipeline | 0/3 | Not started | - |
 | 3. Voice Profiling and Content Generation | 0/3 | Not started | - |
 | 4. Analytics and Learning Loop | 0/2 | Not started | - |
