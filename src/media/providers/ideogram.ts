@@ -1,3 +1,5 @@
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { getApiKey } from "../../core/db/api-keys";
 import type { GeneratedImage, ImageGenOptions, ImageProvider } from "../image-gen.ts";
 
 // ─── Size Mapping (fal.ai SDK uses image_size, not aspect_ratio) ─────────────
@@ -71,10 +73,12 @@ async function generateViaFal(
 	prompt: string,
 	aspectRatio?: string,
 	style?: string,
+	db: PostgresJsDatabase,
+	hubId: string,
 ): Promise<GeneratedImage> {
-	const falKey = process.env.FAL_KEY;
+	const falKey = await getApiKey(db, hubId, "fal");
 	if (!falKey) {
-		throw new Error("FAL_KEY environment variable is required for Ideogram via fal.ai");
+		throw new Error("API key lookup returned empty value");
 	}
 
 	const { fal } = await import("@fal-ai/client");
@@ -119,10 +123,12 @@ async function generateViaDirect(
 	prompt: string,
 	aspectRatio?: string,
 	style?: string,
+	db: PostgresJsDatabase,
+	hubId: string,
 ): Promise<GeneratedImage> {
-	const apiKey = process.env.IDEOGRAM_API_KEY;
+	const apiKey = await getApiKey(db, hubId, "ideogram");
 	if (!apiKey) {
-		throw new Error("IDEOGRAM_API_KEY environment variable is required for direct Ideogram API");
+		throw new Error("API key lookup returned empty value");
 	}
 
 	const response = await fetch("https://api.ideogram.ai/v1/ideogram-v3/generate", {
@@ -170,19 +176,22 @@ export const ideogramProvider: ImageProvider = {
 	name: "ideogram",
 	strengths: ["text-rendering", "typography", "logos", "posters", "design"],
 
-	async generate(prompt: string, options: ImageGenOptions): Promise<GeneratedImage> {
+	async generate(
+		prompt: string,
+		options: ImageGenOptions,
+		db: PostgresJsDatabase,
+		hubId: string,
+	): Promise<GeneratedImage> {
 		// Prefer fal.ai (no minimum usage requirement) over direct API
-		if (process.env.FAL_KEY) {
-			return generateViaFal(prompt, options.aspectRatio, options.style);
+		// Check if fal key exists by attempting to get it
+		try {
+			return await generateViaFal(prompt, options.aspectRatio, options.style, db, hubId);
+		} catch (err) {
+			if (err instanceof Error && err.message.includes("API key")) {
+				// Fal key not found, try ideogram key
+				return await generateViaDirect(prompt, options.aspectRatio, options.style, db, hubId);
+			}
+			throw err;
 		}
-
-		// Fallback to direct API if IDEOGRAM_API_KEY is set
-		if (process.env.IDEOGRAM_API_KEY) {
-			return generateViaDirect(prompt, options.aspectRatio, options.style);
-		}
-
-		throw new Error(
-			"Either FAL_KEY (recommended) or IDEOGRAM_API_KEY must be set for Ideogram image generation",
-		);
 	},
 };

@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { getApiKey } from "../../core/db/api-keys";
 import type { GeneratedImage, ImageGenOptions, ImageProvider } from "../image-gen.ts";
 
 // ─── Size Mapping ────────────────────────────────────────────────────────────
@@ -29,10 +31,15 @@ export const gptImageProvider: ImageProvider = {
 	name: "gpt-image",
 	strengths: ["versatile", "general-purpose", "editing", "style-variety"],
 
-	async generate(prompt: string, options: ImageGenOptions): Promise<GeneratedImage> {
-		const apiKey = process.env.OPENAI_API_KEY;
+	async generate(
+		prompt: string,
+		options: ImageGenOptions,
+		db: PostgresJsDatabase,
+		hubId: string,
+	): Promise<GeneratedImage> {
+		const apiKey = await getApiKey(db, hubId, "openai");
 		if (!apiKey) {
-			throw new Error("OPENAI_API_KEY environment variable is required for GPT Image generation");
+			throw new Error("API key lookup returned empty value");
 		}
 
 		const openai = new OpenAI({ apiKey });
