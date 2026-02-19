@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 4 of 8 (Analytics and Learning Loop)
-Plan: 3 of 5 in current phase (04-03 complete)
+Plan: 5 of 5 in current phase (04-05 complete)
 Status: Executing Phase 4
-Last activity: 2026-02-19 - Completed 04-03: Learning loop (preference model, adjustments, feedback, locks)
+Last activity: 2026-02-19 - Completed 04-05: Learning loop integration (preference model wiring, semi-automated drafts, hub routing)
 
 Progress: [██████░░░░] 60%
 
@@ -30,11 +30,11 @@ Progress: [██████░░░░] 60%
 | 1 | 3/3 | ~60min | ~20min |
 | 2 | 4/4 | ~12min | ~3min |
 | 3 | 7/7 | ~21min | ~3min |
-| 4 | 3/5 | ~17min | ~5.7min |
+| 4 | 5/5 | ~25min | ~5min |
 
 **Recent Trend:**
-- Last 5 plans: 03-06 (~4min), 03-07 (~3min), 04-01 (~9min), 04-02 (~4min), 04-03 (~4min)
-- Trend: Consistently fast; analytics plans averaging ~5.7min
+- Last 5 plans: 04-01 (~9min), 04-02 (~4min), 04-03 (~4min), 04-04 (pending), 04-05 (~4min)
+- Trend: Consistently fast; analytics plans averaging ~5min
 
 *Updated after each plan completion*
 
@@ -102,6 +102,10 @@ Recent decisions affecting current work:
 - [04-03]: Feedback only at 3x average (high), 0.3x average (low), and edit streaks
 - [04-03]: Format preferences always auto-apply; new pillars and drop format always require approval
 - [04-03]: Frequency capped per platform (x:14, linkedin:7, instagram:7, tiktok:7)
+- [04-05]: Single preference model DB query reused for both topic suggestions and generation
+- [04-05]: Hub routing in draft metadata (not new schema column) until Company Hub Phase 7
+- [04-05]: Fatigue matching uses case-insensitive substring includes for flexible topic detection
+- [04-05]: Company posts conceptually pending_approval; personal posts proceed normally
 
 ### Pending Todos
 
@@ -123,5 +127,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 04-03-PLAN.md
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None

@@ -55,7 +55,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **POST-10**: Every edit is tracked with edit distance and edit patterns for the learning loop
 - [x] **POST-11**: System checks idea bank for ready ideas before asking for a topic
 - [x] **POST-12**: System offers 3 quick topic suggestions when no topic provided and no ready ideas exist
-- [ ] **POST-13**: Semi-automated formats (video scripts, TikTok stitches) save script + talking points to drafts; user records then runs `/psn:post finish`
+- [x] **POST-13**: Semi-automated formats (video scripts, TikTok stitches) save script + talking points to drafts; user records then runs `/psn:post finish`
 - [x] **POST-14**: Generated content reflects learnings from preference model (best hooks, formats, fatigued topics)
 
 ### Scheduling
@@ -65,7 +65,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SCHED-03**: Scheduler handles multi-step media upload (register → upload → attach) per platform
 - [x] **SCHED-04**: Scheduler retries 3x with exponential backoff on failure; respects platform rate limit windows
 - [x] **SCHED-05**: Failed posts notify the user and are tagged `status:failed`
-- [ ] **SCHED-06**: Personal posts write to Personal Hub content queue; company posts write to Company Hub
+- [x] **SCHED-06**: Personal posts write to Personal Hub content queue; company posts write to Company Hub
 
 ### Image Generation
 
@@ -322,8 +322,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LEARN-06 | Phase 4 | Complete |
 | LEARN-07 | Phase 4 | Complete |
 | LEARN-08 | Phase 4 | Complete |
-| POST-13 | Phase 4 | Pending |
-| SCHED-06 | Phase 4 | Pending |
+| POST-13 | Phase 4 | Complete |
+| SCHED-06 | Phase 4 | Complete |
 | INTEL-01 | Phase 5 | Pending |
 | INTEL-02 | Phase 5 | Pending |
 | INTEL-03 | Phase 5 | Pending |
