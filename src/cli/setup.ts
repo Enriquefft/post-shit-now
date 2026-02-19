@@ -332,9 +332,58 @@ export async function runSetup(configDir = "config"): Promise<SetupOutput> {
 	};
 }
 
+// ─── CLI Argument Parsing ───────────────────────────────────────────────────
+
+function parseCliArgs(args: string[]): { subcommand: string | null; params: Record<string, string> } {
+	const subcommand = args[0] && !args[0].startsWith("--") ? args[0] : null;
+	const params: Record<string, string> = {};
+	const flagArgs = subcommand ? args.slice(1) : args;
+
+	for (let i = 0; i < flagArgs.length; i++) {
+		const arg = flagArgs[i];
+		if (arg?.startsWith("--") && i + 1 < flagArgs.length) {
+			const key = arg.slice(2);
+			const value = flagArgs[i + 1] ?? "";
+			params[key] = value;
+			i++; // skip value
+		}
+	}
+
+	// Positional args for subcommands that need them
+	if (subcommand === "join" && !params.inviteBundle && flagArgs[0] && !flagArgs[0].startsWith("--")) {
+		params.inviteBundle = flagArgs[0];
+	}
+	if (subcommand === "disconnect" && !params.slug && flagArgs[0] && !flagArgs[0].startsWith("--")) {
+		params.slug = flagArgs[0];
+	}
+	if (subcommand === "invite" && !params.slug && flagArgs[0] && !flagArgs[0].startsWith("--")) {
+		params.slug = flagArgs[0];
+	}
+	if (subcommand === "team" && !params.slug && flagArgs[0] && !flagArgs[0].startsWith("--")) {
+		params.slug = flagArgs[0];
+	}
+	if (subcommand === "promote" && flagArgs.length >= 2) {
+		if (!params.slug) params.slug = flagArgs[0] ?? "";
+		if (!params.targetUserId) params.targetUserId = flagArgs[1] ?? "";
+	}
+
+	return { subcommand, params };
+}
+
 // Entry point when run directly
 if (import.meta.main) {
-	runSetup()
+	const { subcommand, params } = parseCliArgs(process.argv.slice(2));
+
+	const run = async () => {
+		if (subcommand) {
+			const result = await runSetupSubcommand(subcommand, params);
+			if (result) return result;
+			// Fall through to default setup if subcommand not recognized
+		}
+		return runSetup();
+	};
+
+	run()
 		.then((result) => {
 			console.log(JSON.stringify(result, null, 2));
 			process.exit(result.completed ? 0 : 1);
