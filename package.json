@@ -2,7 +2,10 @@
 	"name": "post-shit-now",
 	"module": "index.ts",
 	"type": "module",
+	"version": "0.1.0",
 	"private": true,
+	"license": "AGPL-3.0-or-later",
+	"author": "Enrique Francisco Flores Teniente <enriquefft2001@gmail.com>",
 	"scripts": {
 		"dev": "bunx trigger.dev@latest dev",
 		"build": "bun run typecheck",
@@ -36,6 +39,7 @@
 		"diff": "^8.0.3",
 		"drizzle-orm": "^0.45.1",
 		"openai": "^6.22.0",
+		"pdf-lib": "^1.17.1",
 		"rss-parser": "^3.13.0",
 		"sharp": "^0.34.5",
 		"ws": "^8.19.0",

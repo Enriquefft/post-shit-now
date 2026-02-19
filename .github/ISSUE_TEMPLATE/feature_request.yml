@@ -1,0 +1,45 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: What problem does this solve? Why do you want it?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should this work? Be as specific as you can.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Slash commands
+        - Voice profiles
+        - Content creation
+        - Scheduling (Trigger.dev)
+        - Analytics
+        - Platform API (X/LinkedIn/Instagram/TikTok)
+        - Engagement
+        - Team/Hub management
+        - New platform support
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you've thought about?
+    validations:
+      required: false

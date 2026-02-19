@@ -8,6 +8,9 @@ dist/
 # Bun
 bun.lock
 
+# npm (project uses Bun)
+package-lock.json
+
 # Trigger.dev
 .trigger/
 
