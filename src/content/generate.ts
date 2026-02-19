@@ -4,6 +4,9 @@ import type { VoiceProfile } from "../voice/types.ts";
 import { saveDraft } from "./drafts.ts";
 import { type FormatSuggestion, type PostFormat, pickFormat } from "./format-picker.ts";
 import { checkIdeaBank, suggestTopics, type TopicSuggestion } from "./topic-suggest.ts";
+import { createHubConnection } from "../core/db/connection.ts";
+import { getPreferenceModel } from "../learning/preference-model.ts";
+import { isTopicFatigued } from "../analytics/fatigue.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -17,6 +20,8 @@ export interface GeneratePostOptions {
 	mediaType?: "image" | "video" | "none";
 	mediaHints?: string[];
 	profilePath?: string;
+	databaseUrl?: string;
+	userId?: string;
 }
 
 export interface GeneratedDraft {
@@ -34,6 +39,10 @@ export interface GeneratedDraft {
 	mediaPath?: string;
 	ideaBankStatus?: { hasReadyIdeas: boolean; readyCount: number };
 	preferenceLearnings?: PreferenceLearnings | null;
+	fatigueWarning?: {
+		topic: string;
+		suggestion: string;
+	};
 }
 
 export interface PreferenceLearnings {
@@ -120,14 +129,47 @@ export function buildVoicePromptContext(
 	return sections.join("\n");
 }
 
-// ─── Preference Model Stub (Phase 4) ────────────────────────────────────────
+// ─── Preference Model Learnings ──────────────────────────────────────────────
 
 export async function getPreferenceModelLearnings(
 	_platform: Platform,
+	options?: { databaseUrl?: string; userId?: string },
 ): Promise<PreferenceLearnings | null> {
-	// Stub for Phase 4 — preference model doesn't exist yet
-	// When Phase 4 adds the preference model, this will query analytics data
-	return null;
+	if (!options?.databaseUrl) return null;
+
+	try {
+		const db = createHubConnection(options.databaseUrl);
+		const userId = options.userId ?? "default";
+		const model = await getPreferenceModel(db, userId);
+
+		if (!model) return null;
+
+		// Extract top 3 hook patterns
+		const hooks = (model.hookPatterns as string[] | null)?.slice(0, 3) ?? [];
+
+		// Extract top 3 format names sorted by score
+		const topFormats = model.topFormats as Array<{ format: string; avgScore: number }> | null;
+		const formats = topFormats
+			? [...topFormats].sort((a, b) => b.avgScore - a.avgScore).slice(0, 3).map((f) => f.format)
+			: [];
+
+		// Extract fatigued topics with active cooldowns only
+		const fatiguedEntries = model.fatiguedTopics as Array<{
+			topic: string;
+			cooldownUntil: string;
+			lastScores: number[];
+		}> | null;
+		const fatiguedTopics = fatiguedEntries
+			? fatiguedEntries
+					.filter((ft) => isTopicFatigued(ft.topic, fatiguedEntries))
+					.map((ft) => ft.topic)
+			: [];
+
+		return { hooks, formats, fatiguedTopics };
+	} catch {
+		// Graceful fallback — DB unavailable
+		return null;
+	}
 }
 
 // ─── Generate Post ──────────────────────────────────────────────────────────
@@ -157,6 +199,12 @@ export async function generatePost(options: GeneratePostOptions): Promise<Genera
 	// Check idea bank (POST-11 stub)
 	const ideaBankStatus = await checkIdeaBank();
 
+	// Pre-fetch preference learnings for topic suggestions
+	const earlyLearnings = await getPreferenceModelLearnings(options.platform, {
+		databaseUrl: options.databaseUrl,
+		userId: options.userId,
+	});
+
 	// Topic suggestions if no topic provided
 	let topicSuggestions: TopicSuggestion[] | undefined;
 	if (!options.topic && !ideaBankStatus.hasReadyIdeas) {
@@ -164,6 +212,7 @@ export async function generatePost(options: GeneratePostOptions): Promise<Genera
 			profile,
 			platform: options.platform,
 			count: 3,
+			fatiguedTopics: earlyLearnings?.fatiguedTopics,
 		});
 	}
 
@@ -179,8 +228,22 @@ export async function generatePost(options: GeneratePostOptions): Promise<Genera
 	// Build voice context
 	const voiceContext = buildVoicePromptContext(profile, options.platform, language);
 
-	// Get preference model learnings (POST-14 stub)
-	const preferenceLearnings = await getPreferenceModelLearnings(options.platform);
+	// Reuse early learnings query (already fetched above for topic suggestions)
+	const preferenceLearnings = earlyLearnings;
+
+	// Check topic fatigue and build warning if applicable
+	let fatigueWarning: GeneratedDraft["fatigueWarning"];
+	if (options.topic && preferenceLearnings?.fatiguedTopics.length) {
+		const matchedFatigued = preferenceLearnings.fatiguedTopics.find(
+			(ft) => options.topic?.toLowerCase().includes(ft.toLowerCase()),
+		);
+		if (matchedFatigued) {
+			fatigueWarning = {
+				topic: matchedFatigued,
+				suggestion: `Topic "${matchedFatigued}" has been cooling -- consider rotating to a different content pillar`,
+			};
+		}
+	}
 
 	// Build initial content (placeholder for Claude to fill in via slash command)
 	const content = options.topic
@@ -214,5 +277,6 @@ export async function generatePost(options: GeneratePostOptions): Promise<Genera
 		topicSuggestions,
 		ideaBankStatus,
 		preferenceLearnings,
+		fatigueWarning,
 	};
 }

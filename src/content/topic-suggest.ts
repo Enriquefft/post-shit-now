@@ -74,8 +74,9 @@ export function suggestTopics(params: {
 	profile: VoiceProfile;
 	platform: Platform;
 	count?: number;
+	fatiguedTopics?: string[];
 }): TopicSuggestion[] {
-	const { profile, platform, count = 3 } = params;
+	const { profile, platform, count = 3, fatiguedTopics = [] } = params;
 	const pillars = profile.identity.pillars;
 
 	if (pillars.length === 0) {
@@ -113,6 +114,28 @@ export function suggestTopics(params: {
 
 	// Advance rotation to avoid repeating on next call
 	angleRotationIndex = (angleRotationIndex + count) % ANGLES.length;
+
+	// Deprioritize fatigued topics: move them to end with "cooling" label
+	if (fatiguedTopics.length > 0) {
+		const fatiguedSet = new Set(fatiguedTopics.map((t) => t.toLowerCase()));
+		const fresh: TopicSuggestion[] = [];
+		const cooling: TopicSuggestion[] = [];
+
+		for (const s of suggestions) {
+			const isFatigued = fatiguedSet.has(s.pillar.toLowerCase()) ||
+				fatiguedTopics.some((ft) => s.topic.toLowerCase().includes(ft.toLowerCase()));
+			if (isFatigued) {
+				cooling.push({
+					...s,
+					topic: `${s.topic} (cooling)`,
+				});
+			} else {
+				fresh.push(s);
+			}
+		}
+
+		return [...fresh, ...cooling];
+	}
 
 	return suggestions;
 }
