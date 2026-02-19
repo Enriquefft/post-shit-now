@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "api_keys_user_service_idx" ON "api_keys" USING btree ("user_id","service");
