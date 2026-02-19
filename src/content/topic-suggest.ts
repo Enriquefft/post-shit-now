@@ -1,4 +1,6 @@
+import type { HubDb } from "../core/db/connection.ts";
 import type { Platform } from "../core/types/index.ts";
+import { getReadyIdeas } from "../ideas/bank.ts";
 import type { VoiceProfile } from "../voice/types.ts";
 import type { PostFormat } from "./format-picker.ts";
 
@@ -13,7 +15,7 @@ export interface TopicSuggestion {
 
 // ─── Angle Templates ────────────────────────────────────────────────────────
 
-const ANGLES = [
+export const ANGLES = [
 	{ name: "hot-take", template: "Hot take: {pillar}", format: "short-post" as PostFormat },
 	{ name: "how-to", template: "How to {pillar}", format: "thread" as PostFormat },
 	{
@@ -141,13 +143,37 @@ export function suggestTopics(params: {
 	return suggestions;
 }
 
-// ─── Idea Bank Stub (Phase 5) ───────────────────────────────────────────────
+// ─── Idea Bank Check ────────────────────────────────────────────────────────
 
-export async function checkIdeaBank(): Promise<{
+/**
+ * Check the idea bank for ready ideas. Wired to real implementation in Phase 5.
+ * Falls back to empty if no DB provided (backward compatible for non-DB contexts).
+ */
+export async function checkIdeaBank(
+	db?: HubDb,
+	userId?: string,
+): Promise<{
 	hasReadyIdeas: boolean;
 	readyCount: number;
+	ideas: Array<{ id: string; title: string; pillar: string | null }>;
 }> {
-	// Stub for Phase 5 — idea bank doesn't exist yet
-	// When Phase 5 adds the idea bank table, this will query for status=ready ideas
-	return { hasReadyIdeas: false, readyCount: 0 };
+	if (!db || !userId) {
+		return { hasReadyIdeas: false, readyCount: 0, ideas: [] };
+	}
+
+	try {
+		const readyIdeas = await getReadyIdeas(db, userId, { limit: 10 });
+		return {
+			hasReadyIdeas: readyIdeas.length > 0,
+			readyCount: readyIdeas.length,
+			ideas: readyIdeas.map((i) => ({
+				id: i.id,
+				title: i.title,
+				pillar: i.pillar,
+			})),
+		};
+	} catch {
+		// Graceful fallback if ideas table doesn't exist
+		return { hasReadyIdeas: false, readyCount: 0, ideas: [] };
+	}
 }
