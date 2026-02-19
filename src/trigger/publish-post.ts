@@ -48,6 +48,7 @@ import {
 } from "../platforms/x/oauth.ts";
 import { RateLimitError } from "../platforms/x/types.ts";
 import { recordEpisodePublished } from "../series/episodes.ts";
+import { notificationDispatcherTask } from "./notification-dispatcher.ts";
 
 interface PublishPostPayload {
 	postId: string;
@@ -233,6 +234,27 @@ export const publishPost = task({
 
 		// All platforms failed
 		await markFailed(db, post.id, "all_platforms_failed", { platformStatus });
+
+		// Notify on post failure (fire-and-forget, never crash publish task)
+		try {
+			await notificationDispatcherTask.trigger({
+				eventType: "post.failed",
+				userId: post.userId as string,
+				hubId: (postMetadata.hubId as string) ?? undefined,
+				payload: {
+					postId: post.id,
+					platform: targetPlatforms.join(","),
+					error: "all_platforms_failed",
+					title: (post.content as string).slice(0, 60),
+				},
+			});
+		} catch (notifError) {
+			logger.warn("Failed to trigger post failure notification", {
+				postId: post.id,
+				error: notifError instanceof Error ? notifError.message : String(notifError),
+			});
+		}
+
 		return { status: "failed", results };
 	},
 });

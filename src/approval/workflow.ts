@@ -1,7 +1,9 @@
+import { logger } from "@trigger.dev/sdk";
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
 import { editHistory, posts } from "../core/db/schema.ts";
 import { isAdmin } from "../team/members.ts";
+import { notificationDispatcherTask } from "../trigger/notification-dispatcher.ts";
 import { isValidTransition } from "./types.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -77,6 +79,24 @@ export async function submitForApproval(
 			updatedAt: new Date(),
 		})
 		.where(eq(posts.id, postId));
+
+	// Notify admins about new approval request (fire-and-forget)
+	try {
+		await notificationDispatcherTask.trigger({
+			eventType: "approval.requested",
+			userId,
+			hubId: params.hubId,
+			payload: {
+				postId,
+				title: post.content.slice(0, 60),
+			},
+		});
+	} catch (notifError) {
+		logger.warn("Failed to trigger approval.requested notification", {
+			postId,
+			error: notifError instanceof Error ? notifError.message : String(notifError),
+		});
+	}
 
 	return { success: true };
 }
@@ -155,6 +175,25 @@ export async function approvePost(
 		})
 		.where(eq(posts.id, postId));
 
+	// Notify author that post was approved (fire-and-forget)
+	try {
+		await notificationDispatcherTask.trigger({
+			eventType: "approval.result",
+			userId: post.userId,
+			hubId,
+			payload: {
+				postId,
+				result: "approved",
+				approvedBy: reviewerId,
+			},
+		});
+	} catch (notifError) {
+		logger.warn("Failed to trigger approval.result notification", {
+			postId,
+			error: notifError instanceof Error ? notifError.message : String(notifError),
+		});
+	}
+
 	return { success: true };
 }
 
@@ -211,6 +250,26 @@ export async function rejectPost(
 			updatedAt: now,
 		})
 		.where(eq(posts.id, postId));
+
+	// Notify author that post was rejected (fire-and-forget)
+	try {
+		await notificationDispatcherTask.trigger({
+			eventType: "approval.result",
+			userId: post.userId,
+			hubId,
+			payload: {
+				postId,
+				result: "rejected",
+				rejectedBy: reviewerId,
+				reason: comment ?? undefined,
+			},
+		});
+	} catch (notifError) {
+		logger.warn("Failed to trigger approval.result notification", {
+			postId,
+			error: notifError instanceof Error ? notifError.message : String(notifError),
+		});
+	}
 
 	return { success: true };
 }

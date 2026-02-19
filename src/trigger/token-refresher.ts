@@ -12,6 +12,7 @@ import {
 	refreshTikTokToken,
 } from "../platforms/tiktok/oauth.ts";
 import { createXOAuthClient, refreshAccessToken as refreshXToken } from "../platforms/x/oauth.ts";
+import { notificationDispatcherTask } from "./notification-dispatcher.ts";
 
 export interface TokenRefresherResult {
 	total: number;
@@ -259,6 +260,24 @@ export const tokenRefresher = schedules.task({
 					logger.error("Failed to update token failure metadata", {
 						tokenId: token.id,
 						error: metaError instanceof Error ? metaError.message : String(metaError),
+					});
+				}
+
+				// Notify user about token expiry requiring re-auth (fire-and-forget)
+				try {
+					await notificationDispatcherTask.trigger({
+						eventType: "token.expiring",
+						userId: token.user_id,
+						payload: {
+							platform: token.platform,
+							tokenId: token.id,
+							error: errorMessage,
+						},
+					});
+				} catch (notifError) {
+					logger.warn("Failed to trigger token expiry notification", {
+						tokenId: token.id,
+						error: notifError instanceof Error ? notifError.message : String(notifError),
 					});
 				}
 
