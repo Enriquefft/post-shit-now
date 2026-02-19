@@ -1,5 +1,8 @@
 import type { SetupResult, ValidationSummary } from "../core/types/index.ts";
+import { setupCompanyHub } from "./setup-company-hub.ts";
 import { setupDatabase } from "./setup-db.ts";
+import { setupDisconnect } from "./setup-disconnect.ts";
+import { setupJoinHub } from "./setup-join.ts";
 import { setupKeys } from "./setup-keys.ts";
 import { setupLinkedInOAuth } from "./setup-linkedin-oauth.ts";
 import { setupTrigger } from "./setup-trigger.ts";
@@ -10,6 +13,60 @@ interface SetupOutput {
 	steps: SetupResult[];
 	validation: ValidationSummary | null;
 	completed: boolean;
+}
+
+// ─── Subcommand Types ──────────────────────────────────────────────────────
+
+type SetupSubcommand = "hub" | "join" | "disconnect";
+
+interface SubcommandParams {
+	hub: { slug: string; displayName: string; adminUserId?: string };
+	join: { inviteBundle: string; userId?: string; displayName?: string; email?: string };
+	disconnect: { slug: string; userId?: string };
+}
+
+/**
+ * Route setup subcommands to their handlers.
+ * Returns null if the subcommand is not recognized (falls through to default setup).
+ */
+export async function runSetupSubcommand(
+	subcommand: string,
+	params: Record<string, string>,
+	configDir = "config",
+	projectRoot = ".",
+): Promise<SetupOutput | null> {
+	switch (subcommand) {
+		case "hub": {
+			const result = await setupCompanyHub({
+				slug: params.slug ?? "",
+				displayName: params.displayName ?? params.slug ?? "",
+				adminUserId: params.adminUserId,
+				configDir,
+				projectRoot,
+			});
+			return { steps: [result], validation: null, completed: result.status === "success" };
+		}
+		case "join": {
+			const result = await setupJoinHub({
+				inviteBundle: params.inviteBundle ?? "",
+				userId: params.userId,
+				displayName: params.displayName,
+				email: params.email,
+				projectRoot,
+			});
+			return { steps: [result], validation: null, completed: result.status === "success" };
+		}
+		case "disconnect": {
+			const result = await setupDisconnect({
+				slug: params.slug ?? "",
+				userId: params.userId,
+				projectRoot,
+			});
+			return { steps: [result], validation: null, completed: result.status === "success" };
+		}
+		default:
+			return null; // Not a recognized subcommand — fall through to default setup
+	}
 }
 
 /**
