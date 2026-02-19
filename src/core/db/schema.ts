@@ -73,6 +73,8 @@ export const posts = pgTable(
 		publishedAt: timestamp("published_at", { withTimezone: true }),
 		externalPostId: text("external_post_id"),
 		metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+		seriesId: text("series_id"), // references series.id when post is part of a series
+		language: text("language"), // "en" | "es" | "both" for bilingual tracking
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
@@ -158,6 +160,7 @@ export const postMetrics = pgTable(
 		userId: text("user_id").notNull(),
 		postId: uuid("post_id").notNull(),
 		platform: text("platform").notNull(),
+		language: text("language"), // "en" | "es" | "both" for per-language performance tracking
 		externalPostId: text("external_post_id").notNull(),
 
 		// Raw metrics snapshot
