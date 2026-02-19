@@ -186,7 +186,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Platform Support
 
-- [ ] **PLAT-01**: X posting: text posts, threads (3-7 tweets), images, scheduling via Trigger.dev delayed runs
+- [x] **PLAT-01**: X posting: text posts, threads (3-7 tweets), images, scheduling via Trigger.dev delayed runs
 - [ ] **PLAT-02**: LinkedIn posting: text posts, carousels (PDF), images, scheduling
 - [ ] **PLAT-03**: Instagram posting: feed images, carousels (up to 10), Reels, scheduling
 - [ ] **PLAT-04**: TikTok posting: video, photos, scheduling
@@ -268,7 +268,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-06 | Phase 2 | Pending |
 | AUTH-07 | Phase 2 | Pending |
 | AUTH-08 | Phase 2 | Pending |
-| PLAT-01 | Phase 2 | Pending |
+| PLAT-01 | Phase 2 | Complete |
 | PLAT-05 | Phase 2 | Pending |
 | SCHED-01 | Phase 2 | Pending |
 | SCHED-02 | Phase 2 | Pending |

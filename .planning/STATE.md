@@ -5,33 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
-**Current focus:** Phase 1 - Foundation Infrastructure
+**Current focus:** Phase 2 - X Platform Pipeline
 
 ## Current Position
 
-Phase: 1 of 8 (Foundation Infrastructure) — COMPLETE
-Plan: 3 of 3 in current phase
-Status: Phase 1 complete, ready for Phase 2
-Last activity: 2026-02-19 - Completed quick task 2: Add video generation requirements (VID-xx) to REQUIREMENTS.md and ROADMAP.md
+Phase: 2 of 8 (X Platform Pipeline)
+Plan: 2 of 4 in current phase
+Status: Completed 02-02 (Thread Splitter & Timezone Utilities)
+Last activity: 2026-02-19 - Completed 02-02: Thread splitter and timezone utilities (TDD)
 
-Progress: [█░░░░░░░░░] 12%
+Progress: [██░░░░░░░░] 18%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: ~20min
-- Total execution time: ~1 hour
+- Total plans completed: 5
+- Average duration: ~15min
+- Total execution time: ~1h 15min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 3/3 | ~60min | ~20min |
+| 2 | 2/4 | ~6min | ~3min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (~35min), 01-02 (~15min), 01-03 (~10min)
-- Trend: Accelerating (shared infrastructure pays off)
+- Last 5 plans: 01-01 (~35min), 01-02 (~15min), 01-03 (~10min), 02-01 (~3min), 02-02 (~3min)
+- Trend: Accelerating (TDD pure logic modules very fast)
 
 *Updated after each plan completion*
 
@@ -50,6 +51,8 @@ Recent decisions affecting current work:
 - [01-01]: drizzle.config.ts uses placeholder DATABASE_URL to avoid requiring live DB for generation
 - [01-02]: CLI scripts output JSON to stdout for Claude to interpret (not human-readable)
 - [01-03]: Watchdog marks stuck posts as retry/failed — actual re-publish comes in Phase 2
+- [02-02]: Paragraph boundaries always create separate tweets (no merging short paragraphs)
+- [02-02]: Built-in Intl.DateTimeFormat for timezone operations (zero external dependencies)
 
 ### Pending Todos
 
@@ -71,6 +74,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-18
-Stopped at: Phase 1 complete, ready to plan Phase 2
+Last session: 2026-02-19
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
