@@ -90,10 +90,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **ANLYT-03**: Analytics collector pulls metrics from Instagram API daily (within 200 req/hr budget)
 - [ ] **ANLYT-04**: Analytics collector pulls metrics from TikTok API daily
 - [x] **ANLYT-05**: Each post receives a composite engagement score (saves > shares > comments > likes)
-- [ ] **ANLYT-06**: User can view performance analysis via `/psn:review` showing what worked and what didn't
-- [ ] **ANLYT-07**: Weekly review includes per-platform performance, per-post breakdown, and recommendations
-- [ ] **ANLYT-08**: Monthly deep analysis auto-escalates: voice drift detection, audience model update, risk budget recalibration
-- [ ] **ANLYT-09**: Reports saved to `analytics/reports/` for reference
+- [x] **ANLYT-06**: User can view performance analysis via `/psn:review` showing what worked and what didn't
+- [x] **ANLYT-07**: Weekly review includes per-platform performance, per-post breakdown, and recommendations
+- [x] **ANLYT-08**: Monthly deep analysis auto-escalates: voice drift detection, audience model update, risk budget recalibration
+- [x] **ANLYT-09**: Reports saved to `analytics/reports/` for reference
 - [ ] **ANLYT-10**: Per-language performance tracking (engagement by en/es/both)
 
 ### Learning Loop
@@ -310,10 +310,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONFIG-03 | Phase 3 | Complete |
 | ANLYT-01 | Phase 4 | Complete |
 | ANLYT-05 | Phase 4 | Complete |
-| ANLYT-06 | Phase 4 | Pending |
-| ANLYT-07 | Phase 4 | Pending |
-| ANLYT-08 | Phase 4 | Pending |
-| ANLYT-09 | Phase 4 | Pending |
+| ANLYT-06 | Phase 4 | Complete |
+| ANLYT-07 | Phase 4 | Complete |
+| ANLYT-08 | Phase 4 | Complete |
+| ANLYT-09 | Phase 4 | Complete |
 | LEARN-01 | Phase 4 | Complete |
 | LEARN-02 | Phase 4 | Complete |
 | LEARN-03 | Phase 4 | Complete |

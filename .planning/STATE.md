@@ -33,7 +33,7 @@ Progress: [██████░░░░] 60%
 | 4 | 5/5 | ~25min | ~5min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (~9min), 04-02 (~4min), 04-03 (~4min), 04-04 (pending), 04-05 (~4min)
+- Last 5 plans: 04-01 (~9min), 04-02 (~4min), 04-03 (~4min), 04-04 (~5min), 04-05 (~4min)
 - Trend: Consistently fast; analytics plans averaging ~5min
 
 *Updated after each plan completion*
@@ -105,6 +105,10 @@ Recent decisions affecting current work:
 - [04-05]: Single preference model DB query reused for both topic suggestions and generation
 - [04-05]: Hub routing in draft metadata (not new schema column) until Company Hub Phase 7
 - [04-05]: Fatigue matching uses case-insensitive substring includes for flexible topic detection
+- [04-04]: Review returns structured WeeklyReview object -- Claude renders it in the slash command
+- [04-04]: Bottom posts filtered to avoid overlap with top posts when few posts exist
+- [04-04]: Monthly analysis queues strategic recommendations as approval-tier strategyAdjustments
+- [04-04]: Risk budget uses first-half vs second-half metric trend as heuristic for adjustment impact
 - [04-05]: Company posts conceptually pending_approval; personal posts proceed normally
 
 ### Pending Todos
@@ -127,5 +131,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 04-05-PLAN.md
+Stopped at: Completed 04-04-PLAN.md (04-05 was completed earlier)
 Resume file: None
