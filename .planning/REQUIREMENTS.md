@@ -9,18 +9,18 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: Developer can set up project with Node.js 22 LTS, pnpm, TypeScript 5.7+, Biome linting, Vitest testing
-- [ ] **INFRA-02**: Shared `@psn/core` package contains Drizzle schemas, API clients, types, and hub connection logic
-- [ ] **INFRA-03**: User can provision a Personal Hub (Neon Postgres database + Trigger.dev Cloud project) via `/psn:setup`
-- [ ] **INFRA-04**: Hub connector (`createHubConnection()`) establishes typed database connections with proper error handling
-- [ ] **INFRA-05**: Drizzle Kit migration infrastructure generates and applies migrations (never `push` in production)
-- [ ] **INFRA-06**: Post watchdog task detects stuck Trigger.dev runs (scheduled posts that missed their window) and re-triggers them
-- [ ] **INFRA-07**: All secrets (API keys, hub credentials, connection files) are gitignored and never committed
+- [x] **INFRA-01**: Developer can set up project with Node.js 22 LTS, pnpm, TypeScript 5.7+, Biome linting, Vitest testing
+- [x] **INFRA-02**: Shared `@psn/core` package contains Drizzle schemas, API clients, types, and hub connection logic
+- [x] **INFRA-03**: User can provision a Personal Hub (Neon Postgres database + Trigger.dev Cloud project) via `/psn:setup`
+- [x] **INFRA-04**: Hub connector (`createHubConnection()`) establishes typed database connections with proper error handling
+- [x] **INFRA-05**: Drizzle Kit migration infrastructure generates and applies migrations (never `push` in production)
+- [x] **INFRA-06**: Post watchdog task detects stuck Trigger.dev runs (scheduled posts that missed their window) and re-triggers them
+- [x] **INFRA-07**: All secrets (API keys, hub credentials, connection files) are gitignored and never committed
 
 ### Authentication & Tokens
 
 - [x] **AUTH-01**: User can authenticate with X via OAuth 2.0 PKCE flow using Arctic library
-- [ ] **AUTH-02**: User can authenticate with LinkedIn via OAuth 2.0 3-legged flow using Arctic library
+- [x] **AUTH-02**: User can authenticate with LinkedIn via OAuth 2.0 3-legged flow using Arctic library
 - [x] **AUTH-03**: User can authenticate with Instagram via Facebook OAuth flow using Arctic library
 - [x] **AUTH-04**: User can authenticate with TikTok via OAuth 2.0 flow using Arctic library
 - [x] **AUTH-05**: Token refresher task runs daily and proactively refreshes tokens within 7 days of expiry
@@ -44,7 +44,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Content Creation
 
 - [x] **POST-01**: User can generate a post for X in their voice using `/psn:post`
-- [ ] **POST-02**: User can generate a post for LinkedIn in their voice using `/psn:post`
+- [x] **POST-02**: User can generate a post for LinkedIn in their voice using `/psn:post`
 - [x] **POST-03**: User can generate a post for Instagram in their voice using `/psn:post`
 - [x] **POST-04**: User can generate a post for TikTok in their voice using `/psn:post`
 - [x] **POST-05**: Content brain picks optimal format per platform (text, thread, carousel, reel script, TikTok concept)
@@ -86,7 +86,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Analytics
 
 - [x] **ANLYT-01**: Analytics collector task pulls metrics from X API daily and writes to Hub DB
-- [ ] **ANLYT-02**: Analytics collector pulls metrics from LinkedIn API daily
+- [x] **ANLYT-02**: Analytics collector pulls metrics from LinkedIn API daily
 - [x] **ANLYT-03**: Analytics collector pulls metrics from Instagram API daily (within 200 req/hr budget)
 - [x] **ANLYT-04**: Analytics collector pulls metrics from TikTok API daily
 - [x] **ANLYT-05**: Each post receives a composite engagement score (saves > shares > comments > likes)
@@ -187,22 +187,22 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Platform Support
 
 - [x] **PLAT-01**: X posting: text posts, threads (3-7 tweets), images, scheduling via Trigger.dev delayed runs
-- [ ] **PLAT-02**: LinkedIn posting: text posts, carousels (PDF), images, scheduling
+- [x] **PLAT-02**: LinkedIn posting: text posts, carousels (PDF), images, scheduling
 - [x] **PLAT-03**: Instagram posting: feed images, carousels (up to 10), Reels, scheduling
 - [x] **PLAT-04**: TikTok posting: video, photos, scheduling
 - [x] **PLAT-05**: Each platform has its own typed API client with rate limit awareness
-- [ ] **PLAT-06**: Platform-specific content adaptation (thread structure for X, carousel for LinkedIn, reel script for IG)
-- [ ] **PLAT-07**: Multi-platform posting with partial failure isolation (one platform failure doesn't block others)
+- [x] **PLAT-06**: Platform-specific content adaptation (thread structure for X, carousel for LinkedIn, reel script for IG)
+- [x] **PLAT-07**: Multi-platform posting with partial failure isolation (one platform failure doesn't block others)
 
 ### Configuration & Setup
 
-- [ ] **CONFIG-01**: `/psn:setup` walks through full onboarding: Hub creation, OAuth, API keys, voice profiling, preferences
+- [x] **CONFIG-01**: `/psn:setup` walks through full onboarding: Hub creation, OAuth, API keys, voice profiling, preferences
 - [x] **CONFIG-02**: Strategy.yaml auto-generated from voice interview with content pillars, platform config, posting frequency
 - [x] **CONFIG-03**: `/psn:config` allows manual overrides for notifications, engagement, language, frequency, pillars, voice tweaks
-- [ ] **CONFIG-04**: BYOK model: user provides all API keys (platform APIs, image gen, intelligence, Trigger.dev, Neon)
+- [x] **CONFIG-04**: BYOK model: user provides all API keys (platform APIs, image gen, intelligence, Trigger.dev, Neon)
 - [x] **CONFIG-05**: `/psn:setup join` connects to Company Hub; `/psn:setup hub` creates Company Hub
 - [x] **CONFIG-06**: `/psn:setup disconnect` cleanly removes a Company Hub connection
-- [ ] **CONFIG-07**: Database migrations run automatically during setup via Drizzle Kit
+- [x] **CONFIG-07**: Database migrations run automatically during setup via Drizzle Kit
 
 ### Content Management
 
@@ -253,16 +253,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 10 | Pending |
-| INFRA-02 | Phase 10 | Pending |
-| INFRA-03 | Phase 10 | Pending |
-| INFRA-04 | Phase 10 | Pending |
-| INFRA-05 | Phase 10 | Pending |
-| INFRA-06 | Phase 10 | Pending |
-| INFRA-07 | Phase 10 | Pending |
-| CONFIG-01 | Phase 10 | Pending |
-| CONFIG-04 | Phase 10 | Pending |
-| CONFIG-07 | Phase 10 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
+| INFRA-04 | Phase 1 | Complete |
+| INFRA-05 | Phase 1 | Complete |
+| INFRA-06 | Phase 1 | Complete |
+| INFRA-07 | Phase 1 | Complete |
+| CONFIG-01 | Phase 1 | Complete |
+| CONFIG-04 | Phase 1 | Complete |
+| CONFIG-07 | Phase 1 | Complete |
 | AUTH-01 | Phase 2 | Complete |
 | AUTH-05 | Phase 2 | Complete |
 | AUTH-06 | Phase 2 | Complete |
@@ -359,12 +359,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ANLYT-10 | Phase 5 | Complete |
 | CONTENT-03 | Phase 5 | Complete |
 | CONTENT-04 | Phase 5 | Complete |
-| AUTH-02 | Phase 10 | Pending |
-| PLAT-02 | Phase 10 | Pending |
-| PLAT-06 | Phase 10 | Pending |
-| PLAT-07 | Phase 10 | Pending |
-| ANLYT-02 | Phase 10 | Pending |
-| POST-02 | Phase 10 | Pending |
+| AUTH-02 | Phase 6 | Complete |
+| PLAT-02 | Phase 6 | Complete |
+| PLAT-06 | Phase 6 | Complete |
+| PLAT-07 | Phase 6 | Complete |
+| ANLYT-02 | Phase 6 | Complete |
+| POST-02 | Phase 6 | Complete |
 | TEAM-01 | Phase 7 | Complete |
 | TEAM-02 | Phase 7 | Complete |
 | TEAM-03 | Phase 7 | Complete |
@@ -406,7 +406,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 - v1 requirements: 148 total
 - Mapped to phases: 148
 - Unmapped: 0
-- Pending (gap closure): 31 (15 Phase 9 wiring fixes, 16 Phase 10 documentation closure)
+- Complete: 148/148
 
 ---
 *Requirements defined: 2026-02-18*

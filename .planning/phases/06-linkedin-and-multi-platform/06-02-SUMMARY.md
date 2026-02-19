@@ -1,3 +1,25 @@
+---
+phase: 06-linkedin-and-multi-platform
+plan: 02
+subsystem: platform
+tags: [multi-platform, partial-failure, linkedin-analytics, format-picker, content-adaptation]
+
+requires:
+  - phase: 06-01
+    provides: "LinkedIn OAuth, API client, media upload"
+provides:
+  - "Multi-platform publish dispatch with partial failure isolation"
+  - "LinkedIn format picker with keyword matching"
+  - "LinkedIn analytics collection"
+  - "Content adaptation (X<->LinkedIn)"
+affects: [phase-7, phase-8]
+
+requirements-completed: [PLAT-02, PLAT-06, PLAT-07, ANLYT-02, POST-02]
+
+duration: ~7min
+completed: 2026-02-19
+---
+
 # Plan 06-02 Summary: Multi-Platform Dispatch, Format Picker, Analytics
 
 ## Status: Complete

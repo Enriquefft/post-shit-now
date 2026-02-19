@@ -1,3 +1,26 @@
+---
+phase: 06-linkedin-and-multi-platform
+plan: 01
+subsystem: platform
+tags: [linkedin, oauth, arctic, api-client, media-upload, carousel, pdf-lib, token-refresher]
+
+requires:
+  - phase: 05-06
+    provides: "Multi-platform planning slots"
+provides:
+  - "LinkedIn OAuth 2.0 (Arctic, state-only)"
+  - "LinkedInClient with all content types"
+  - "Image and document media upload"
+  - "Carousel PDF generation (pdf-lib)"
+  - "Token refresher extended for LinkedIn 60-day lifecycle"
+affects: [06-02, phase-7, phase-8]
+
+requirements-completed: [AUTH-02]
+
+duration: ~8min
+completed: 2026-02-19
+---
+
 # Plan 06-01 Summary: LinkedIn OAuth, API Client, Media Upload, Token Refresher
 
 ## Status: Complete
