@@ -19,13 +19,17 @@ Make it so easy to create and post high-quality, voice-matched content that team
 - ✓ Token auto-refresh with race-condition-safe row-level locking — Phase 2
 - ✓ Post scheduling via Trigger.dev delayed runs — Phase 2
 - ✓ Thread auto-splitting with boundary respect — Phase 2
+- ✓ Voice profiling with adaptive interview and content import — Phase 3
+- ✓ Three voice profile types: personal, brand-operator, brand-ambassador — Phase 3
+- ✓ Image generation (GPT Image, Ideogram 3, Flux 2) with smart provider selection — Phase 3
+- ✓ Video generation (Kling, Runway, Pika) with content-hint scoring — Phase 3
+- ✓ Calibration engine with edit tracking and convergence detection — Phase 3
+- ✓ Content brain: format picker, topic suggestions, draft management — Phase 3
+- ✓ `/psn:post` voice-matched workflow and `/psn:voice` management command — Phase 3
 
 ### Active
 
 - [ ] Two-Hub architecture: mandatory Personal Hub (Neon Postgres + Trigger.dev) for every user, optional Company Hubs for teams
-- [ ] 10 slash commands: `/psn:post`, `/psn:plan`, `/psn:capture`, `/psn:engage`, `/psn:review`, `/psn:approve`, `/psn:series`, `/psn:config`, `/psn:setup`, `/psn:calendar`
-- [ ] Voice profiling system with deep interview, content import, and calibration loop
-- [ ] Three voice profile types: personal, brand-operator (per company), brand-ambassador (per company)
 - [ ] Learning loop (RLHF for your brand): engagement signals, edit signals, explicit feedback → preference model
 - [ ] Intelligence layer: scheduled trend collection (HN, Reddit, PH, RSS, Google Trends) + on-demand research (Perplexity, Exa, Tavily, Brave)
 - [ ] Idea bank with maturity pipeline: spark → seed → ready → claimed → developed → used/killed
@@ -35,11 +39,7 @@ Make it so easy to create and post high-quality, voice-matched content that team
 - [ ] Bilingual content creation: English + Spanish, per-post language choice, language-specific voice sections
 - [ ] WhatsApp notifications via WAHA (push, digest, standard tiers) with structured command interaction
 - [ ] Company coordination: approval workflows, content calendar, invite code onboarding, team idea surfacing
-- [ ] Image generation integration (GPT Image, Ideogram 3, Flux 2)
-- [ ] Trigger.dev tasks: post-scheduler, analytics-collector, trend-collector, trend-alerter, engagement-monitor, token-refresher, notifier, whatsapp-handler
-- [ ] BYOK (Bring Your Own Keys) for all APIs
-- [ ] Postgres RLS for per-user data isolation in both Hub types
-- [ ] Drizzle ORM with migration infrastructure (Drizzle Kit)
+- [ ] Remaining slash commands: `/psn:plan`, `/psn:capture`, `/psn:engage`, `/psn:review`, `/psn:approve`, `/psn:series`, `/psn:config`, `/psn:calendar`
 
 ### Out of Scope
 
@@ -105,6 +105,10 @@ Make it so easy to create and post high-quality, voice-matched content that team
 | Bilingual (en/es) not translation | Each language independently crafted. Voice profiles have language-specific sections. | — Pending |
 | Invite code flow for team onboarding | No raw credential sharing. One-time use, time-limited codes. | — Pending |
 | Learning loop mostly autonomous | System is a social media manager, not a consultant. Makes tactical decisions, reports back. | — Pending |
+| Voice profiles as YAML files (git-stored) | Version-controlled, human-readable, portable. Zod validation on load/save. | ✓ Validated Phase 3 |
+| fal.ai as unified gateway for media gen | One API for Ideogram, Flux, Kling, Pika. Direct SDK for GPT Image and Runway. | ✓ Validated Phase 3 |
+| Content-hint keyword scoring for provider selection | Deterministic, no ML needed. Lets Claude pick best tool per content. | ✓ Validated Phase 3 |
+| Edit distance for calibration convergence | 10 consecutive posts below 15% edit ratio = calibrated. Dual signals (edits + explicit). | ✓ Validated Phase 3 |
 
 ---
-*Last updated: 2026-02-19 after Phase 2*
+*Last updated: 2026-02-19 after Phase 3*
