@@ -1,215 +1,224 @@
 # Requirements: Post Shit Now
 
 **Defined:** 2026-02-18
-**Core Value:** Make posting so frictionless that people who rarely post become consistent creators — one command to generate, review, and schedule a post in their authentic voice.
+**Core Value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
 
 ## v1 Requirements
 
 Requirements for initial release. Each maps to roadmap phases.
 
-### Setup & Infrastructure
+### Infrastructure
 
-- [ ] **SETUP-01**: User can create a Personal Hub (Neon Postgres + Trigger.dev Cloud) via `/psn:setup` in under 10 minutes
-- [ ] **SETUP-02**: User can connect personal social media accounts via OAuth2 flows during setup
-- [ ] **SETUP-03**: User can configure API keys (image generation, intelligence APIs) during setup
-- [ ] **SETUP-04**: User can deploy Trigger.dev tasks to their Personal Hub from the repo
-- [ ] **SETUP-05**: Database migrations run automatically via Drizzle Kit during setup
-- [ ] **SETUP-06**: Hub credentials stored in gitignored config files (hub.env, keys.env)
-- [ ] **SETUP-07**: Strategy.yaml auto-generated from voice interview (content pillars, platform selection, posting frequency, engagement settings)
+- [ ] **INFRA-01**: Developer can set up project with Node.js 22 LTS, pnpm, TypeScript 5.7+, Biome linting, Vitest testing
+- [ ] **INFRA-02**: Shared `@psn/core` package contains Drizzle schemas, API clients, types, and hub connection logic
+- [ ] **INFRA-03**: User can provision a Personal Hub (Neon Postgres database + Trigger.dev Cloud project) via `/psn:setup`
+- [ ] **INFRA-04**: Hub connector (`createHubConnection()`) establishes typed database connections with proper error handling
+- [ ] **INFRA-05**: Drizzle Kit migration infrastructure generates and applies migrations (never `push` in production)
+- [ ] **INFRA-06**: Post watchdog task detects stuck Trigger.dev runs (scheduled posts that missed their window) and re-triggers them
+- [ ] **INFRA-07**: All secrets (API keys, hub credentials, connection files) are gitignored and never committed
+
+### Authentication & Tokens
+
+- [ ] **AUTH-01**: User can authenticate with X via OAuth 2.0 PKCE flow using Arctic library
+- [ ] **AUTH-02**: User can authenticate with LinkedIn via OAuth 2.0 3-legged flow using Arctic library
+- [ ] **AUTH-03**: User can authenticate with Instagram via Facebook OAuth flow using Arctic library
+- [ ] **AUTH-04**: User can authenticate with TikTok via OAuth 2.0 flow using Arctic library
+- [ ] **AUTH-05**: Token refresher task runs daily and proactively refreshes tokens within 7 days of expiry
+- [ ] **AUTH-06**: OAuth token refresh uses Postgres row-level locking (`SELECT FOR UPDATE SKIP LOCKED`) to prevent race conditions
+- [ ] **AUTH-07**: User is notified when token refresh fails and manual re-authorization is needed
+- [ ] **AUTH-08**: OAuth tokens are stored encrypted in Hub DB `oauth_tokens` table, not in environment variables
 
 ### Voice Profiling
 
-- [ ] **VOICE-01**: User completes a voice profiling interview via `/psn:setup voice` that captures identity, expertise, audience, voice patterns, and platform preferences
-- [ ] **VOICE-02**: System generates personal.yaml voice profile with language-agnostic traits and language-specific sections (en)
-- [ ] **VOICE-03**: Voice profile includes reply_style section for engagement (shorter, more casual than posts)
-- [ ] **VOICE-04**: System supports content import from existing social accounts (X history, LinkedIn posts, blog URLs) to bootstrap voice profile
-- [ ] **VOICE-05**: Calibration mode runs for first 5-10 posts, tracking edit distance and presenting calibration report
-- [ ] **VOICE-06**: Blank-slate users get personality-first interview (shorter, archetype suggestions, more aggressive calibration every 3 posts)
+- [ ] **VOICE-01**: User can complete a voice profiling interview that captures identity, voice patterns, boundaries, and platform preferences
+- [ ] **VOICE-02**: User can import existing content (X history, LinkedIn posts, blog posts) to bootstrap voice patterns
+- [ ] **VOICE-03**: System generates a `personal.yaml` voice profile with language-agnostic traits and language-specific sections
+- [ ] **VOICE-04**: Calibration mode tracks edit rates over first 10-15 posts and presents calibration reports
+- [ ] **VOICE-05**: Blank-slate users (no existing content) get a shorter personality-first interview with starter archetypes
+- [ ] **VOICE-06**: Bilingual users complete voice interview in both English and Spanish with language-specific voice sections
+- [ ] **VOICE-07**: User can create brand-operator voice profiles per connected company
+- [ ] **VOICE-08**: User can create brand-ambassador voice profiles that inherit from personal with company guardrails
+- [ ] **VOICE-09**: User can do quick voice tweaks via `/psn:config voice` (add banned words, adjust formality)
+- [ ] **VOICE-10**: User can trigger full voice recalibration via `/psn:setup voice`
 
 ### Content Creation
 
-- [ ] **POST-01**: User can create and schedule a post for X via `/psn:post`
-- [ ] **POST-02**: User can create and schedule a post for LinkedIn via `/psn:post`
-- [ ] **POST-03**: User can create and schedule a post for Instagram via `/psn:post`
-- [ ] **POST-04**: User can create and schedule a post for TikTok via `/psn:post`
-- [ ] **POST-05**: Generated content matches active persona's voice profile exactly, using correct language-specific voice section
-- [ ] **POST-06**: Content is platform-specific (X threads vs LinkedIn carousels vs Instagram reel scripts vs TikTok concepts)
-- [ ] **POST-07**: Content brain picks optimal format based on platform, topic, and preference model data
-- [ ] **POST-08**: Before asking for topic, system checks idea bank for ready ideas matching platform + persona
-- [ ] **POST-09**: If no topic and no ready ideas, system offers 3 quick suggestions (mini-ideation)
-- [ ] **POST-10**: User can provide URL, screenshot, or raw thought as input material
-- [ ] **POST-11**: Every user edit is tracked for the learning loop (tagged with language)
-- [ ] **POST-12**: Semi-automated formats supported: video scripts, TikTok stitch concepts, podcast clip suggestions — saved to content/drafts/ with `/psn:post finish` to package and schedule
-- [ ] **POST-13**: Personal posts write to Personal Hub DB and trigger Trigger.dev delayed run
-- [ ] **POST-14**: Company posts submit to Company Hub as pending-approval Trigger.dev run
-- [ ] **POST-15**: Posts include hashtags, timing recommendation, and media suggestion per voice profile preferences
+- [ ] **POST-01**: User can generate a post for X in their voice using `/psn:post`
+- [ ] **POST-02**: User can generate a post for LinkedIn in their voice using `/psn:post`
+- [ ] **POST-03**: User can generate a post for Instagram in their voice using `/psn:post`
+- [ ] **POST-04**: User can generate a post for TikTok in their voice using `/psn:post`
+- [ ] **POST-05**: Content brain picks optimal format per platform (text, thread, carousel, reel script, TikTok concept)
+- [ ] **POST-06**: User can choose posting persona (personal, brand operator, brand ambassador) per post
+- [ ] **POST-07**: User can choose language (en, es, both) per post with platform-specific defaults
+- [ ] **POST-08**: Bilingual posts (`both`) are independently crafted per language, not translated
+- [ ] **POST-09**: User reviews and edits every generated post before scheduling (human-in-the-loop)
+- [ ] **POST-10**: Every edit is tracked with edit distance and edit patterns for the learning loop
+- [ ] **POST-11**: System checks idea bank for ready ideas before asking for a topic
+- [ ] **POST-12**: System offers 3 quick topic suggestions when no topic provided and no ready ideas exist
+- [ ] **POST-13**: Semi-automated formats (video scripts, TikTok stitches) save script + talking points to drafts; user records then runs `/psn:post finish`
+- [ ] **POST-14**: Generated content reflects learnings from preference model (best hooks, formats, fatigued topics)
 
-### Scheduling & Calendar
+### Scheduling
 
-- [ ] **SCHED-01**: Posts scheduled via Trigger.dev delayed runs at specific datetime
-- [ ] **SCHED-02**: User can view upcoming posts across personal and all connected companies via `/psn:calendar`
-- [ ] **SCHED-03**: Calendar shows series slots as recurring anchors
-- [ ] **SCHED-04**: Empty calendar slots show matching ready ideas as suggestions
-- [ ] **SCHED-05**: User can reschedule, edit, or delete scheduled posts
-- [ ] **SCHED-06**: Company calendar shows who's posting when to avoid overlap
-- [ ] **SCHED-07**: User can claim open company slots via `/psn:calendar claim`
+- [ ] **SCHED-01**: User can schedule a post for a specific date and time
+- [ ] **SCHED-02**: Post scheduler task publishes content at scheduled time via Trigger.dev delayed run
+- [ ] **SCHED-03**: Scheduler handles multi-step media upload (register → upload → attach) per platform
+- [ ] **SCHED-04**: Scheduler retries 3x with exponential backoff on failure; respects platform rate limit windows
+- [ ] **SCHED-05**: Failed posts notify the user and are tagged `status:failed`
+- [ ] **SCHED-06**: Personal posts write to Personal Hub content queue; company posts write to Company Hub
 
-### Weekly Planning
+### Image Generation
 
-- [ ] **PLAN-01**: User can run weekly planning session via `/psn:plan` combining ideation, generation, and scheduling
-- [ ] **PLAN-02**: System shows current week's calendar state (scheduled, series due, gaps) at start
-- [ ] **PLAN-03**: Ideation phase checks stored trend data, fires real-time searches, reviews recent analytics, checks competitor activity, checks idea bank, considers series due dates, checks content fatigue tracker
-- [ ] **PLAN-04**: System generates 10-15 ideas with angles (concept + hook + format suggestion)
-- [ ] **PLAN-05**: Ideas mixed with existing ready ideas from appropriate Hub and team ideas (for company)
-- [ ] **PLAN-06**: User rates ideas: love it / maybe later / kill it — with reasons recorded for killed ideas
-- [ ] **PLAN-07**: Series installments auto-slotted first, then ready ideas fill gaps, then new posts generated
-- [ ] **PLAN-08**: Content balanced across pillars and archetypes for the week
-- [ ] **PLAN-09**: User can bail at any phase (ideate only, generate without scheduling, etc.)
+- [ ] **IMG-01**: User can generate images for posts using GPT Image (versatile)
+- [ ] **IMG-02**: User can generate images using Ideogram 3 (best text rendering)
+- [ ] **IMG-03**: User can generate images using Flux 2 via fal.ai (photorealistic)
+- [ ] **IMG-04**: Images are processed via sharp to meet platform-specific format and size requirements
+- [ ] **IMG-05**: Claude picks the best image generation tool based on content type
 
-### Quick Capture
+### Analytics
 
-- [ ] **CAPT-01**: User can save URLs, screenshots, text snippets, or raw thoughts via `/psn:capture`
-- [ ] **CAPT-02**: System analyzes input and classifies as timely (needs action now) or evergreen (save for later)
-- [ ] **CAPT-03**: Timely items offer immediate post generation (target: under 3 minutes)
-- [ ] **CAPT-04**: Evergreen items saved as sparks in idea bank with minimal metadata
-- [ ] **CAPT-05**: System asks personal or company to route correctly
-
-### Idea Bank
-
-- [ ] **IDEA-01**: Ideas stored in Hub DB with 7-stage maturity pipeline (spark/seed/ready/claimed/developed/used/killed)
-- [ ] **IDEA-02**: Ideas have urgency classification (timely/seasonal/evergreen) with expiry dates
-- [ ] **IDEA-03**: Timely ideas that expire auto-killed
-- [ ] **IDEA-04**: Ideas surface contextually during `/psn:plan`, `/psn:post`, and `/psn:approve`
-- [ ] **IDEA-05**: Team members can claim company ideas (locked to prevent duplicate work)
-- [ ] **IDEA-06**: Ideas can be promoted from Personal Hub to Company Hub
-- [ ] **IDEA-07**: Killed ideas with reasons feed back into preference model
-
-### Intelligence Layer
-
-- [ ] **INTEL-01**: Daily scheduled collection from free sources: HN, Reddit, Product Hunt, Google Trends RSS, RSS feeds, newsletters (trend-collector task)
-- [ ] **INTEL-02**: Lighter poll every 2-4 hours during business hours for breaking news (HN front page + X trending)
-- [ ] **INTEL-03**: On-demand research via Perplexity, Exa, Tavily, Brave during `/psn:plan`
-- [ ] **INTEL-04**: Trends scored by relevance to user's content pillars and stored in Hub DB
-- [ ] **INTEL-05**: Competitor account monitoring with gap analysis (competitive-intel.yaml)
-- [ ] **INTEL-06**: Instagram competitor monitoring via official Business Discovery API
-- [ ] **INTEL-07**: X competitor monitoring via pay-per-use search API
-
-### Analytics & Review
-
-- [ ] **ANLYT-01**: Daily analytics collection from platform APIs via analytics-collector cron task
-- [ ] **ANLYT-02**: Posts scored with composite engagement score (weighted: saves > shares > quality comments > follows > CTR > likes)
-- [ ] **ANLYT-03**: User can run performance review via `/psn:review` showing what's working, what's not, trends vs previous periods
-- [ ] **ANLYT-04**: Weekly review updates preference model (platform learnings, archetype performance, edit patterns, fatigue tracker)
-- [ ] **ANLYT-05**: Monthly deep analysis auto-escalated: voice drift detection, audience model update, risk budget recalibration
-- [ ] **ANLYT-06**: Per-series analytics tracked separately
-- [ ] **ANLYT-07**: Reports saved to analytics/reports/ for reference
+- [ ] **ANLYT-01**: Analytics collector task pulls metrics from X API daily and writes to Hub DB
+- [ ] **ANLYT-02**: Analytics collector pulls metrics from LinkedIn API daily
+- [ ] **ANLYT-03**: Analytics collector pulls metrics from Instagram API daily (within 200 req/hr budget)
+- [ ] **ANLYT-04**: Analytics collector pulls metrics from TikTok API daily
+- [ ] **ANLYT-05**: Each post receives a composite engagement score (saves > shares > comments > likes)
+- [ ] **ANLYT-06**: User can view performance analysis via `/psn:review` showing what worked and what didn't
+- [ ] **ANLYT-07**: Weekly review includes per-platform performance, per-post breakdown, and recommendations
+- [ ] **ANLYT-08**: Monthly deep analysis auto-escalates: voice drift detection, audience model update, risk budget recalibration
+- [ ] **ANLYT-09**: Reports saved to `analytics/reports/` for reference
+- [ ] **ANLYT-10**: Per-language performance tracking (engagement by en/es/both)
 
 ### Learning Loop
 
-- [ ] **LEARN-01**: Edit distance and patterns tracked for every generated post
-- [ ] **LEARN-02**: Preference model stored in Personal Hub DB (preference_models table) updated weekly
-- [ ] **LEARN-03**: Company brand preference model stored in Company Hub DB (brand_preferences table)
-- [ ] **LEARN-04**: Autonomous tactical adjustments: pillar percentages (capped ±5%/cycle), posting times, topic fatigue, hook/format preferences, archetype balance, hashtag strategy, content length, posting frequency (±1/week), risk budget (±0.05/cycle)
-- [ ] **LEARN-05**: Identity-level changes require user confirmation: enabling/disabling platforms, persona boundaries, never-use vocabulary, retiring series, brand-operator voice changes, adding/removing pillars
-- [ ] **LEARN-06**: Transparent changelog shown in weekly review ("what the brain changed this week")
-- [ ] **LEARN-07**: User override is permanent — system respects reverted settings until user explicitly unlocks
-- [ ] **LEARN-08**: Content fatigue tracker: topics and formats on cooldown with resume dates
-- [ ] **LEARN-09**: Content recycling suggestions during `/psn:plan` for high-performing past content with fresh angles
+- [ ] **LEARN-01**: System tracks engagement signals (saves, shares, comments, follows) weighted by quality
+- [ ] **LEARN-02**: System tracks edit signals (edit distance, patterns, categories) from every post review
+- [ ] **LEARN-03**: System prompts explicit feedback at key moments (3x above average, significant underperformance, high/low edit streaks)
+- [ ] **LEARN-04**: Preference model updates weekly during `/psn:review` with platform learnings, archetype performance, edit patterns
+- [ ] **LEARN-05**: Autonomous adjustments: pillar weights (±5%/cycle), posting times, format preferences, topic fatigue, frequency (±1/week)
+- [ ] **LEARN-06**: Transparent changelog shows all autonomous changes in weekly review ("what the brain changed this week")
+- [ ] **LEARN-07**: User overrides are permanent — system will not re-adjust locked settings
+- [ ] **LEARN-08**: Content fatigue tracker cools down overused topics and formats
+- [ ] **LEARN-09**: Company brand preference model in Company Hub DB shared across team members
 
-### Engagement Engine
+### Idea Bank
 
-- [ ] **ENGAGE-01**: Engagement monitor task runs every 5-15 minutes during active hours, scoped to enabled platforms
-- [ ] **ENGAGE-02**: Opportunities scored: relevance × author influence × post velocity × time window remaining
-- [ ] **ENGAGE-03**: Score 70+: generate 2-3 reply drafts using voice profile's reply_style, push notify via WhatsApp
-- [ ] **ENGAGE-04**: Score 60-69: queue for digest or surface during `/psn:engage`
-- [ ] **ENGAGE-05**: User can run proactive engagement session via `/psn:engage` (top 5-10 opportunities, 15-minute focused session)
-- [ ] **ENGAGE-06**: After engagement session, system bridges to content creation ("Any conversations spark a post idea?")
-- [ ] **ENGAGE-07**: Safety: daily caps, cooldowns, blocklist, never auto-post, min 5 min between replies
+- [ ] **IDEA-01**: User can capture ideas via `/psn:capture` in under 30 seconds (URL, screenshot, text, raw thought)
+- [ ] **IDEA-02**: Ideas flow through maturity pipeline: spark → seed → ready → claimed → developed → used/killed
+- [ ] **IDEA-03**: Ideas have urgency classification: timely (24-48h), seasonal (event-tied), evergreen (no expiry)
+- [ ] **IDEA-04**: Timely ideas that expire without being claimed are auto-killed
+- [ ] **IDEA-05**: Personal ideas live in Personal Hub DB; company ideas live in Company Hub DB
+- [ ] **IDEA-06**: Team members can claim company ideas (status: ready → claimed, locked to prevent duplicates)
+- [ ] **IDEA-07**: `/psn:capture` distinguishes timely vs evergreen and routes accordingly
+- [ ] **IDEA-08**: Killed ideas record reasoning and feed back into preference model
+
+### Weekly Planning
+
+- [ ] **PLAN-01**: User can run `/psn:plan` for weekly batch ideation + generation + scheduling
+- [ ] **PLAN-02**: Planning shows current week's calendar state (scheduled, series due dates, gaps)
+- [ ] **PLAN-03**: Ideation phase checks stored trend data, fires real-time searches, reviews analytics, checks idea bank
+- [ ] **PLAN-04**: System generates 10-15 ideas with angles mixed with existing ready ideas from Hub
+- [ ] **PLAN-05**: User rates ideas: love it (→ ready) / maybe later (→ seed) / kill it (→ killed with reason)
+- [ ] **PLAN-06**: Batch generation: series installments auto-slotted first, ready ideas fill gaps, new posts for remaining slots
+- [ ] **PLAN-07**: Each slot gets a language suggestion based on platform config and recent language mix
+- [ ] **PLAN-08**: User can bail at any phase (just ideate, just generate, or full plan+schedule)
+- [ ] **PLAN-09**: Content pillar distribution balances across categories per strategy.yaml weights
+- [ ] **PLAN-10**: Content archetype balancing prevents monotonous content patterns
 
 ### Content Series
 
-- [ ] **SERIES-01**: User can create content series via `/psn:series create` with format, cadence, branding, platform, language
-- [ ] **SERIES-02**: Series auto-slotted during `/psn:plan` and nudged during `/psn:post`
-- [ ] **SERIES-03**: Series can be paused, resumed, and retired with analytics preserved
-- [ ] **SERIES-04**: Company series support shared ownership with round-robin contributor rotation
-- [ ] **SERIES-05**: System suggests formalizing a series when it detects recurring patterns
+- [ ] **SERIES-01**: User can create a content series via `/psn:series create` with format, cadence, branding
+- [ ] **SERIES-02**: Series have YAML config defining format structure, platform, cadence, and branding
+- [ ] **SERIES-03**: Series installments auto-slot into weekly plans and surface in `/psn:post`
+- [ ] **SERIES-04**: User can pause, resume, and retire series via `/psn:series`
+- [ ] **SERIES-05**: Per-series analytics tracked separately in `/psn:review`
+- [ ] **SERIES-06**: System suggests formalizing as series when it detects recurring post patterns
+- [ ] **SERIES-07**: Company-scoped series in Company Hub with contributor rotation support
 
-### Company Hub & Team
+### Intelligence
 
-- [ ] **TEAM-01**: Admin can create a Company Hub via `/psn:setup hub` (separate Trigger.dev + Neon DB)
-- [ ] **TEAM-02**: Admin can generate one-time, time-limited invite codes via `/psn:setup invite`
-- [ ] **TEAM-03**: Team member can join a Company Hub via `/psn:setup join` with invite code
-- [ ] **TEAM-04**: Brand-operator voice profile: company speaks, team member disappears
-- [ ] **TEAM-05**: Brand-ambassador voice profile: personal voice + company context (cross-Hub read)
-- [ ] **TEAM-06**: Approval workflow: submit → notify → approve/reject → reschedule/cancel via `/psn:approve`
-- [ ] **TEAM-07**: RLS policies enforce per-user data isolation in Company Hub
-- [ ] **TEAM-08**: Removing team member via RLS immediately blocks all their DB queries
-- [ ] **TEAM-09**: User can disconnect from Company Hub via `/psn:setup disconnect` (personal data unaffected)
+- [ ] **INTEL-01**: Trend collector task runs daily at 6 AM pulling from HN, Reddit, Product Hunt, Google Trends RSS, RSS feeds
+- [ ] **INTEL-02**: Lighter poll every 2-4 hours during business hours checks HN front page + X trending for breaking news
+- [ ] **INTEL-03**: Trends scored by relevance to user's content pillars and stored in Hub DB
+- [ ] **INTEL-04**: On-demand research during `/psn:plan` fires Perplexity, Exa, Tavily, Brave searches
+- [ ] **INTEL-05**: Competitive intelligence tracks monitored accounts and surfaces gaps
+- [ ] **INTEL-06**: Trend alerter generates 2-3 suggested angles for push-worthy trends (score 70+)
+
+### Engagement Engine
+
+- [ ] **ENGAGE-01**: Engagement monitor task checks for viral/trending posts in user's niche every 5-15 min during active hours
+- [ ] **ENGAGE-02**: Opportunities scored: relevance × author influence × post velocity × time window remaining
+- [ ] **ENGAGE-03**: Scores 60+: draft 2-3 reply options using voice profile's reply_style; 70+: push notify; 60-69: digest
+- [ ] **ENGAGE-04**: User can run `/psn:engage` for proactive 15-minute engagement sessions
+- [ ] **ENGAGE-05**: Human approves every reply — never auto-post
+- [ ] **ENGAGE-06**: Daily caps, cooldowns, and blocklists per platform enforced
+- [ ] **ENGAGE-07**: After engagement session, Claude bridges to content creation ("Any of these conversations spark a post idea?")
 
 ### Notifications
 
-- [ ] **NOTIF-01**: WhatsApp notifications via WAHA (self-hosted) or Twilio, configurable per user
-- [ ] **NOTIF-02**: Tier 1 push notifications (WhatsApp): trending topics 70+, engagement opportunities, content going viral, timely idea expiring, approval needed — max 3/day
-- [ ] **NOTIF-03**: Tier 2 morning digest (WhatsApp): rising topics, series due, content gaps, stale sparks, competitor activity — adaptive to user journey stage
+- [ ] **NOTIF-01**: WhatsApp notifications via WAHA (self-hosted) with Twilio as configurable fallback
+- [ ] **NOTIF-02**: Tier 1 push notifications: trending topics (70+), engagement opportunities, content going viral, timely ideas expiring, approvals needed
+- [ ] **NOTIF-03**: Tier 2 morning digest at configurable time with adaptive content based on user journey stage
 - [ ] **NOTIF-04**: Tier 3 standard notifications: post scheduled/published, approval results, weekly digest, token expiring
-- [ ] **NOTIF-05**: Structured WhatsApp commands: R1/R2/R3, skip, approve, reject, edit, post, time, list, help
-- [ ] **NOTIF-06**: Conversation state machine: IDLE → AWAITING_ACTION → CONFIRM_POST → IDLE
-- [ ] **NOTIF-07**: Notification fatigue prevention: hard caps, 2-hour cooldowns, deduplication, feedback loop, smart throttling, focus modes
+- [ ] **NOTIF-05**: WhatsApp structured commands: R1/R2/R3 (reply selection), skip, approve, reject, edit, post, time, list, help
+- [ ] **NOTIF-06**: Conversation state machine tracks active notification context per user in `whatsapp_sessions` table
+- [ ] **NOTIF-07**: Notification fatigue prevention: hard caps (3 push/day), cooldowns (2hr), dedup, feedback loop, quiet hours
+- [ ] **NOTIF-08**: Company-level notification routing based on team member expertise
 
-### OAuth & Token Management
+### Company Coordination
 
-- [ ] **AUTH-01**: OAuth2 flows for X, LinkedIn, Instagram (via Facebook), TikTok using Arctic library
-- [ ] **AUTH-02**: Tokens stored encrypted (AES-256-GCM) in Hub DB oauth_tokens table
-- [ ] **AUTH-03**: token-refresher task runs daily, refreshes tokens within 7 days of expiry
-- [ ] **AUTH-04**: User notified via WhatsApp if token refresh fails
-- [ ] **AUTH-05**: `/psn:setup tokens` for manual token refresh
+- [ ] **TEAM-01**: Admin can create a Company Hub via `/psn:setup hub` (separate Neon DB + Trigger.dev project)
+- [ ] **TEAM-02**: Admin can generate one-time invite codes (7-day expiry) for team members
+- [ ] **TEAM-03**: Team member can join a Company Hub via `/psn:setup join` with invite code
+- [ ] **TEAM-04**: Postgres RLS enforces per-user data isolation in Company Hub
+- [ ] **TEAM-05**: Company posts follow approval workflow: submit → notify approvers → approve/reject → schedule/cancel
+- [ ] **TEAM-06**: `/psn:approve` shows pending posts with calendar context and related ideas
+- [ ] **TEAM-07**: Team member leaving = delete connection file; personal data unaffected
+- [ ] **TEAM-08**: `/psn:calendar` merges Personal Hub + all connected Company Hubs into unified view
+- [ ] **TEAM-09**: Calendar slot claiming with Company Hub conflict checking
 
-### Media & Generation
+### Platform Support
 
-- [ ] **MEDIA-01**: Image generation via GPT Image (versatile), Ideogram 3 (best text), Flux 2 (photorealistic)
-- [ ] **MEDIA-02**: Multi-step media upload to all platforms (register → upload binary → attach to post)
-- [ ] **MEDIA-03**: AI-generated image metadata stripped (EXIF/C2PA) before upload to avoid algorithm suppression
-- [ ] **MEDIA-04**: Video generation via Kling, Runway, Pika for automated video content
-- [ ] **MEDIA-05**: Sharp for image processing (resize for platform specs)
+- [ ] **PLAT-01**: X posting: text posts, threads (3-7 tweets), images, scheduling via Trigger.dev delayed runs
+- [ ] **PLAT-02**: LinkedIn posting: text posts, carousels (PDF), images, scheduling
+- [ ] **PLAT-03**: Instagram posting: feed images, carousels (up to 10), Reels, scheduling
+- [ ] **PLAT-04**: TikTok posting: video, photos, scheduling
+- [ ] **PLAT-05**: Each platform has its own typed API client with rate limit awareness
+- [ ] **PLAT-06**: Platform-specific content adaptation (thread structure for X, carousel for LinkedIn, reel script for IG)
+- [ ] **PLAT-07**: Multi-platform posting with partial failure isolation (one platform failure doesn't block others)
 
-### Bilingual Support
+### Configuration & Setup
 
-- [ ] **LANG-01**: Per-post language choice: en, es, or both
-- [ ] **LANG-02**: Voice profiles have language-specific sections (vocabulary, sentence patterns, opening/closing patterns, signature phrases)
-- [ ] **LANG-03**: Bilingual posts (both) are independently crafted, not translations
-- [ ] **LANG-04**: Preference model tracks performance per language
-- [ ] **LANG-05**: Series have fixed language; bilingual creators run separate series per language
+- [ ] **CONFIG-01**: `/psn:setup` walks through full onboarding: Hub creation, OAuth, API keys, voice profiling, preferences
+- [ ] **CONFIG-02**: Strategy.yaml auto-generated from voice interview with content pillars, platform config, posting frequency
+- [ ] **CONFIG-03**: `/psn:config` allows manual overrides for notifications, engagement, language, frequency, pillars, voice tweaks
+- [ ] **CONFIG-04**: BYOK model: user provides all API keys (platform APIs, image gen, intelligence, Trigger.dev, Neon)
+- [ ] **CONFIG-05**: `/psn:setup join` connects to Company Hub; `/psn:setup hub` creates Company Hub
+- [ ] **CONFIG-06**: `/psn:setup disconnect` cleanly removes a Company Hub connection
+- [ ] **CONFIG-07**: Database migrations run automatically during setup via Drizzle Kit
 
-### Hub Tasks (Trigger.dev)
+### Content Management
 
-- [ ] **TASK-01**: post-scheduler: delayed run per post, reads from DB, uploads media, calls platform API, archives, notifies
-- [ ] **TASK-02**: analytics-collector: daily cron, pulls metrics from platform APIs, writes to analytics table, scores posts
-- [ ] **TASK-03**: trend-collector: daily cron + periodic polls, pulls from Layer 1 sources, scores by pillar relevance
-- [ ] **TASK-04**: trend-alerter: after trend-collector, generates angles for high-scoring trends, triggers notifications
-- [ ] **TASK-05**: engagement-monitor: every 5-15 min, platform-aware, finds viral posts, drafts replies, alerts user
-- [ ] **TASK-06**: token-refresher: daily cron, checks token expiry, refreshes proactively, notifies on failure
-- [ ] **TASK-07**: notifier: sends WhatsApp/email via configured provider, respects quiet hours and caps
-- [ ] **TASK-08**: whatsapp-handler: webhook, parses structured commands, manages conversation state, executes actions
+- [ ] **CONTENT-01**: Drafts stored in `content/drafts/` with auto-pruning 14 days after publishing
+- [ ] **CONTENT-02**: Generated media stored in `content/media/` with auto-pruning 7 days after posting
+- [ ] **CONTENT-03**: Content remixing: system suggests re-angling high-performing content for different platforms
+- [ ] **CONTENT-04**: Content recycling: system surfaces past top performers with fresh angles during `/psn:plan`
+- [ ] **CONTENT-05**: Content queue in Hub DB `posts` table is source of truth for scheduled/published posts
 
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
 
-### Advanced Features
+### Advanced Automation
 
-- **ADV-01**: Claude-powered WhatsApp chatbot (natural language replacing structured commands)
-- **ADV-02**: Cloud media storage (S3/Cloudflare R2) replacing local git media
-- **ADV-03**: Content template library (formalized winning structures as reusable templates)
-- **ADV-04**: Team analytics leaderboard (opt-in)
-- **ADV-05**: Podcast clip extraction from long recordings
-- **ADV-06**: Event live-posting templates
-- **ADV-07**: Interview/Q&A preparation and editing
+- **AUTO-01**: Claude-powered WhatsApp chatbot replacing structured commands with natural language
+- **AUTO-02**: Cloud media storage (S3/Cloudflare R2) replacing local git for media assets
+- **AUTO-03**: Content template library formalized from winning structures (if preference model tracking proves insufficient)
 
-### Platform Expansion
+### Scaling
 
-- **PLAT-01**: Pinterest support
-- **PLAT-02**: YouTube support
-- **PLAT-03**: Facebook (organic) support
+- **SCALE-01**: Team analytics leaderboard (opt-in)
+- **SCALE-02**: Streamlined team onboarding workflows for new members at scale
+- **SCALE-03**: Suggested content based on company milestones
 
 ## Out of Scope
 
@@ -217,19 +226,18 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| Web dashboard / GUI | Contradicts CLI-first value proposition. Would split dev effort and compete on competitors' turf. |
-| Social inbox / DM management | Massive complexity, better done in native apps. `/psn:engage` covers public replies. |
-| Social listening / brand monitoring | Enterprise feature ($199-500+/mo). Intelligence layer provides targeted niche monitoring instead. |
-| Auto-posting without review | Algorithm suppression of AI content + brand risk. Human-in-the-loop is the feature, not a limitation. |
-| Visual content editor | Absurd in CLI. Use Canva/Figma + drop files into content/media/. |
-| Link-in-bio / landing pages | Tangential to content creation. Users can use Linktree etc. |
-| Ad management | Different domain (paid media vs organic). Different APIs and expertise. |
-| Mobile app | CLI-first. WhatsApp integration is the mobile touchpoint. |
-| Gamification / leaderboards for advocacy | Incentivizes volume over quality, creates "advocacy theater." |
-| Chatbot / auto-DM sequences | Spammy, often violates platform ToS. |
-| Languages beyond en/es | v1 is bilingual English + Spanish only. |
-| Self-hosted database/Trigger.dev | Cloud managed services only for simplicity. |
-| Offline/degraded mode | Not worth complexity for 99.9%+ uptime services. |
+| Web dashboard / visual calendar | Competes on competitors' home turf (Buffer, Hootsuite). CLI-first by design. Always inferior to purpose-built web tools. |
+| Social inbox / unified DM management | Different product category (customer support, not growth). API access heavily restricted. |
+| Fully automated posting (no human review) | AI slop is actively suppressed by all platforms in 2026. One bad auto-post can damage a brand permanently. |
+| Paid ad management / boosting | Entirely different domain requiring budget management, audience targeting, conversion tracking. |
+| Social listening / brand monitoring at scale | Enterprise feature ($1000+/mo category). Narrow competitive intelligence (5-10 accounts) is sufficient. |
+| Real-time collaboration / shared editing | Requires CRDT/OT engineering. Sequential approval workflow handles the use case. |
+| Content library / asset management (DAM) | Scope creep into a different product. Git-based media + external tools suffice. |
+| Platform-native preview rendering | Each platform's rendering changes constantly. Character counts + media specs are sufficient. |
+| Engagement pods / reciprocal liking | Violates every platform's TOS. Accounts get shadowbanned. |
+| Languages beyond English and Spanish | Two is enough for v1. Additional languages add complexity to every feature. |
+| Offline/degraded mode | Managed services have 99.9%+ uptime. Local fallback/sync layer not worth the complexity. |
+| Self-hosted Trigger.dev | Cloud-only for simplicity and features (warm starts, auto-scaling, checkpoints). |
 
 ## Traceability
 
@@ -237,12 +245,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated during roadmap creation) | | |
+| (Populated during roadmap creation) | | |
 
 **Coverage:**
-- v1 requirements: 99 total
+- v1 requirements: 108 total
 - Mapped to phases: 0
-- Unmapped: 99
+- Unmapped: 108
 
 ---
 *Requirements defined: 2026-02-18*
