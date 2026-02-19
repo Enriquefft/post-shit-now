@@ -69,11 +69,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Image Generation
 
-- [ ] **IMG-01**: User can generate images for posts using GPT Image (versatile)
-- [ ] **IMG-02**: User can generate images using Ideogram 3 (best text rendering)
-- [ ] **IMG-03**: User can generate images using Flux 2 via fal.ai (photorealistic)
-- [ ] **IMG-04**: Images are processed via sharp to meet platform-specific format and size requirements
-- [ ] **IMG-05**: Claude picks the best image generation tool based on content type
+- [x] **IMG-01**: User can generate images for posts using GPT Image (versatile)
+- [x] **IMG-02**: User can generate images using Ideogram 3 (best text rendering)
+- [x] **IMG-03**: User can generate images using Flux 2 via fal.ai (photorealistic)
+- [x] **IMG-04**: Images are processed via sharp to meet platform-specific format and size requirements
+- [x] **IMG-05**: Claude picks the best image generation tool based on content type
 
 ### Video Generation
 
@@ -294,11 +294,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | POST-11 | Phase 3 | Pending |
 | POST-12 | Phase 3 | Pending |
 | POST-14 | Phase 3 | Pending |
-| IMG-01 | Phase 3 | Pending |
-| IMG-02 | Phase 3 | Pending |
-| IMG-03 | Phase 3 | Pending |
-| IMG-04 | Phase 3 | Pending |
-| IMG-05 | Phase 3 | Pending |
+| IMG-01 | Phase 3 | Complete |
+| IMG-02 | Phase 3 | Complete |
+| IMG-03 | Phase 3 | Complete |
+| IMG-04 | Phase 3 | Complete |
+| IMG-05 | Phase 3 | Complete |
 | VID-01 | Phase 3 | Pending |
 | VID-02 | Phase 3 | Pending |
 | VID-03 | Phase 3 | Pending |

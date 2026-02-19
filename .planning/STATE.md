@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 3 of 8 (Voice Profiling and Content Generation)
-Plan: 2 of 7 in current phase (03-02 complete)
-Status: Completed 03-02 (Image Generation)
-Last activity: 2026-02-19 - Completed 03-02: Three image providers, smart selection, platform processing
+Plan: 3 of 7 in current phase (03-03 complete)
+Status: Completed 03-03 (Video Generation)
+Last activity: 2026-02-19 - Completed 03-03: Video generation with Kling, Runway, Pika and smart provider selection
 
-Progress: [████░░░░░░] 32%
+Progress: [████░░░░░░] 36%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: ~10min
-- Total execution time: ~1h 31min
+- Total plans completed: 10
+- Average duration: ~9min
+- Total execution time: ~1h 33min
 
 **By Phase:**
 
@@ -29,7 +29,7 @@ Progress: [████░░░░░░] 32%
 |-------|-------|-------|----------|
 | 1 | 3/3 | ~60min | ~20min |
 | 2 | 4/4 | ~12min | ~3min |
-| 3 | 2/7 | ~10min | ~5min |
+| 3 | 3/7 | ~12min | ~4min |
 
 **Recent Trend:**
 - Last 5 plans: 02-02 (~3min), 02-03 (~2min), 02-04 (~4min), 03-01 (~5min), 03-02 (~5min)
@@ -68,6 +68,10 @@ Recent decisions affecting current work:
 - [03-01]: Atomic write via .tmp + rename prevents profile corruption
 - [03-01]: Zod v4 schemas with inferred types for zero schema/type drift
 - [03-01]: VoiceTweak discriminated union for surgical profile edits
+- [03-02]: fal.ai as primary path for Ideogram and Flux (no minimum usage requirement)
+- [03-02]: GPT Image as default/versatile provider; Ideogram for text-heavy; Flux for photorealism
+- [03-02]: Content hint keyword matching for auto-selection (not ML-based)
+- [03-02]: Instagram always JPEG; iterative quality reduction for size enforcement
 
 ### Pending Todos
 
@@ -89,5 +93,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 03-01-PLAN.md
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None
