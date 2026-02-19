@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Intelligence, Ideation, and Planning** - Trend collection, idea bank, weekly batch planning, content series, bilingual support, content recycling (completed 2026-02-19)
 - [x] **Phase 6: LinkedIn and Multi-Platform** - LinkedIn OAuth and posting, multi-platform content adaptation, partial failure isolation (completed 2026-02-19)
 - [x] **Phase 7: Team Coordination and Notifications** - Company Hub provisioning, invite codes, approval workflows, WhatsApp notifications, brand personas (completed 2026-02-19)
-- [ ] **Phase 8: Instagram, TikTok, and Engagement** - Instagram and TikTok posting, engagement engine with semi-automated replies
+- [x] **Phase 8: Instagram, TikTok, and Engagement** - Instagram and TikTok posting, engagement engine with semi-automated replies (completed 2026-02-19)
 
 ## Phase Details
 
@@ -166,11 +166,12 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Instagram OAuth (direct login), Graph API client, container-based media publishing, hashtag pool management
-- [ ] 08-02-PLAN.md — TikTok OAuth (Arctic PKCE), Content Posting API client, chunked video upload, photo posting, Creative Center
-- [ ] 08-03-PLAN.md — Instagram/TikTok analytics collection, multi-platform publish dispatch, content generation and format picker extensions
-- [ ] 08-04-PLAN.md — Engagement DB schema (opportunities, config, log), composite scoring engine, cross-platform monitor, Trigger.dev cron
-- [ ] 08-05-PLAN.md — Voice-matched reply drafting, triage-then-draft session, /psn:engage command, outcome tracking, content bridge
+- [x] 08-01-PLAN.md — Instagram OAuth (direct login), Graph API client, container-based media publishing, hashtag pool management
+- [x] 08-02-PLAN.md — TikTok OAuth (Arctic PKCE), Content Posting API client, chunked video upload, photo posting, Creative Center
+- [x] 08-03-PLAN.md — Instagram/TikTok analytics collection, multi-platform publish dispatch, content generation and format picker extensions
+- [x] 08-04-PLAN.md — Engagement DB schema (opportunities, config, log), composite scoring engine, cross-platform monitor, Trigger.dev cron
+- [x] 08-05-PLAN.md — Voice-matched reply drafting, triage-then-draft session, /psn:engage command, outcome tracking, content bridge
+- [x] 08-06-PLAN.md — Gap closure: ENGAGE-01 text alignment, engagement tracker → learning loop wire
 
 ## Progress
 
@@ -186,4 +187,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 5. Intelligence, Ideation, and Planning | 6/6 | Complete | 2026-02-19 |
 | 6. LinkedIn and Multi-Platform | 2/2 | Complete | 2026-02-19 |
 | 7. Team Coordination and Notifications | 5/5 | Complete   | 2026-02-19 |
-| 8. Instagram, TikTok, and Engagement | 0/5 | Planned | - |
+| 8. Instagram, TikTok, and Engagement | 6/6 | Complete | 2026-02-19 |

@@ -153,7 +153,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Engagement Engine
 
-- [x] **ENGAGE-01**: Engagement monitor task checks for viral/trending posts in user's niche every 5-15 min during active hours
+- [x] **ENGAGE-01**: Engagement monitor task checks for viral/trending posts in user's niche every 2-4 hours (locked decision — supersedes original 5-15 min for cost/rate-limit reasons)
 - [x] **ENGAGE-02**: Opportunities scored: relevance × author influence × post velocity × time window remaining
 - [x] **ENGAGE-03**: Scores 60+: draft 2-3 reply options using voice profile's reply_style; 70+: push notify; 60-69: digest
 - [x] **ENGAGE-04**: User can run `/psn:engage` for proactive 15-minute engagement sessions

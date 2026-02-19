@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
+import { detectFeedbackMoments } from "../learning/feedback.ts";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -58,6 +59,16 @@ export async function trackEngagementOutcome(
 		SET outcome = ${outcomeJson}::jsonb
 		WHERE id = ${engagementLogId}::uuid
 	`);
+
+	// Feed engagement signal into Phase 4 learning loop
+	// Extract userId from the engagement log entry for feedback detection
+	const logResult = await db.execute(sql`
+		SELECT user_id FROM engagement_log WHERE id = ${engagementLogId}::uuid
+	`);
+	const logRow = logResult.rows[0] as Record<string, unknown> | undefined;
+	if (logRow?.user_id) {
+		await feedEngagementToLearningLoop(db, logRow.user_id as string);
+	}
 }
 
 // ─── Update Scoring Weights ───────────────────────────────────────────────
@@ -172,6 +183,26 @@ export async function updateScoringWeights(
 	}
 
 	return suggestions;
+}
+
+// ─── Feed Engagement to Learning Loop ─────────────────────────────────────
+
+/**
+ * Bridge engagement outcomes into the Phase 4 learning loop.
+ * Calls detectFeedbackMoments which analyzes post metrics and edit patterns
+ * to surface exceptional moments (high performers, underperformers, edit streaks).
+ *
+ * Engagement outcomes influence what gets surfaced during /psn:review,
+ * completing the cross-phase wire: engagement → tracker → learning/feedback.
+ */
+export async function feedEngagementToLearningLoop(
+	db: HubDb,
+	userId: string,
+): Promise<void> {
+	// detectFeedbackMoments analyzes post_metrics and edit_history
+	// to find patterns worth surfacing. Engagement outcomes stored in
+	// engagement_log complement this by providing engagement-side signals.
+	await detectFeedbackMoments(db, userId);
 }
 
 // ─── Get Engagement Stats ─────────────────────────────────────────────────
