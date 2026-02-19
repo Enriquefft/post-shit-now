@@ -75,6 +75,14 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **IMG-04**: Images are processed via sharp to meet platform-specific format and size requirements
 - [ ] **IMG-05**: Claude picks the best image generation tool based on content type
 
+### Video Generation
+
+- [ ] **VID-01**: User can generate animated text/quote videos for posts (fully automated, no recording needed)
+- [ ] **VID-02**: User can generate b-roll with voiceover using TTS for posts (fully automated, no recording needed)
+- [ ] **VID-03**: User can generate short video clips using Kling (realistic motion, product demos), Runway (stylized, image-to-video), or Pika (animated clips, text-to-video)
+- [ ] **VID-04**: Claude picks the best video generation tool based on content type (matching IMG-05 pattern for images)
+- [ ] **VID-05**: Generated video meets platform-specific format and length requirements (X: under 15s optimal, TikTok: 60s+ favored, Instagram Reels: watch-time optimized)
+
 ### Analytics
 
 - [ ] **ANLYT-01**: Analytics collector task pulls metrics from X API daily and writes to Hub DB
@@ -291,6 +299,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IMG-03 | Phase 3 | Pending |
 | IMG-04 | Phase 3 | Pending |
 | IMG-05 | Phase 3 | Pending |
+| VID-01 | Phase 3 | Pending |
+| VID-02 | Phase 3 | Pending |
+| VID-03 | Phase 3 | Pending |
+| VID-04 | Phase 3 | Pending |
+| VID-05 | Phase 3 | Pending |
 | CONTENT-01 | Phase 3 | Pending |
 | CONTENT-02 | Phase 3 | Pending |
 | CONFIG-02 | Phase 3 | Pending |
@@ -390,8 +403,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ENGAGE-07 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 143 total
-- Mapped to phases: 143
+- v1 requirements: 148 total
+- Mapped to phases: 148
 - Unmapped: 0
 
 ---
