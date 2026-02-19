@@ -1,0 +1,18 @@
+# Strategy Configuration -- managed by learning loop
+# Manual edits are fine; the system uses atomic field updates
+pillars:
+  # Populated from voice profile during setup
+  - name: ""
+    weight: 0.0 # 0.0-1.0, must sum to 1.0
+posting:
+  frequency:
+    x: 7 # posts per week
+  preferred_times:
+    x:
+      - "09:00"
+      - "12:00"
+      - "17:00" # UTC
+  timezone: "UTC"
+formats:
+  preferences: [] # ranked format list, populated from learnings
+locked: [] # field paths that are permanently locked by user
