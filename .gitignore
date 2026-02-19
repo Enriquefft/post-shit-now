@@ -31,6 +31,9 @@ coverage/
 # IDE
 .vscode-test
 
+# Company Hub connection files (contain credentials)
+.hubs/
+
 # OS
 .DS_Store
 Thumbs.db
