@@ -122,7 +122,8 @@ export function suggestTopics(params: {
 		const cooling: TopicSuggestion[] = [];
 
 		for (const s of suggestions) {
-			const isFatigued = fatiguedSet.has(s.pillar.toLowerCase()) ||
+			const isFatigued =
+				fatiguedSet.has(s.pillar.toLowerCase()) ||
 				fatiguedTopics.some((ft) => s.topic.toLowerCase().includes(ft.toLowerCase()));
 			if (isFatigued) {
 				cooling.push({

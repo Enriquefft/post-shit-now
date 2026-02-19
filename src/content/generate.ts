@@ -1,12 +1,13 @@
+import { isTopicFatigued } from "../analytics/fatigue.ts";
+import { resolveHub } from "../cli/post-finish.ts";
+import { createHubConnection } from "../core/db/connection.ts";
 import type { Platform } from "../core/types/index.ts";
+import { getPreferenceModel } from "../learning/preference-model.ts";
 import { loadProfile } from "../voice/profile.ts";
 import type { VoiceProfile } from "../voice/types.ts";
 import { saveDraft } from "./drafts.ts";
 import { type FormatSuggestion, type PostFormat, pickFormat } from "./format-picker.ts";
 import { checkIdeaBank, suggestTopics, type TopicSuggestion } from "./topic-suggest.ts";
-import { createHubConnection } from "../core/db/connection.ts";
-import { getPreferenceModel } from "../learning/preference-model.ts";
-import { isTopicFatigued } from "../analytics/fatigue.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -150,7 +151,10 @@ export async function getPreferenceModelLearnings(
 		// Extract top 3 format names sorted by score
 		const topFormats = model.topFormats as Array<{ format: string; avgScore: number }> | null;
 		const formats = topFormats
-			? [...topFormats].sort((a, b) => b.avgScore - a.avgScore).slice(0, 3).map((f) => f.format)
+			? [...topFormats]
+					.sort((a, b) => b.avgScore - a.avgScore)
+					.slice(0, 3)
+					.map((f) => f.format)
 			: [];
 
 		// Extract fatigued topics with active cooldowns only
@@ -234,8 +238,8 @@ export async function generatePost(options: GeneratePostOptions): Promise<Genera
 	// Check topic fatigue and build warning if applicable
 	let fatigueWarning: GeneratedDraft["fatigueWarning"];
 	if (options.topic && preferenceLearnings?.fatiguedTopics.length) {
-		const matchedFatigued = preferenceLearnings.fatiguedTopics.find(
-			(ft) => options.topic?.toLowerCase().includes(ft.toLowerCase()),
+		const matchedFatigued = preferenceLearnings.fatiguedTopics.find((ft) =>
+			options.topic?.toLowerCase().includes(ft.toLowerCase()),
 		);
 		if (matchedFatigued) {
 			fatigueWarning = {
@@ -250,6 +254,9 @@ export async function generatePost(options: GeneratePostOptions): Promise<Genera
 		? `[Draft for ${options.platform}] Topic: ${options.topic}`
 		: "[Awaiting topic selection]";
 
+	// Determine hub routing based on persona (SCHED-06)
+	const hub = resolveHub(persona);
+
 	// Save draft shell
 	const { draftPath, draftId } = await saveDraft({
 		content,
@@ -257,10 +264,12 @@ export async function generatePost(options: GeneratePostOptions): Promise<Genera
 		format,
 		persona,
 		language,
+		hub,
 		metadata: {
 			topic: options.topic,
 			mediaType: options.mediaType,
 			mediaHints: options.mediaHints,
+			hub,
 		},
 	});
 

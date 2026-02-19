@@ -12,9 +12,10 @@ export interface DraftFrontmatter {
 	format: PostFormat;
 	persona: string;
 	language: string;
-	status: "draft" | "review" | "approved" | "published";
+	status: "draft" | "review" | "approved" | "published" | "awaiting-recording";
 	createdAt: string;
 	publishedAt: string | null;
+	hub?: "personal" | "company";
 	metadata?: Record<string, unknown>;
 }
 
@@ -40,6 +41,8 @@ export async function saveDraft(params: {
 	format: PostFormat;
 	persona?: string;
 	language?: string;
+	hub?: "personal" | "company";
+	status?: DraftFrontmatter["status"];
 	metadata?: Record<string, unknown>;
 }): Promise<{ draftPath: string; draftId: string }> {
 	const draftId = crypto.randomUUID();
@@ -49,9 +52,10 @@ export async function saveDraft(params: {
 		format: params.format,
 		persona: params.persona ?? "personal",
 		language: params.language ?? "en",
-		status: "draft",
+		status: params.status ?? "draft",
 		createdAt: new Date().toISOString(),
 		publishedAt: null,
+		...(params.hub ? { hub: params.hub } : {}),
 		...(params.metadata ? { metadata: params.metadata } : {}),
 	};
 
@@ -83,6 +87,29 @@ export async function loadDraft(
 	const content = (fmMatch[2] ?? "").trim();
 
 	return { frontmatter, content };
+}
+
+// ─── Update Draft ───────────────────────────────────────────────────────────
+
+export async function updateDraft(
+	draftId: string,
+	updates: Partial<Pick<DraftFrontmatter, "status" | "hub" | "publishedAt" | "metadata">>,
+): Promise<{ frontmatter: DraftFrontmatter; content: string }> {
+	const { frontmatter, content } = await loadDraft(draftId);
+
+	const updated: DraftFrontmatter = {
+		...frontmatter,
+		...updates,
+		metadata: updates.metadata
+			? { ...frontmatter.metadata, ...updates.metadata }
+			: frontmatter.metadata,
+	};
+
+	const fileContent = `---\n${stringify(updated)}---\n${content}\n`;
+	const draftPath = join(DRAFTS_DIR, `${draftId}.md`);
+	await writeFile(draftPath, fileContent, "utf-8");
+
+	return { frontmatter: updated, content };
 }
 
 // ─── List Drafts ────────────────────────────────────────────────────────────

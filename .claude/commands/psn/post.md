@@ -166,6 +166,47 @@ Show the user:
 - Draft file location
 - Tip: "Use `/psn:post` to create another or check on this post later"
 
+### 12. Hub routing display
+After saving a draft, determine which hub it routes to based on persona:
+- **Personal / Brand-ambassador:** "This post will go to your Personal Hub"
+- **Brand-operator:** "This post will go to the Company Hub (requires approval before publishing)"
+
+Company posts get status "pending_approval". Personal posts proceed normally to scheduling.
+
+---
+
+## Semi-automated format flow
+
+When the selected format is a semi-automated type (video-script, tiktok-stitch, reel-script with user recording):
+
+1. Generate script + talking points as the draft content
+2. Save the draft with status `awaiting-recording`
+3. Tell the user:
+   > Draft saved as awaiting-recording. Record your video using the script above, then run:
+   > `/psn:post finish <draft-id> --media <path-to-recording>`
+4. Do NOT proceed to scheduling -- the user needs to record first
+
+### Finish subcommand
+
+```
+/psn:post finish <draft-id> --media <path>
+```
+
+Completes a semi-automated draft:
+1. Run `bun run src/cli/post-finish.ts <draft-id> --media <path>`
+2. This loads the awaiting-recording draft, verifies status, copies media, and updates to "approved"
+3. Show the user the updated draft with attached media
+4. Proceed with normal scheduling flow (step 10)
+
+### Fatigue warnings
+
+After generating a draft, check the response for `fatigueWarning`. If present, display prominently:
+
+> **Topic cooling alert:** "Topic X has been cooling -- consider rotating to a different content pillar"
+> The system suggests trying a different pillar. You can still proceed with this topic if you prefer.
+
+Also when showing topic suggestions, fatigued topics appear at the bottom marked with "(cooling)".
+
 ## Management commands
 
 ### Cancel a scheduled post
