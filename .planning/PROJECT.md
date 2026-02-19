@@ -12,7 +12,13 @@ Make it so easy to create and post high-quality, voice-matched content that team
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Neon Postgres + Drizzle ORM with migration infrastructure — Phase 1
+- ✓ BYOK for all APIs — Phase 1
+- ✓ Postgres RLS for per-user data isolation — Phase 1
+- ✓ X OAuth 2.0 PKCE with encrypted token storage — Phase 2
+- ✓ Token auto-refresh with race-condition-safe row-level locking — Phase 2
+- ✓ Post scheduling via Trigger.dev delayed runs — Phase 2
+- ✓ Thread auto-splitting with boundary respect — Phase 2
 
 ### Active
 
@@ -91,14 +97,14 @@ Make it so easy to create and post high-quality, voice-matched content that team
 |----------|-----------|---------|
 | Claude Code commands, not a web app | Users are Claude Code users. Commands are infinitely flexible. No maintenance burden. | — Pending |
 | Personal Hub mandatory for all users | Your data is always yours. Leaving company = delete a connection file. | — Pending |
-| BYOK for all APIs | Each user/company controls own costs and rate limits. No central billing. | — Pending |
-| Neon Postgres + Drizzle ORM | Full Postgres ecosystem, RLS for isolation, zero vendor lock-in. | — Pending |
-| Trigger.dev Cloud (not self-hosted) | Free tier for light usage, warm starts, auto-scaling, no infra maintenance. | — Pending |
+| BYOK for all APIs | Each user/company controls own costs and rate limits. No central billing. | ✓ Validated Phase 1-2 |
+| Neon Postgres + Drizzle ORM | Full Postgres ecosystem, RLS for isolation, zero vendor lock-in. | ✓ Validated Phase 1 |
+| Trigger.dev Cloud (not self-hosted) | Free tier for light usage, warm starts, auto-scaling, no infra maintenance. | ✓ Validated Phase 1-2 |
 | Semi-automated engagement only | Fully automated replies get accounts banned. Human approves every reply. | — Pending |
-| Incremental platform rollout | X first (easiest API), then LinkedIn, then IG/TikTok. Matches approval timelines. | — Pending |
+| Incremental platform rollout | X first (easiest API), then LinkedIn, then IG/TikTok. Matches approval timelines. | ✓ X complete |
 | Bilingual (en/es) not translation | Each language independently crafted. Voice profiles have language-specific sections. | — Pending |
 | Invite code flow for team onboarding | No raw credential sharing. One-time use, time-limited codes. | — Pending |
 | Learning loop mostly autonomous | System is a social media manager, not a consultant. Makes tactical decisions, reports back. | — Pending |
 
 ---
-*Last updated: 2026-02-18 after initialization*
+*Last updated: 2026-02-19 after Phase 2*

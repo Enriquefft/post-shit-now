@@ -2,10 +2,10 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-18)
+See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Core value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
-**Current focus:** Phase 2 complete - ready for Phase 3
+**Current focus:** Phase 3 - Voice Profiling and Content Generation
 
 ## Current Position
 
@@ -72,8 +72,7 @@ None yet.
 
 - LinkedIn partner API approval takes 2-6 weeks — must submit in Phase 1, needed by Phase 6
 - TikTok audit takes 1-2 weeks — must submit in Phase 1, needed by Phase 8
-- drizzle-kit push silently deletes RLS policies — only generate+migrate is safe (Phase 1 must establish this)
-- OAuth token refresh race conditions must be solved with row-level locking before any task automation (Phase 2)
+- drizzle-kit push silently deletes RLS policies — only generate+migrate is safe (established Phase 1)
 
 ### Quick Tasks Completed
 
@@ -85,5 +84,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 02-04-PLAN.md (Post scheduling & publishing pipeline - Phase 2 complete)
+Stopped at: Phase 2 complete, ready to plan Phase 3
 Resume file: None
