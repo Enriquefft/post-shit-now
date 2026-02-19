@@ -2,6 +2,7 @@ import type { SetupResult, ValidationSummary } from "../core/types/index.ts";
 import { setupDatabase } from "./setup-db.ts";
 import { setupKeys } from "./setup-keys.ts";
 import { setupTrigger } from "./setup-trigger.ts";
+import { setupXOAuth } from "./setup-x-oauth.ts";
 import { validateAll } from "./validate.ts";
 
 interface SetupOutput {
@@ -47,7 +48,17 @@ export async function runSetup(configDir = "config"): Promise<SetupOutput> {
 		return { steps, validation: null, completed: false };
 	}
 
-	// Step 5: Validate all connections
+	// Step 5: X OAuth setup
+	const xOAuthResult = await setupXOAuth(configDir);
+	steps.push(xOAuthResult);
+	if (xOAuthResult.status === "error") {
+		return { steps, validation: null, completed: false };
+	}
+	if (xOAuthResult.status === "need_input") {
+		return { steps, validation: null, completed: false };
+	}
+
+	// Step 6: Validate all connections
 	const validation = await validateAll(configDir);
 	steps.push({
 		step: "validation",
