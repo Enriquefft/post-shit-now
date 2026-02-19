@@ -15,7 +15,7 @@ export interface GeneratePostOptions {
 	topic?: string;
 	platform: Platform;
 	persona?: "personal" | "brand-operator" | "brand-ambassador";
-	language?: "en" | "es";
+	language?: "en" | "es" | "both";
 	format?: PostFormat;
 	variations?: number;
 	mediaType?: "image" | "video" | "none";
@@ -44,6 +44,8 @@ export interface GeneratedDraft {
 		topic: string;
 		suggestion: string;
 	};
+	/** When language is "both", contains independently crafted versions in each language */
+	bilingualPair?: { en: GeneratedDraft; es: GeneratedDraft };
 }
 
 export interface PreferenceLearnings {
@@ -181,6 +183,19 @@ export async function getPreferenceModelLearnings(
 export async function generatePost(options: GeneratePostOptions): Promise<GeneratedDraft> {
 	const persona = options.persona ?? "personal";
 	const language = options.language ?? "en";
+
+	// Two-pass generation for bilingual "both" (POST-08)
+	if (language === "both") {
+		const enDraft = await generatePost({ ...options, language: "en" });
+		const esDraft = await generatePost({ ...options, language: "es" });
+
+		// Return the English draft as primary with bilingual pair attached
+		return {
+			...enDraft,
+			language: "both",
+			bilingualPair: { en: enDraft, es: esDraft },
+		};
+	}
 
 	// Load voice profile
 	let profilePath = options.profilePath;

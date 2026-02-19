@@ -33,10 +33,35 @@ bun run src/voice/calibration.ts list-profiles
 - **Multiple profiles (personal + brand-operator, brand-ambassador):** Ask which persona to use for this post. Show available profiles with their type.
 - Store the selected profile path for all subsequent steps.
 
+### 3b. Language selection (POST-07)
+Check the user's voice profile for language configuration.
+
+If the profile has bilingual configured (both en and es in languages section):
+- Ask: "What language for this post? (en / es / both)"
+- If **"both"**: Suggest approach based on platform:
+  - **X, TikTok:** "I'll create two separate posts -- one in English, one in Spanish"
+  - **LinkedIn:** "Want two separate posts or one combined post with both languages?"
+- User confirms approach
+- Pass the selected language to all subsequent steps
+
+If the profile is monolingual: use the default language silently, skip the prompt.
+
 ### 4. Topic gathering
 If the user already provided a topic or content in $ARGUMENTS, use it directly.
 
-If not, check the idea bank:
+**Due series check (SERIES-03):**
+Before checking the idea bank, check for due series episodes:
+```
+bun run src/cli/series.ts due
+```
+
+- **Due episodes exist:** Present them first with series name, episode label, and format template:
+  > "You have a series episode due: [Series Name] #[Episode]. Want to create this episode?"
+  - If the user picks a series episode: use the series template, pillar, and format for generation. Pass seriesId to the draft.
+  - If the user declines: proceed to normal flow below.
+- **No due episodes:** Proceed silently.
+
+If not using a series episode, check the idea bank:
 ```
 bun run src/content/generate.ts check-ideas
 ```

@@ -8,6 +8,7 @@ import { XClient } from "../platforms/x/client.ts";
 import { uploadMedia } from "../platforms/x/media.ts";
 import { createXOAuthClient, refreshAccessToken } from "../platforms/x/oauth.ts";
 import { RateLimitError } from "../platforms/x/types.ts";
+import { recordEpisodePublished } from "../series/episodes.ts";
 
 interface PublishPostPayload {
 	postId: string;
@@ -80,9 +81,7 @@ export const publishPost = task({
 		const [token] = await db
 			.select()
 			.from(oauthTokens)
-			.where(
-				sql`${oauthTokens.userId} = ${post.userId} AND ${oauthTokens.platform} = 'x'`,
-			)
+			.where(sql`${oauthTokens.userId} = ${post.userId} AND ${oauthTokens.platform} = 'x'`)
 			.limit(1);
 
 		if (!token) {
@@ -134,8 +133,7 @@ export const publishPost = task({
 					tokenId: token.id,
 				});
 			} catch (refreshError) {
-				const reason =
-					refreshError instanceof Error ? refreshError.message : String(refreshError);
+				const reason = refreshError instanceof Error ? refreshError.message : String(refreshError);
 				await markFailed(db, post.id, "token_expired_refresh_failed", {
 					requiresReauth: true,
 					refreshError: reason,
@@ -204,7 +202,7 @@ export const publishPost = task({
 				// 10. Single tweet
 				const result = await client.createTweet({
 					text: tweets[0] as string,
-	mediaIds,
+					mediaIds,
 				});
 
 				await db
@@ -222,6 +220,9 @@ export const publishPost = task({
 					postId: post.id,
 					tweetId: result.id,
 				});
+
+				// Advance series state if this post belongs to a series (SERIES-03)
+				await advanceSeriesState(db, post);
 
 				return { status: "published", tweetId: result.id };
 			}
@@ -241,7 +242,7 @@ export const publishPost = task({
 				try {
 					const result = await client.createTweet({
 						text: tweets[i] as string,
-	replyToId: i > 0 ? tweetIds[i - 1] : undefined,
+						replyToId: i > 0 ? tweetIds[i - 1] : undefined,
 						mediaIds: mediaIdsPerTweet[i],
 					});
 
@@ -327,6 +328,9 @@ export const publishPost = task({
 				firstTweetId: tweetIds[0],
 			});
 
+			// Advance series state if this post belongs to a series (SERIES-03)
+			await advanceSeriesState(db, post);
+
 			return { status: "published", tweetIds };
 		} catch (error) {
 			// 12. Rate limit handling for single tweets
@@ -390,4 +394,31 @@ async function markFailed(
 		.where(eq(posts.id, postId));
 
 	logger.error("Post marked as failed", { postId, failReason });
+}
+
+/**
+ * Advance series state after a successful publish.
+ * If the post belongs to a series, increments episodeCount and sets lastPublishedAt.
+ * Wrapped in try/catch: failure to advance series state must NOT roll back the publish.
+ */
+async function advanceSeriesState(
+	db: ReturnType<typeof createHubConnection>,
+	post: { id: string; seriesId: string | null },
+) {
+	if (!post.seriesId) return;
+
+	try {
+		await recordEpisodePublished(db, post.seriesId);
+		logger.info("Series state advanced", {
+			postId: post.id,
+			seriesId: post.seriesId,
+		});
+	} catch (error) {
+		// Log but do not fail the publish
+		logger.error("Failed to advance series state (publish succeeded)", {
+			postId: post.id,
+			seriesId: post.seriesId,
+			error: error instanceof Error ? error.message : String(error),
+		});
+	}
 }
