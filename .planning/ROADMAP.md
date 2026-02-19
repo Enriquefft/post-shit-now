@@ -225,3 +225,25 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 8. Instagram, TikTok, and Engagement | 6/6 | Complete | 2026-02-19 |
 | 9. Integration Wiring Fixes | 2/2 | Complete | 2026-02-19 |
 | 10. Milestone Documentation Closure | 1/1 | Complete | 2026-02-19 |
+
+### Phase 11: Tech Debt Remediation - CONFIG-04 + IMG/VID Provider Migration
+
+**Goal:** All external API keys (search, image, video providers) stored encrypted in api_keys table with hub-scoped access for multi-tenant architecture. Search providers read from DB (not process.env), and media generation providers accept hub context via --hub-id CLI flag.
+**Depends on:** Phase 10
+**Requirements:** CONFIG-04, IMG-01, IMG-02, IMG-03, IMG-04, IMG-05, VID-01, VID-02, VID-03, VID-04, VID-05
+**Success Criteria** (what must be TRUE):
+  1. getApiKey/setApiKey/listKeys functions manage encrypted keys in api_keys table
+  2. All search providers (Perplexity, Brave, Tavily, Exa) use getApiKey() for hub-scoped keys
+  3. All image providers (GPT Image, Ideogram, Flux) use getApiKey() when db + hubId provided
+  4. All video providers (Kling, Runway, Pika) use getApiKey() when db + hubId provided
+  5. /psn:setup collects and stores provider keys per hub (encrypted in DB)
+  6. Hub context flows from CLI/Trigger tasks to providers via db + hubId parameters
+**Plans:** 6 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Create getApiKey/setApiKey/listKeys functions for encrypted key storage
+- [ ] 11-02-PLAN.md — Migrate search providers (Perplexity, Brave, Tavily, Exa) to DB keys
+- [ ] 11-03-PLAN.md — Migrate image providers (GPT Image, Ideogram, Flux) to DB keys
+- [ ] 11-04-PLAN.md — Migrate video providers (Kling, Runway, Pika) to DB keys
+- [ ] 11-05-PLAN.md — Extend /psn:setup to collect and store provider keys per hub
+- [ ] 11-06-PLAN.md — Wire search and media generation calls with hub context passing
