@@ -7,6 +7,7 @@ import {
 	pgTable,
 	text,
 	timestamp,
+	uniqueIndex,
 	uuid,
 } from "drizzle-orm/pg-core";
 
@@ -182,6 +183,7 @@ export const postMetrics = pgTable(
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
+		uniqueIndex("post_metrics_post_platform_idx").on(table.postId, table.platform),
 		pgPolicy("post_metrics_isolation", {
 			as: "permissive",
 			to: hubUser,
