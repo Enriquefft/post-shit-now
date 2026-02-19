@@ -110,14 +110,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Idea Bank
 
-- [ ] **IDEA-01**: User can capture ideas via `/psn:capture` in under 30 seconds (URL, screenshot, text, raw thought)
+- [x] **IDEA-01**: User can capture ideas via `/psn:capture` in under 30 seconds (URL, screenshot, text, raw thought)
 - [x] **IDEA-02**: Ideas flow through maturity pipeline: spark → seed → ready → claimed → developed → used/killed
 - [x] **IDEA-03**: Ideas have urgency classification: timely (24-48h), seasonal (event-tied), evergreen (no expiry)
-- [ ] **IDEA-04**: Timely ideas that expire without being claimed are auto-killed
+- [x] **IDEA-04**: Timely ideas that expire without being claimed are auto-killed
 - [x] **IDEA-05**: Personal ideas live in Personal Hub DB; company ideas live in Company Hub DB
-- [ ] **IDEA-06**: Team members can claim company ideas (status: ready → claimed, locked to prevent duplicates)
-- [ ] **IDEA-07**: `/psn:capture` distinguishes timely vs evergreen and routes accordingly
-- [ ] **IDEA-08**: Killed ideas record reasoning and feed back into preference model
+- [x] **IDEA-06**: Team members can claim company ideas (status: ready → claimed, locked to prevent duplicates)
+- [x] **IDEA-07**: `/psn:capture` distinguishes timely vs evergreen and routes accordingly
+- [x] **IDEA-08**: Killed ideas record reasoning and feed back into preference model
 
 ### Weekly Planning
 
@@ -330,14 +330,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INTEL-04 | Phase 5 | Complete |
 | INTEL-05 | Phase 5 | Complete |
 | INTEL-06 | Phase 5 | Complete |
-| IDEA-01 | Phase 5 | Pending |
+| IDEA-01 | Phase 5 | Complete |
 | IDEA-02 | Phase 5 | Complete |
 | IDEA-03 | Phase 5 | Complete |
-| IDEA-04 | Phase 5 | Pending |
+| IDEA-04 | Phase 5 | Complete |
 | IDEA-05 | Phase 5 | Complete |
-| IDEA-06 | Phase 5 | Pending |
-| IDEA-07 | Phase 5 | Pending |
-| IDEA-08 | Phase 5 | Pending |
+| IDEA-06 | Phase 5 | Complete |
+| IDEA-07 | Phase 5 | Complete |
+| IDEA-08 | Phase 5 | Complete |
 | PLAN-01 | Phase 5 | Pending |
 | PLAN-02 | Phase 5 | Pending |
 | PLAN-03 | Phase 5 | Pending |

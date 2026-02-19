@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 5 of 8 (Intelligence, Ideation, and Planning)
-Plan: 2 of 6 in current phase
+Plan: 3 of 6 in current phase
 Status: Executing Phase 5
-Last activity: 2026-02-19 - Completed 05-02 (Intelligence collection layer: sources, scoring, search, competitive)
+Last activity: 2026-02-19 - Completed 05-03 (Idea bank with capture, lifecycle, CLI, preference feedback)
 
 Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 19
+- Total plans completed: 20
 - Average duration: ~6min
-- Total execution time: ~2h 3min
+- Total execution time: ~2h 7min
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [██████░░░░] 60%
 | 2 | 4/4 | ~12min | ~3min |
 | 3 | 7/7 | ~21min | ~3min |
 | 4 | 5/5 | ~25min | ~5min |
-| 5 | 2/6 | ~4min | ~2min |
+| 5 | 3/6 | ~8min | ~3min |
 
 **Recent Trend:**
-- Last 5 plans: 04-03 (~4min), 04-04 (~5min), 04-05 (~4min), 05-01 (~2min), 05-02 (~2min)
-- Trend: Schema-only plans execute fastest
+- Last 5 plans: 04-04 (~5min), 04-05 (~4min), 05-01 (~2min), 05-02 (~2min), 05-03 (~4min)
+- Trend: Phase 5 plans executing efficiently
 
 *Updated after each plan completion*
 
@@ -117,6 +117,9 @@ Recent decisions affecting current work:
 - [05-02]: Perplexity citations mapped to SearchResult with content fallback when no citations
 - [05-02]: Competitive intelligence uses keyword frequency extraction (not ML) for topic detection
 - [05-02]: Gap suggestions compare competitor topics against user pillar words
+- [05-03]: CLI supports capture/list/ready/search/stats/stale/expire/killed subcommands
+- [05-03]: killedIdeaPatterns stored as jsonb on preference_model table for rejection learning
+- [05-03]: Graceful try/catch around killed idea query for when ideas table does not exist yet
 
 ### Pending Todos
 
@@ -138,5 +141,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 05-02-PLAN.md
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
