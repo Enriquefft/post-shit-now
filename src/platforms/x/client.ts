@@ -321,6 +321,104 @@ export class XClient {
 	}
 
 	/**
+	 * Search recent tweets by query (X API v2 /2/tweets/search/recent).
+	 * Used by engagement monitor to discover trending content matching niche keywords.
+	 * Basic tier: 10 req/month, pay-per-use unlocks more.
+	 */
+	async searchRecent(
+		query: string,
+		params?: { maxResults?: number; tweetFields?: string[]; userFields?: string[] },
+	): Promise<{
+		data: Array<{
+			id: string;
+			text: string;
+			createdAt?: string;
+			authorId?: string;
+			publicMetrics?: {
+				likeCount: number;
+				retweetCount: number;
+				replyCount: number;
+				impressionCount: number;
+			};
+		}>;
+		includes?: {
+			users?: Array<{
+				id: string;
+				username: string;
+				publicMetrics?: { followersCount: number };
+			}>;
+		};
+		rateLimit: RateLimitInfo;
+	}> {
+		const queryParams = new URLSearchParams();
+		queryParams.set("query", query);
+		queryParams.set("max_results", String(params?.maxResults ?? 10));
+		const tweetFields = params?.tweetFields ?? [
+			"created_at",
+			"public_metrics",
+			"author_id",
+		];
+		queryParams.set("tweet.fields", tweetFields.join(","));
+		queryParams.set("expansions", "author_id");
+		if (params?.userFields) {
+			queryParams.set("user.fields", params.userFields.join(","));
+		} else {
+			queryParams.set("user.fields", "username,public_metrics");
+		}
+
+		const { data, rateLimit } = await this.request<{
+			data?: Array<{
+				id: string;
+				text: string;
+				created_at?: string;
+				author_id?: string;
+				public_metrics?: {
+					like_count: number;
+					retweet_count: number;
+					reply_count: number;
+					impression_count: number;
+				};
+			}>;
+			includes?: {
+				users?: Array<{
+					id: string;
+					username: string;
+					public_metrics?: { followers_count: number };
+				}>;
+			};
+		}>(`/2/tweets/search/recent?${queryParams.toString()}`, { method: "GET" });
+
+		return {
+			data: (data.data ?? []).map((tweet) => ({
+				id: tweet.id,
+				text: tweet.text,
+				createdAt: tweet.created_at,
+				authorId: tweet.author_id,
+				publicMetrics: tweet.public_metrics
+					? {
+							likeCount: tweet.public_metrics.like_count,
+							retweetCount: tweet.public_metrics.retweet_count,
+							replyCount: tweet.public_metrics.reply_count,
+							impressionCount: tweet.public_metrics.impression_count,
+						}
+					: undefined,
+			})),
+			includes: data.includes
+				? {
+						users: data.includes.users?.map((u) => ({
+							id: u.id,
+							username: u.username,
+							publicMetrics: u.public_metrics
+								? { followersCount: u.public_metrics.followers_count }
+								: undefined,
+						})),
+					}
+				: undefined,
+			rateLimit,
+		};
+	}
+
+	/**
 	 * Get current rate limit info for a given endpoint.
 	 */
 	getRateLimit(endpoint: string): RateLimitInfo | undefined {
