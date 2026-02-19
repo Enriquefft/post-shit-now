@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 Phase: 2 of 8 (X Platform Pipeline)
 Plan: 2 of 4 in current phase
-Status: Completed 02-02 (Thread Splitter & Timezone Utilities)
-Last activity: 2026-02-19 - Completed 02-02: Thread splitter and timezone utilities (TDD)
+Status: Completed 02-01 (Schema Expansion & X OAuth) and 02-02 (Thread Splitter & Timezone Utilities)
+Last activity: 2026-02-19 - Completed 02-01: Schema expansion, X OAuth PKCE module, API types, setup integration
 
 Progress: [██░░░░░░░░] 18%
 
@@ -52,6 +52,9 @@ Recent decisions affecting current work:
 - [01-02]: CLI scripts output JSON to stdout for Claude to interpret (not human-readable)
 - [01-03]: Watchdog marks stuck posts as retry/failed — actual re-publish comes in Phase 2
 - [02-02]: Paragraph boundaries always create separate tweets (no merging short paragraphs)
+- [02-01]: Used Arctic v3 for X OAuth PKCE -- handles code challenge and token exchange with minimal boilerplate
+- [02-01]: X callback URL set to https://example.com/callback for CLI-based OAuth flows
+- [02-01]: userId 'default' for single-user setup, RLS handles multi-user when needed
 - [02-02]: Built-in Intl.DateTimeFormat for timezone operations (zero external dependencies)
 
 ### Pending Todos
@@ -75,5 +78,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 02-02-PLAN.md
+Stopped at: Completed 02-01-PLAN.md (schema expansion, X OAuth, API types)
 Resume file: None

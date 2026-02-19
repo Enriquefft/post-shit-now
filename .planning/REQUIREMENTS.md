@@ -19,14 +19,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Authentication & Tokens
 
-- [ ] **AUTH-01**: User can authenticate with X via OAuth 2.0 PKCE flow using Arctic library
+- [x] **AUTH-01**: User can authenticate with X via OAuth 2.0 PKCE flow using Arctic library
 - [ ] **AUTH-02**: User can authenticate with LinkedIn via OAuth 2.0 3-legged flow using Arctic library
 - [ ] **AUTH-03**: User can authenticate with Instagram via Facebook OAuth flow using Arctic library
 - [ ] **AUTH-04**: User can authenticate with TikTok via OAuth 2.0 flow using Arctic library
 - [ ] **AUTH-05**: Token refresher task runs daily and proactively refreshes tokens within 7 days of expiry
 - [ ] **AUTH-06**: OAuth token refresh uses Postgres row-level locking (`SELECT FOR UPDATE SKIP LOCKED`) to prevent race conditions
 - [ ] **AUTH-07**: User is notified when token refresh fails and manual re-authorization is needed
-- [ ] **AUTH-08**: OAuth tokens are stored encrypted in Hub DB `oauth_tokens` table, not in environment variables
+- [x] **AUTH-08**: OAuth tokens are stored encrypted in Hub DB `oauth_tokens` table, not in environment variables
 
 ### Voice Profiling
 
@@ -263,11 +263,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONFIG-01 | Phase 1 | Pending |
 | CONFIG-04 | Phase 1 | Pending |
 | CONFIG-07 | Phase 1 | Pending |
-| AUTH-01 | Phase 2 | Pending |
+| AUTH-01 | Phase 2 | Complete |
 | AUTH-05 | Phase 2 | Pending |
 | AUTH-06 | Phase 2 | Pending |
 | AUTH-07 | Phase 2 | Pending |
-| AUTH-08 | Phase 2 | Pending |
+| AUTH-08 | Phase 2 | Complete |
 | PLAT-01 | Phase 2 | Complete |
 | PLAT-05 | Phase 2 | Pending |
 | SCHED-01 | Phase 2 | Pending |
