@@ -178,11 +178,11 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TEAM-02**: Admin can generate one-time invite codes (7-day expiry) for team members
 - [x] **TEAM-03**: Team member can join a Company Hub via `/psn:setup join` with invite code
 - [x] **TEAM-04**: Postgres RLS enforces per-user data isolation in Company Hub
-- [ ] **TEAM-05**: Company posts follow approval workflow: submit → notify approvers → approve/reject → schedule/cancel
+- [x] **TEAM-05**: Company posts follow approval workflow: submit → notify approvers → approve/reject → schedule/cancel
 - [ ] **TEAM-06**: `/psn:approve` shows pending posts with calendar context and related ideas
 - [x] **TEAM-07**: Team member leaving = delete connection file; personal data unaffected
-- [ ] **TEAM-08**: `/psn:calendar` merges Personal Hub + all connected Company Hubs into unified view
-- [ ] **TEAM-09**: Calendar slot claiming with Company Hub conflict checking
+- [x] **TEAM-08**: `/psn:calendar` merges Personal Hub + all connected Company Hubs into unified view
+- [x] **TEAM-09**: Calendar slot claiming with Company Hub conflict checking
 
 ### Platform Support
 
@@ -369,11 +369,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEAM-02 | Phase 7 | Complete |
 | TEAM-03 | Phase 7 | Complete |
 | TEAM-04 | Phase 7 | Complete |
-| TEAM-05 | Phase 7 | Pending |
+| TEAM-05 | Phase 7 | Complete |
 | TEAM-06 | Phase 7 | Pending |
 | TEAM-07 | Phase 7 | Complete |
-| TEAM-08 | Phase 7 | Pending |
-| TEAM-09 | Phase 7 | Pending |
+| TEAM-08 | Phase 7 | Complete |
+| TEAM-09 | Phase 7 | Complete |
 | NOTIF-01 | Phase 7 | Pending |
 | NOTIF-02 | Phase 7 | Pending |
 | NOTIF-03 | Phase 7 | Pending |

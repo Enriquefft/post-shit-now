@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 7 of 8 (Team Coordination and Notifications)
-Plan: 2 of 5 in current phase
+Plan: 3 of 5 in current phase
 Status: Executing
-Last activity: 2026-02-19 - Completed 07-02 (Company Hub and team management)
+Last activity: 2026-02-19 - Completed 07-03 (Approval workflow, calendar, and publish gate)
 
 Progress: [████████░░] 80%
 
@@ -41,6 +41,7 @@ Progress: [████████░░] 80%
 *Updated after each plan completion*
 | Phase 07 P01 | 2min | 2 tasks | 5 files |
 | Phase 07 P02 | 4min | 4 tasks | 8 files |
+| Phase 07 P03 | 4min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -156,6 +157,10 @@ Recent decisions affecting current work:
 - [Phase 07]: [07-02]: Soft-delete for team member removal (leftAt) preserves content attribution
 - [Phase 07]: [07-02]: Last-admin guard prevents demoting the only admin in a hub
 - [Phase 07]: [07-02]: Disconnect continues removing local file even if server-side fails (graceful)
+- [Phase 07]: [07-03]: Brand preference model uses hubId as userId in preference_model table (no new table)
+- [Phase 07]: [07-03]: Publish-post returns 'skipped' for unapproved company posts (never 'failed')
+- [Phase 07]: [07-03]: Calendar default optimal hours per platform when strategy.yaml unavailable
+- [Phase 07]: [07-03]: Approval stats use 3 separate queries for clarity over single aggregation
 
 ### Pending Todos
 
@@ -177,5 +182,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 07-02-PLAN.md
-Resume file: .planning/phases/07-team-coordination-and-notifications/07-03-PLAN.md
+Stopped at: Completed 07-03-PLAN.md
+Resume file: .planning/phases/07-team-coordination-and-notifications/07-04-PLAN.md
