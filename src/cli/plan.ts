@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { getUnifiedCalendar, type UnifiedCalendar } from "../approval/calendar.ts";
 import { createHubConnection } from "../core/db/connection.ts";
 import { type PlanSlot as DbPlanSlot, weeklyPlans } from "../core/db/schema.ts";
 import { loadHubEnv } from "../core/utils/env.ts";
@@ -9,6 +10,7 @@ import { suggestLanguages } from "../planning/language.ts";
 import { getRecycleSuggestions, getRemixSuggestions } from "../planning/recycling.ts";
 import { allocateSlots } from "../planning/slotting.ts";
 import type { PlanSlot } from "../planning/types.ts";
+import { discoverCompanyHubs, getHubDb } from "../team/hub.ts";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -38,10 +40,30 @@ function getWeekStart(): Date {
 
 // ─── Exported Subcommands ───────────────────────────────────────────────────
 
-export async function calendarCommand() {
-	const db = await getDb();
+export async function calendarCommand(): Promise<UnifiedCalendar> {
+	const personalDb = await getDb();
 	const weekStart = getWeekStart();
-	return getCalendarState(db, "default", weekStart);
+	const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+	// Discover company hubs (graceful fallback to personal-only)
+	let companyHubs: Array<{ connection: import("../team/types.ts").HubConnection; db: import("../core/db/connection.ts").HubDb }> = [];
+	try {
+		const connections = await discoverCompanyHubs();
+		companyHubs = connections.map((connection) => ({
+			connection,
+			db: getHubDb(connection),
+		}));
+	} catch {
+		// Hub discovery failed — fall back to personal-only calendar
+	}
+
+	return getUnifiedCalendar({
+		personalDb,
+		companyHubs,
+		userId: "default",
+		startDate: weekStart,
+		endDate: weekEnd,
+	});
 }
 
 export async function ideateCommand(opts?: { count?: number; platform?: string }) {
