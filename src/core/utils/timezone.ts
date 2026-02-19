@@ -50,8 +50,8 @@ export function userTimeToUtc(dateStr: string, timeStr: string, timezone: string
 	}
 
 	// Parse the date/time components
-	const [year, month, day] = dateStr.split("-").map(Number);
-	const [hours, minutes] = timeStr.split(":").map(Number);
+	const [year = 0, month = 0, day = 0] = dateStr.split("-").map(Number);
+	const [hours = 0, minutes = 0] = timeStr.split(":").map(Number);
 
 	// Validate ranges
 	if (month < 1 || month > 12 || day < 1 || day > 31 || hours > 23 || minutes > 59) {
@@ -168,7 +168,14 @@ function getTimezoneOffset(date: Date, timezone: string): number {
 			return Number.parseInt(val, 10);
 		};
 		return new Date(
-			Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second")),
+			Date.UTC(
+				get("year"),
+				get("month") - 1,
+				get("day"),
+				get("hour"),
+				get("minute"),
+				get("second"),
+			),
 		);
 	};
 

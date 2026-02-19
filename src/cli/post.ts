@@ -1,11 +1,11 @@
 import { runs } from "@trigger.dev/sdk";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { createHubConnection } from "../core/db/connection.ts";
 import { posts } from "../core/db/schema.ts";
 import type { Platform } from "../core/types/index.ts";
-import { splitIntoThread, formatThreadPreview } from "../core/utils/thread-splitter.ts";
-import { userTimeToUtc, utcToUserTime } from "../core/utils/timezone.ts";
 import { loadHubEnv } from "../core/utils/env.ts";
+import { formatThreadPreview, splitIntoThread } from "../core/utils/thread-splitter.ts";
+import { userTimeToUtc, utcToUserTime } from "../core/utils/timezone.ts";
 import { publishPost } from "../trigger/publish-post.ts";
 
 // ─── Result Types ───────────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ export async function createPost(params: {
 	const db = createHubConnection(hubEnv.data.databaseUrl);
 
 	const isThread = false;
-	let contentToStore = content;
+	const contentToStore = content;
 
 	// For threads that have been approved, store as JSON array
 	// (this path is reached when createPost is called after preview approval)
@@ -110,7 +110,8 @@ export async function createPost(params: {
 		})
 		.returning({ id: posts.id });
 
-	const inserted = rows[0]!;
+	const inserted = rows[0];
+	if (!inserted) throw new Error("Failed to insert post");
 
 	return {
 		postId: inserted.id,
@@ -148,7 +149,8 @@ export async function createThreadPost(params: {
 		})
 		.returning({ id: posts.id });
 
-	const inserted = threadRows[0]!;
+	const inserted = threadRows[0];
+	if (!inserted) throw new Error("Failed to insert thread post");
 
 	return {
 		postId: inserted.id,
@@ -188,10 +190,7 @@ export async function schedulePost(params: {
 		.where(eq(posts.id, params.postId));
 
 	// Trigger publishPost with delay
-	const handle = await publishPost.trigger(
-		{ postId: params.postId },
-		{ delay: utcDate },
-	);
+	const handle = await publishPost.trigger({ postId: params.postId }, { delay: utcDate });
 
 	// Store triggerRunId
 	await db
@@ -262,11 +261,7 @@ export async function cancelPost(params: { postId: string }): Promise<CancelResu
 
 	const db = createHubConnection(hubEnv.data.databaseUrl);
 
-	const [post] = await db
-		.select()
-		.from(posts)
-		.where(eq(posts.id, params.postId))
-		.limit(1);
+	const [post] = await db.select().from(posts).where(eq(posts.id, params.postId)).limit(1);
 
 	if (!post) {
 		throw new Error(`Post not found: ${params.postId}`);
@@ -276,7 +271,7 @@ export async function cancelPost(params: { postId: string }): Promise<CancelResu
 	if (post.triggerRunId) {
 		try {
 			await runs.cancel(post.triggerRunId);
-		} catch (error) {
+		} catch (_error) {
 			// Run may already be completed or cancelled — that's fine
 		}
 	}
@@ -315,11 +310,7 @@ export async function editScheduledPost(params: {
 
 	const db = createHubConnection(hubEnv.data.databaseUrl);
 
-	const [post] = await db
-		.select()
-		.from(posts)
-		.where(eq(posts.id, params.postId))
-		.limit(1);
+	const [post] = await db.select().from(posts).where(eq(posts.id, params.postId)).limit(1);
 
 	if (!post) {
 		throw new Error(`Post not found: ${params.postId}`);
@@ -329,7 +320,7 @@ export async function editScheduledPost(params: {
 	if (post.triggerRunId) {
 		try {
 			await runs.cancel(post.triggerRunId);
-		} catch (error) {
+		} catch (_error) {
 			// Run may already be completed or cancelled
 		}
 	}
@@ -348,17 +339,11 @@ export async function editScheduledPost(params: {
 		updates.scheduledAt = scheduledAt;
 	}
 
-	await db
-		.update(posts)
-		.set(updates)
-		.where(eq(posts.id, params.postId));
+	await db.update(posts).set(updates).where(eq(posts.id, params.postId));
 
 	// Create new delayed run
 	const delay = scheduledAt ?? new Date();
-	const handle = await publishPost.trigger(
-		{ postId: params.postId },
-		{ delay },
-	);
+	const handle = await publishPost.trigger({ postId: params.postId }, { delay });
 
 	// Store new triggerRunId
 	await db
@@ -392,12 +377,7 @@ export async function getRecentFailures(): Promise<FailedPost[]> {
 	const failedPosts = await db
 		.select()
 		.from(posts)
-		.where(
-			and(
-				eq(posts.status, "failed"),
-				sql`${posts.updatedAt} > NOW() - INTERVAL '7 days'`,
-			),
-		)
+		.where(and(eq(posts.status, "failed"), sql`${posts.updatedAt} > NOW() - INTERVAL '7 days'`))
 		.orderBy(desc(posts.updatedAt))
 		.limit(10);
 
@@ -407,7 +387,7 @@ export async function getRecentFailures(): Promise<FailedPost[]> {
 			postId: post.id,
 			content: post.content.length > 100 ? `${post.content.slice(0, 100)}...` : post.content,
 			failReason: post.failReason,
-			failedAt: metadata?.failedAt as string | null ?? post.updatedAt.toISOString(),
+			failedAt: (metadata?.failedAt as string | null) ?? post.updatedAt.toISOString(),
 			platform: post.platform,
 		};
 	});

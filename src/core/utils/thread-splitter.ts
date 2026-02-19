@@ -30,8 +30,9 @@ export function splitIntoThread(text: string, maxLen = 280): string[] {
 		.filter(Boolean);
 
 	// Single paragraph that fits -> single tweet
-	if (paragraphs.length === 1 && paragraphs[0].length <= maxLen) {
-		return [paragraphs[0]];
+	const first = paragraphs[0];
+	if (paragraphs.length === 1 && first && first.length <= maxLen) {
+		return [first];
 	}
 
 	// Step 2: Each paragraph becomes its own tweet; split long paragraphs as needed
