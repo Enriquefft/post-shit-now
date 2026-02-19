@@ -127,11 +127,11 @@ Plans:
   2. User can generate and post LinkedIn content (text, carousels, images) adapted to LinkedIn's format strengths
   3. Analytics collector pulls LinkedIn metrics daily and shows them in `/psn:review`
   4. Multi-platform posting works with partial failure isolation (LinkedIn failure does not block X posting)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md — LinkedIn OAuth, typed API client, image/document media upload, carousel PDF generation, token-refresher extension
+- [ ] 06-02-PLAN.md — Multi-platform publish dispatch with partial failure isolation, LinkedIn format picker, content adaptation, LinkedIn analytics collection
 
 ### Phase 7: Team Coordination and Notifications
 **Goal**: Teams can coordinate content through Company Hubs with approval workflows and WhatsApp notifications
