@@ -198,7 +198,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **CONFIG-01**: `/psn:setup` walks through full onboarding: Hub creation, OAuth, API keys, voice profiling, preferences
 - [x] **CONFIG-02**: Strategy.yaml auto-generated from voice interview with content pillars, platform config, posting frequency
-- [ ] **CONFIG-03**: `/psn:config` allows manual overrides for notifications, engagement, language, frequency, pillars, voice tweaks
+- [x] **CONFIG-03**: `/psn:config` allows manual overrides for notifications, engagement, language, frequency, pillars, voice tweaks
 - [ ] **CONFIG-04**: BYOK model: user provides all API keys (platform APIs, image gen, intelligence, Trigger.dev, Neon)
 - [ ] **CONFIG-05**: `/psn:setup join` connects to Company Hub; `/psn:setup hub` creates Company Hub
 - [ ] **CONFIG-06**: `/psn:setup disconnect` cleanly removes a Company Hub connection
@@ -307,7 +307,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONTENT-01 | Phase 3 | Complete |
 | CONTENT-02 | Phase 3 | Complete |
 | CONFIG-02 | Phase 3 | Complete |
-| CONFIG-03 | Phase 3 | Pending |
+| CONFIG-03 | Phase 3 | Complete |
 | ANLYT-01 | Phase 4 | Pending |
 | ANLYT-05 | Phase 4 | Pending |
 | ANLYT-06 | Phase 4 | Pending |
