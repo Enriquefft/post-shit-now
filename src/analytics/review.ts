@@ -1,9 +1,15 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { and, eq, gt, lte } from "drizzle-orm";
+import { parse } from "yaml";
 import type { HubDb } from "../core/db/connection.ts";
 import { postMetrics, posts } from "../core/db/schema.ts";
-import { getRecentChangelog, type StrategyAdjustment } from "../learning/adjustments.ts";
+import {
+	applyAutoAdjustments,
+	computeAdjustments,
+	getRecentChangelog,
+	type StrategyAdjustment,
+} from "../learning/adjustments.ts";
 import { detectFeedbackMoments, type FeedbackMoment } from "../learning/feedback.ts";
 import { computeWeeklyUpdate, getPreferenceModel } from "../learning/preference-model.ts";
 import { detectTopicFatigue, type FatigueResult } from "./fatigue.ts";
@@ -280,7 +286,7 @@ export async function generateWeeklyReview(
 
 	await computeWeeklyUpdate(db, userId);
 
-	// Read strategy.yaml for adjustment computation (may not exist yet)
+	// Compute and apply strategy adjustments from preference model
 	let changelog: Awaited<ReturnType<typeof getRecentChangelog>> = [];
 	let pendingApprovals: StrategyAdjustment[] = [];
 	let feedbackMoments: FeedbackMoment[] = [];
@@ -297,10 +303,37 @@ export async function generateWeeklyReview(
 		// No feedback moments yet
 	}
 
-	// Note: computeAdjustments and applyAutoAdjustments require strategy.yaml
-	// and are called by the slash command context where the file is available.
-	// We store the pending approvals from the changelog.
-	pendingApprovals = [];
+	// Compute adjustments from preference model + strategy.yaml
+	try {
+		const strategyRaw = await readFile("content/strategy.yaml", "utf-8");
+		const strategy = parse(strategyRaw) as Parameters<typeof computeAdjustments>[1];
+
+		if (model) {
+			const weeksOfData = Math.floor(days / 7) || 1;
+			const adjustments = computeAdjustments(
+				{
+					topFormats: model.topFormats as Array<{ format: string; avgScore: number }> | null,
+					topPillars: model.topPillars as Array<{ pillar: string; avgScore: number }> | null,
+					bestPostingTimes: model.bestPostingTimes as Array<{
+						hour: number;
+						dayOfWeek: number;
+						avgScore: number;
+					}> | null,
+					lockedSettings: model.lockedSettings as Parameters<typeof computeAdjustments>[0]["lockedSettings"],
+				},
+				strategy,
+				currentMetrics.length,
+				weeksOfData,
+			);
+
+			if (adjustments.length > 0) {
+				const result = await applyAutoAdjustments(db, userId, adjustments);
+				pendingApprovals = result.queued;
+			}
+		}
+	} catch {
+		// strategy.yaml may not exist yet — skip adjustments gracefully
+	}
 
 	// ── 9. Save report ──────────────────────────────────────────────────
 
