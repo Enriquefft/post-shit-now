@@ -163,12 +163,14 @@ Plans:
   4. Engagement monitor surfaces trending posts in user's niche with scored opportunities and draft reply options
   5. User can run `/psn:engage` for proactive engagement sessions with human approval on every reply and daily caps enforced
 
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
-- [ ] 08-03: TBD
+- [ ] 08-01-PLAN.md — Instagram OAuth (direct login), Graph API client, container-based media publishing, hashtag pool management
+- [ ] 08-02-PLAN.md — TikTok OAuth (Arctic PKCE), Content Posting API client, chunked video upload, photo posting, Creative Center
+- [ ] 08-03-PLAN.md — Instagram/TikTok analytics collection, multi-platform publish dispatch, content generation and format picker extensions
+- [ ] 08-04-PLAN.md — Engagement DB schema (opportunities, config, log), composite scoring engine, cross-platform monitor, Trigger.dev cron
+- [ ] 08-05-PLAN.md — Voice-matched reply drafting, triage-then-draft session, /psn:engage command, outcome tracking, content bridge
 
 ## Progress
 
@@ -184,4 +186,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 5. Intelligence, Ideation, and Planning | 6/6 | Complete | 2026-02-19 |
 | 6. LinkedIn and Multi-Platform | 2/2 | Complete | 2026-02-19 |
 | 7. Team Coordination and Notifications | 0/5 | Planned | - |
-| 8. Instagram, TikTok, and Engagement | 0/3 | Not started | - |
+| 8. Instagram, TikTok, and Engagement | 0/5 | Planned | - |
