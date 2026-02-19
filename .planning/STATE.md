@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 Phase: 1 of 8 (Foundation Infrastructure) — COMPLETE
 Plan: 3 of 3 in current phase
 Status: Phase 1 complete, ready for Phase 2
-Last activity: 2026-02-19 - Completed quick task 1: Check if current GSD roadmap fully implements PRD.md
+Last activity: 2026-02-19 - Completed quick task 2: Add video generation requirements (VID-xx) to REQUIREMENTS.md and ROADMAP.md
 
 Progress: [█░░░░░░░░░] 12%
 
@@ -67,6 +67,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | Check if current GSD roadmap fully implements PRD.md | 2026-02-19 | 557f243 | [1-check-if-current-gsd-roadmap-fully-imple](./quick/1-check-if-current-gsd-roadmap-fully-imple/) |
+| 2 | Add video generation requirements (VID-xx) to REQUIREMENTS.md and ROADMAP.md | 2026-02-19 | b04842b | [2-add-video-generation-requirements-vid-xx](./quick/2-add-video-generation-requirements-vid-xx/) |
 
 ## Session Continuity
 
