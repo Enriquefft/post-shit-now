@@ -68,12 +68,16 @@ Plans:
   3. User can generate a post for X via `/psn:post` that sounds like them, not like generic AI, with format picked per platform
   4. User can generate images using GPT Image, Ideogram 3, or Flux 2, and generate videos using Kling, Runway, or Pika, with Claude picking the best tool for the job and media processed to meet platform specs
   5. Every post goes through human review, edits are tracked, and drafts are stored locally with auto-pruning
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
+- [ ] 03-01-PLAN.md — Voice profile schema, YAML operations, strategy generation
+- [ ] 03-02-PLAN.md — Image generation (GPT Image, Ideogram 3, Flux 2) with platform processing
+- [ ] 03-03-PLAN.md — Video generation (Kling, Runway, Pika) with provider selection
+- [ ] 03-04-PLAN.md — Voice interview engine and content import
+- [ ] 03-05-PLAN.md — Content brain, format picker, topic suggestions, draft management
+- [ ] 03-06-PLAN.md — Calibration engine, edit tracking, brand voice profiles
+- [ ] 03-07-PLAN.md — Slash commands (/psn:post, /psn:voice, /psn:config voice)
 
 ### Phase 4: Analytics and Learning Loop
 **Goal**: User can see what content is working, and the system learns from engagement data and edit patterns to improve future content
