@@ -32,7 +32,7 @@ Progress: [████░░░░░░] 36%
 | 3 | 3/7 | ~12min | ~4min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (~3min), 02-03 (~2min), 02-04 (~4min), 03-01 (~5min), 03-02 (~5min)
+- Last 5 plans: 02-03 (~2min), 02-04 (~4min), 03-01 (~5min), 03-02 (~5min), 03-03 (~2min)
 - Trend: Consistently fast (clear specs + existing patterns)
 
 *Updated after each plan completion*
@@ -72,6 +72,9 @@ Recent decisions affecting current work:
 - [03-02]: GPT Image as default/versatile provider; Ideogram for text-heavy; Flux for photorealism
 - [03-02]: Content hint keyword matching for auto-selection (not ML-based)
 - [03-02]: Instagram always JPEG; iterative quality reduction for size enforcement
+- [03-03]: Kling v2.6 endpoints via fal.ai for best quality realistic motion and native audio
+- [03-03]: Runway SDK constrains text-to-video to veo3.1 model (gen4.5 not in SDK types)
+- [03-03]: Content hint scoring pattern reused from image-gen for provider auto-selection
 
 ### Pending Todos
 
@@ -93,5 +96,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 03-02-PLAN.md
+Stopped at: Completed 03-03-PLAN.md
 Resume file: None
