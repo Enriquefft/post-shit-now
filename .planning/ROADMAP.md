@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation Infrastructure** - Project scaffolding, @psn/core package, Personal Hub provisioning, Drizzle migrations, BYOK setup
 - [x] **Phase 2: X Platform Pipeline** - OAuth for X, token management with race condition protection, post scheduling, media uploads (completed 2026-02-19)
-- [ ] **Phase 3: Voice Profiling and Content Generation** - Voice interviews, content import, calibration, post generation in user's voice, image generation, draft management
+- [x] **Phase 3: Voice Profiling and Content Generation** - Voice interviews, content import, calibration, post generation in user's voice, image generation, draft management (completed 2026-02-19)
 - [ ] **Phase 4: Analytics and Learning Loop** - X analytics collection, engagement scoring, performance review, 3-channel learning loop, preference model
 - [ ] **Phase 5: Intelligence, Ideation, and Planning** - Trend collection, idea bank, weekly batch planning, content series, bilingual support, content recycling
 - [ ] **Phase 6: LinkedIn and Multi-Platform** - LinkedIn OAuth and posting, multi-platform content adaptation, partial failure isolation
@@ -72,12 +72,12 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — Voice profile schema, YAML operations, strategy generation
-- [ ] 03-02-PLAN.md — Image generation (GPT Image, Ideogram 3, Flux 2) with platform processing
-- [ ] 03-03-PLAN.md — Video generation (Kling, Runway, Pika) with provider selection
-- [ ] 03-04-PLAN.md — Voice interview engine and content import
-- [ ] 03-05-PLAN.md — Content brain, format picker, topic suggestions, draft management
-- [ ] 03-06-PLAN.md — Calibration engine, edit tracking, brand voice profiles
-- [ ] 03-07-PLAN.md — Slash commands (/psn:post, /psn:voice, /psn:config voice)
+- [x] 03-02-PLAN.md — Image generation (GPT Image, Ideogram 3, Flux 2) with platform processing
+- [x] 03-03-PLAN.md — Video generation (Kling, Runway, Pika) with provider selection
+- [x] 03-04-PLAN.md — Voice interview engine and content import
+- [x] 03-05-PLAN.md — Content brain, format picker, topic suggestions, draft management
+- [x] 03-06-PLAN.md — Calibration engine, edit tracking, brand voice profiles
+- [x] 03-07-PLAN.md — Slash commands (/psn:post, /psn:voice, /psn:config voice)
 
 ### Phase 4: Analytics and Learning Loop
 **Goal**: User can see what content is working, and the system learns from engagement data and edit patterns to improve future content
@@ -171,7 +171,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Foundation Infrastructure | 3/3 | Complete | 2026-02-18 |
 | 2. X Platform Pipeline | 4/4 | Complete | 2026-02-19 |
-| 3. Voice Profiling and Content Generation | 1/7 | In progress | - |
+| 3. Voice Profiling and Content Generation | 7/7 | Complete | 2026-02-19 |
 | 4. Analytics and Learning Loop | 0/2 | Not started | - |
 | 5. Intelligence, Ideation, and Planning | 0/3 | Not started | - |
 | 6. LinkedIn and Multi-Platform | 0/2 | Not started | - |
