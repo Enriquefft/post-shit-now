@@ -33,19 +33,21 @@ Make it so easy to create and post high-quality, voice-matched content that team
 - ✓ Content fatigue detection and deprioritization in suggestions — Phase 4
 - ✓ Semi-automated draft finish flow for video scripts — Phase 4
 - ✓ Hub routing (personal/company) in draft metadata — Phase 4
+- ✓ Intelligence layer: scheduled trend collection (HN, Reddit, PH, RSS, Google Trends) + on-demand research (Perplexity, Exa, Tavily, Brave) — Phase 5
+- ✓ Idea bank with maturity pipeline: spark → seed → ready → claimed → developed → used/killed — Phase 5
+- ✓ Content series system: recurring formats with cadence, format templates, and performance tracking — Phase 5
+- ✓ Weekly planning engine with series-first slotting, pillar balancing, and content recycling — Phase 5
+- ✓ Bilingual content creation: English + Spanish, per-post language choice, language-specific voice sections — Phase 5
+- ✓ `/psn:plan`, `/psn:capture`, `/psn:series` slash commands — Phase 5
 
 ### Active
 
 - [ ] Two-Hub architecture: mandatory Personal Hub (Neon Postgres + Trigger.dev) for every user, optional Company Hubs for teams
-- [ ] Intelligence layer: scheduled trend collection (HN, Reddit, PH, RSS, Google Trends) + on-demand research (Perplexity, Exa, Tavily, Brave)
-- [ ] Idea bank with maturity pipeline: spark → seed → ready → claimed → developed → used/killed
-- [ ] Content series system: recurring formats with cadence, format templates, and performance tracking
 - [ ] Engagement engine: semi-automated replies to viral/trending posts with human-in-the-loop approval
 - [ ] 4 platform support: X, LinkedIn, Instagram, TikTok (incremental rollout starting with X)
-- [ ] Bilingual content creation: English + Spanish, per-post language choice, language-specific voice sections
 - [ ] WhatsApp notifications via WAHA (push, digest, standard tiers) with structured command interaction
 - [ ] Company coordination: approval workflows, content calendar, invite code onboarding, team idea surfacing
-- [ ] Remaining slash commands: `/psn:plan`, `/psn:capture`, `/psn:engage`, `/psn:approve`, `/psn:series`, `/psn:config`, `/psn:calendar`
+- [ ] Remaining slash commands: `/psn:engage`, `/psn:approve`, `/psn:config`, `/psn:calendar`
 
 ### Out of Scope
 
@@ -117,4 +119,4 @@ Make it so easy to create and post high-quality, voice-matched content that team
 | Edit distance for calibration convergence | 10 consecutive posts below 15% edit ratio = calibrated. Dual signals (edits + explicit). | ✓ Validated Phase 3 |
 
 ---
-*Last updated: 2026-02-19 after Phase 3*
+*Last updated: 2026-02-19 after Phase 5*
