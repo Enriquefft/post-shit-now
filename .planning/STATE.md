@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 4 of 8 (Analytics and Learning Loop)
-Plan: 1 of 5 in current phase (04-01 complete)
+Plan: 3 of 5 in current phase (04-03 complete)
 Status: Executing Phase 4
-Last activity: 2026-02-19 - Completed 04-01: Analytics foundation (DB tables, scoring engine, XClient GET methods)
+Last activity: 2026-02-19 - Completed 04-03: Learning loop (preference model, adjustments, feedback, locks)
 
-Progress: [██████░░░░] 54%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
+- Total plans completed: 16
 - Average duration: ~7min
-- Total execution time: ~1h 51min
+- Total execution time: ~1h 55min
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [██████░░░░] 54%
 | 1 | 3/3 | ~60min | ~20min |
 | 2 | 4/4 | ~12min | ~3min |
 | 3 | 7/7 | ~21min | ~3min |
-| 4 | 1/5 | ~9min | ~9min |
+| 4 | 2/5 | ~13min | ~6.5min |
 
 **Recent Trend:**
-- Last 5 plans: 03-04 (~1min), 03-05 (~1min), 03-06 (~4min), 03-07 (~3min), 04-01 (~9min)
-- Trend: Consistently fast; 04-01 slightly longer (TDD + 3 DB tables + migration)
+- Last 5 plans: 03-05 (~1min), 03-06 (~4min), 03-07 (~3min), 04-01 (~9min), 04-02 (~4min)
+- Trend: Consistently fast; analytics plans averaging ~6.5min
 
 *Updated after each plan completion*
 
@@ -94,6 +94,10 @@ Recent decisions affecting current work:
 - [04-01]: XClient.getTweets chunks IDs into batches of 100 per X API v2 limit
 - [03-07]: Voice tweaks use colon-delimited DSL (formality:8, add-pillar:AI, tone-x:casual)
 - [03-07]: Post command adapts to user input flexibility -- single word to detailed brief
+- [04-02]: Tiered collection cadence: 0-7 day posts every run, 8-30 day posts if not collected in 3 days
+- [04-02]: Per-post error isolation in analytics collector (catch, log, continue)
+- [04-02]: Fatigue detection requires strictly declining scores across last 3 posts
+- [04-02]: Added unique index on postMetrics (postId, platform) for upsert support
 
 ### Pending Todos
 
@@ -115,5 +119,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 04-01-PLAN.md
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None

@@ -85,7 +85,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Analytics
 
-- [ ] **ANLYT-01**: Analytics collector task pulls metrics from X API daily and writes to Hub DB
+- [x] **ANLYT-01**: Analytics collector task pulls metrics from X API daily and writes to Hub DB
 - [ ] **ANLYT-02**: Analytics collector pulls metrics from LinkedIn API daily
 - [ ] **ANLYT-03**: Analytics collector pulls metrics from Instagram API daily (within 200 req/hr budget)
 - [ ] **ANLYT-04**: Analytics collector pulls metrics from TikTok API daily
@@ -105,7 +105,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **LEARN-05**: Autonomous adjustments: pillar weights (±5%/cycle), posting times, format preferences, topic fatigue, frequency (±1/week)
 - [ ] **LEARN-06**: Transparent changelog shows all autonomous changes in weekly review ("what the brain changed this week")
 - [ ] **LEARN-07**: User overrides are permanent — system will not re-adjust locked settings
-- [ ] **LEARN-08**: Content fatigue tracker cools down overused topics and formats
+- [x] **LEARN-08**: Content fatigue tracker cools down overused topics and formats
 - [ ] **LEARN-09**: Company brand preference model in Company Hub DB shared across team members
 
 ### Idea Bank
@@ -308,7 +308,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONTENT-02 | Phase 3 | Complete |
 | CONFIG-02 | Phase 3 | Complete |
 | CONFIG-03 | Phase 3 | Complete |
-| ANLYT-01 | Phase 4 | Pending |
+| ANLYT-01 | Phase 4 | Complete |
 | ANLYT-05 | Phase 4 | Complete |
 | ANLYT-06 | Phase 4 | Pending |
 | ANLYT-07 | Phase 4 | Pending |
@@ -321,7 +321,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LEARN-05 | Phase 4 | Pending |
 | LEARN-06 | Phase 4 | Pending |
 | LEARN-07 | Phase 4 | Pending |
-| LEARN-08 | Phase 4 | Pending |
+| LEARN-08 | Phase 4 | Complete |
 | POST-13 | Phase 4 | Pending |
 | SCHED-06 | Phase 4 | Pending |
 | INTEL-01 | Phase 5 | Pending |
