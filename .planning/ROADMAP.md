@@ -143,12 +143,14 @@ Plans:
   3. Company posts go through approval workflow (submit, notify approvers, approve/reject, schedule/cancel) via `/psn:approve`
   4. WhatsApp notifications work across all 3 tiers (push, digest, standard) with fatigue prevention and structured command interaction
   5. `/psn:calendar` merges Personal Hub and all connected Company Hubs into a unified view with slot claiming
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
-- [ ] 07-03: TBD
+- [ ] 07-01-PLAN.md — DB schema extensions (team_members, invite_codes, notification tables, posts approval columns), team/approval/notification type definitions
+- [ ] 07-02-PLAN.md — Company Hub provisioning, invite code flow, team member management, setup CLI extensions (hub/join/disconnect)
+- [ ] 07-03-PLAN.md — Approval workflow state machine, multi-hub calendar with slot claiming, publish-post approval gate, company brand preference model
+- [ ] 07-04-PLAN.md — WhatsApp provider abstraction (WAHA/Twilio), notification dispatcher with fatigue prevention, structured commands, digest compiler
+- [ ] 07-05-PLAN.md — Slash commands (/psn:approve, /psn:calendar, /psn:setup extensions for hub/join/disconnect/invite/team/notifications)
 
 ### Phase 8: Instagram, TikTok, and Engagement
 **Goal**: User can post to all 4 platforms and proactively engage with trending content in their niche
@@ -181,5 +183,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 4. Analytics and Learning Loop | 5/5 | Complete | 2026-02-19 |
 | 5. Intelligence, Ideation, and Planning | 6/6 | Complete | 2026-02-19 |
 | 6. LinkedIn and Multi-Platform | 2/2 | Complete | 2026-02-19 |
-| 7. Team Coordination and Notifications | 0/3 | Not started | - |
+| 7. Team Coordination and Notifications | 0/5 | Planned | - |
 | 8. Instagram, TikTok, and Engagement | 0/3 | Not started | - |

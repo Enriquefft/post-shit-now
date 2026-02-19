@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 7 of 8 (Team Coordination and Notifications)
-Plan: 0 of 5 in current phase
-Status: Planned — ready for execution
-Last activity: 2026-02-19 - Phase 7 planned (5 plans, 22 requirements, research complete)
+Plan: 1 of 5 in current phase
+Status: Executing
+Last activity: 2026-02-19 - Completed 07-01 (schema and types for team coordination)
 
 Progress: [████████░░] 80%
 
@@ -39,6 +39,7 @@ Progress: [████████░░] 80%
 - Trend: Phase 6 multi-platform plans slightly longer due to cross-platform wiring
 
 *Updated after each plan completion*
+| Phase 07 P01 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -146,6 +147,10 @@ Recent decisions affecting current work:
 - [06-02]: LinkedIn format picker auto-suggests carousel for list/step/framework content (11.2x impressions)
 - [06-02]: LinkedIn engagement weights: reshares(4) > comments(3) > reactions(1)
 - [06-02]: Analytics collector handles both platforms independently -- LinkedIn failure does not crash X collection
+- [Phase 07]: [07-01]: Team RLS allows seeing all members in same hub (hub-scoped visibility)
+- [Phase 07]: [07-01]: inviteCodes has no RLS -- validated server-side only
+- [Phase 07]: [07-01]: Approval columns nullable on posts (null=personal, non-null=company)
+- [Phase 07]: [07-01]: pushEnabled/digestEnabled as integer (0/1) for Postgres boolean-as-int pattern
 
 ### Pending Todos
 
@@ -167,5 +172,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Phase 7 planned (5 plans), ready for execution starting with 07-01
-Resume file: .planning/phases/07-team-coordination-and-notifications/07-01-PLAN.md
+Stopped at: Completed 07-01-PLAN.md
+Resume file: .planning/phases/07-team-coordination-and-notifications/07-02-PLAN.md

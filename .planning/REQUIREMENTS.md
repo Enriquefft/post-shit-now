@@ -106,7 +106,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **LEARN-06**: Transparent changelog shows all autonomous changes in weekly review ("what the brain changed this week")
 - [x] **LEARN-07**: User overrides are permanent — system will not re-adjust locked settings
 - [x] **LEARN-08**: Content fatigue tracker cools down overused topics and formats
-- [ ] **LEARN-09**: Company brand preference model in Company Hub DB shared across team members
+- [x] **LEARN-09**: Company brand preference model in Company Hub DB shared across team members
 
 ### Idea Bank
 
@@ -140,7 +140,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SERIES-04**: User can pause, resume, and retire series via `/psn:series`
 - [x] **SERIES-05**: Per-series analytics tracked separately in `/psn:review`
 - [x] **SERIES-06**: System suggests formalizing as series when it detects recurring post patterns
-- [ ] **SERIES-07**: Company-scoped series in Company Hub with contributor rotation support
+- [x] **SERIES-07**: Company-scoped series in Company Hub with contributor rotation support
 
 ### Intelligence
 
@@ -168,16 +168,16 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **NOTIF-03**: Tier 2 morning digest at configurable time with adaptive content based on user journey stage
 - [ ] **NOTIF-04**: Tier 3 standard notifications: post scheduled/published, approval results, weekly digest, token expiring
 - [ ] **NOTIF-05**: WhatsApp structured commands: R1/R2/R3 (reply selection), skip, approve, reject, edit, post, time, list, help
-- [ ] **NOTIF-06**: Conversation state machine tracks active notification context per user in `whatsapp_sessions` table
-- [ ] **NOTIF-07**: Notification fatigue prevention: hard caps (3 push/day), cooldowns (2hr), dedup, feedback loop, quiet hours
+- [x] **NOTIF-06**: Conversation state machine tracks active notification context per user in `whatsapp_sessions` table
+- [x] **NOTIF-07**: Notification fatigue prevention: hard caps (3 push/day), cooldowns (2hr), dedup, feedback loop, quiet hours
 - [ ] **NOTIF-08**: Company-level notification routing based on team member expertise
 
 ### Company Coordination
 
-- [ ] **TEAM-01**: Admin can create a Company Hub via `/psn:setup hub` (separate Neon DB + Trigger.dev project)
-- [ ] **TEAM-02**: Admin can generate one-time invite codes (7-day expiry) for team members
-- [ ] **TEAM-03**: Team member can join a Company Hub via `/psn:setup join` with invite code
-- [ ] **TEAM-04**: Postgres RLS enforces per-user data isolation in Company Hub
+- [x] **TEAM-01**: Admin can create a Company Hub via `/psn:setup hub` (separate Neon DB + Trigger.dev project)
+- [x] **TEAM-02**: Admin can generate one-time invite codes (7-day expiry) for team members
+- [x] **TEAM-03**: Team member can join a Company Hub via `/psn:setup join` with invite code
+- [x] **TEAM-04**: Postgres RLS enforces per-user data isolation in Company Hub
 - [ ] **TEAM-05**: Company posts follow approval workflow: submit → notify approvers → approve/reject → schedule/cancel
 - [ ] **TEAM-06**: `/psn:approve` shows pending posts with calendar context and related ideas
 - [ ] **TEAM-07**: Team member leaving = delete connection file; personal data unaffected
@@ -365,10 +365,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLAT-07 | Phase 6 | Pending |
 | ANLYT-02 | Phase 6 | Pending |
 | POST-02 | Phase 6 | Pending |
-| TEAM-01 | Phase 7 | Pending |
-| TEAM-02 | Phase 7 | Pending |
-| TEAM-03 | Phase 7 | Pending |
-| TEAM-04 | Phase 7 | Pending |
+| TEAM-01 | Phase 7 | Complete |
+| TEAM-02 | Phase 7 | Complete |
+| TEAM-03 | Phase 7 | Complete |
+| TEAM-04 | Phase 7 | Complete |
 | TEAM-05 | Phase 7 | Pending |
 | TEAM-06 | Phase 7 | Pending |
 | TEAM-07 | Phase 7 | Pending |
@@ -379,11 +379,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NOTIF-03 | Phase 7 | Pending |
 | NOTIF-04 | Phase 7 | Pending |
 | NOTIF-05 | Phase 7 | Pending |
-| NOTIF-06 | Phase 7 | Pending |
-| NOTIF-07 | Phase 7 | Pending |
+| NOTIF-06 | Phase 7 | Complete |
+| NOTIF-07 | Phase 7 | Complete |
 | NOTIF-08 | Phase 7 | Pending |
-| LEARN-09 | Phase 7 | Pending |
-| SERIES-07 | Phase 7 | Pending |
+| LEARN-09 | Phase 7 | Complete |
+| SERIES-07 | Phase 7 | Complete |
 | CONFIG-05 | Phase 7 | Pending |
 | CONFIG-06 | Phase 7 | Pending |
 | AUTH-03 | Phase 8 | Pending |
