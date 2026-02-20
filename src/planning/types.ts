@@ -79,6 +79,8 @@ export interface PlanIdea {
 	sourceId?: string;
 	language?: string;
 	score?: number;
+	/** Sample post text for never_posted users */
+	samplePost?: string;
 }
 
 // ─── Plan Phase ─────────────────────────────────────────────────────────────

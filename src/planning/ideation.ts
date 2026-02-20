@@ -9,6 +9,7 @@ import { searchAll } from "../intelligence/search/index.ts";
 import { getPreferenceModel } from "../learning/preference-model.ts";
 import { loadProfile } from "../voice/profile.ts";
 import type { MaturityLevel } from "../voice/types.ts";
+import type { VoiceProfile } from "../voice/types.ts";
 import type { PlanIdea, PlanIdeaSource } from "./types.ts";
 
 // ─── Maturity Adaptations ─────────────────────────────────────────────────────
@@ -55,6 +56,51 @@ export const MATURITY_ADAPTATIONS: Record<MaturityLevel, {
  */
 export function getMaturityAdaptation(level: MaturityLevel | undefined): typeof MATURITY_ADAPTATIONS.never_posted {
 	return MATURITY_ADAPTATIONS[level ?? "consistent"];
+}
+
+// ─── Sample Post Generation ──────────────────────────────────────────────────
+
+/**
+ * Generate a short sample post for never-posted users.
+ * Uses voice profile for tone matching.
+ * Returns a brief (2-3 sentences) sample to show how a post might look.
+ */
+export async function generateSamplePost(options: {
+	profile: VoiceProfile;
+	topic: string;
+	platform: string;
+}): Promise<string> {
+	const { profile, topic, platform } = options;
+
+	// Get tone hints from profile
+	const platformPersona = profile.platforms[platform as keyof typeof profile.platforms];
+	const tone = platformPersona?.tone ?? "professional";
+	const formality = profile.style.formality;
+
+	// Build a sample post template based on voice characteristics
+	const formalityPrefix = formality >= 7 ? "I've been thinking about" : formality <= 3 ? "Hot take:" : "Thoughts on";
+
+	// Generate sample - this is a template; Claude will generate actual content
+	const sample = `${formalityPrefix} ${topic}.\n\n[This is a sample of how your post might start. The actual content would match your voice more precisely after calibration.]`;
+
+	return sample;
+}
+
+/**
+ * Format a sample post for display with context about why it works.
+ */
+export function getSampleContext(idea: PlanIdea): string {
+	if (!idea.samplePost) return "";
+
+	const parts = [
+		`**Sample post for "${idea.topic}":**`,
+		"",
+		idea.samplePost,
+		"",
+		`*Why this works: This sample uses a ${idea.angle} angle on your ${idea.pillar} pillar. The format (${idea.format}) is well-suited for this topic.*`,
+	];
+
+	return parts.join("\n");
 }
 
 // ─── Ideation Options ────────────────────────────────────────────────────────
@@ -206,6 +252,24 @@ export async function generatePlanIdeas(
 		}
 	} catch {
 		// Voice profile may not exist
+	}
+
+	// 5. For never_posted users, generate sample post for top idea
+	if (adaptation.showSamplePosts && ideas.length > 0) {
+		try {
+			const profile = await loadProfile(opts?.profilePath ?? "content/voice/personal.yaml");
+			const topIdea = ideas[0];
+			if (topIdea) {
+				const samplePost = await generateSamplePost({
+					profile,
+					topic: topIdea.topic,
+					platform: opts?.platform ?? "x",
+				});
+				topIdea.samplePost = samplePost;
+			}
+		} catch {
+			// Voice profile may not exist, skip sample generation
+		}
 	}
 
 	// Trim to target count
