@@ -225,7 +225,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 8. Instagram, TikTok, and Engagement | 6/6 | Complete | 2026-02-19 |
 | 9. Integration Wiring Fixes | 2/2 | Complete | 2026-02-19 |
 | 10. Milestone Documentation Closure | 1/1 | Complete | 2026-02-19 |
-| 11. Tech Debt Remediation | 3/6 | In Progress|  |
+| 11. Tech Debt Remediation | 4/6 | In Progress|  |
 | 12. Solo Founder Experience | 0/3 | Pending | — |
 | 13. Academic Content Support | 0/1 | Pending | — |
 
@@ -241,7 +241,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
   4. All video providers (Kling, Runway, Pika) use getApiKey() when db + hubId provided
   5. /psn:setup collects and stores provider keys per hub (encrypted in DB)
   6. Hub context flows from CLI/Trigger tasks to providers via db + hubId parameters
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 
 Plans:
 - [ ] 11-01-PLAN.md — Create getApiKey/setApiKey/listKeys functions for encrypted key storage
