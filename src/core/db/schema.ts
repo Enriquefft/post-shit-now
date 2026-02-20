@@ -10,6 +10,7 @@ import {
 	uniqueIndex,
 	uuid,
 } from "drizzle-orm/pg-core";
+import type { VoiceProfile } from "../../voice/types";
 
 // Role for hub users — expected to exist in the database
 export const hubUser = pgRole("hub_user").existing();
@@ -109,6 +110,33 @@ export const apiKeys = pgTable(
 	(table) => [
 		uniqueIndex("api_keys_user_service_idx").on(table.userId, table.service),
 		pgPolicy("api_keys_isolation", {
+			as: "permissive",
+			to: hubUser,
+			for: "all",
+			using: sql`${table.userId} = current_setting('app.current_user_id')`,
+			withCheck: sql`${table.userId} = current_setting('app.current_user_id')`,
+		}),
+	],
+);
+
+// ─── Voice Profiles ─────────────────────────────────────────────────────────
+
+export const voiceProfiles = pgTable(
+	"voice_profiles",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id").notNull(),
+		entitySlug: text("entity_slug").notNull(),
+		entityDisplayName: text("entity_display_name"),
+		entityDescription: text("entity_description"),
+		lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+		profileData: jsonb("profile_data").$type<VoiceProfile>().notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		uniqueIndex("voice_profiles_user_entity_idx").on(table.userId, table.entitySlug),
+		pgPolicy("voice_profiles_isolation", {
 			as: "permissive",
 			to: hubUser,
 			for: "all",
