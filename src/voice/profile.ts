@@ -1,11 +1,13 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
 import { parse, stringify } from "yaml";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type { Platform } from "../core/types/index.ts";
+import { loadProfileByEntity, type EntitySummary } from "./entity-profiles.ts";
 import {
 	type StrategyConfig,
+	strategyConfigSchema,
 	type VoiceProfile,
 	type VoiceTweak,
-	strategyConfigSchema,
 	voiceProfileSchema,
 } from "./types.ts";
 
@@ -16,8 +18,33 @@ const DEFAULT_STRATEGY_PATH = "content/voice/strategy.yaml";
 
 // ─── Load Profile ───────────────────────────────────────────────────────────
 
-export async function loadProfile(profilePath?: string): Promise<VoiceProfile> {
-	const path = profilePath ?? DEFAULT_PROFILE_PATH;
+export interface LoadProfileOptions {
+	profilePath?: string;
+	entitySlug?: string;
+	db?: PostgresJsDatabase;
+	userId?: string;
+}
+
+export async function loadProfile(options?: LoadProfileOptions): Promise<VoiceProfile>;
+export async function loadProfile(profilePath?: string): Promise<VoiceProfile>;
+export async function loadProfile(
+	optionsOrPath?: LoadProfileOptions | string,
+): Promise<VoiceProfile> {
+	// Handle legacy string overload
+	const options: LoadProfileOptions =
+		typeof optionsOrPath === "string" ? { profilePath: optionsOrPath } : optionsOrPath ?? {};
+
+	// If db and userId and entitySlug provided, try loading from DB
+	if (options.db && options.userId && options.entitySlug) {
+		const profile = await loadProfileByEntity(options.db, options.userId, options.entitySlug);
+		if (profile) {
+			return profile;
+		}
+		throw new Error(`Entity not found: ${options.entitySlug}`);
+	}
+
+	// Fall back to YAML file loading
+	const path = options.profilePath ?? DEFAULT_PROFILE_PATH;
 
 	let raw: string;
 	try {
@@ -25,7 +52,9 @@ export async function loadProfile(profilePath?: string): Promise<VoiceProfile> {
 	} catch (err) {
 		const code = (err as NodeJS.ErrnoException).code;
 		if (code === "ENOENT") {
-			throw new Error(`Voice profile not found at: ${path}. Run /psn:voice interview to create one.`);
+			throw new Error(
+				`Voice profile not found at: ${path}. Run /psn:voice interview to create one.`,
+			);
 		}
 		throw err;
 	}
@@ -151,7 +180,8 @@ const DEFAULT_BEST_TIMES: Record<Platform, string[]> = {
 
 export function generateStrategy(profile: VoiceProfile): StrategyConfig {
 	// Map pillars to weighted categories (equal weight)
-	const pillarWeight = profile.identity.pillars.length > 0 ? 1 / profile.identity.pillars.length : 0;
+	const pillarWeight =
+		profile.identity.pillars.length > 0 ? 1 / profile.identity.pillars.length : 0;
 	const pillars = profile.identity.pillars.map((name) => ({
 		name,
 		weight: Math.round(pillarWeight * 100) / 100,
@@ -159,7 +189,8 @@ export function generateStrategy(profile: VoiceProfile): StrategyConfig {
 	}));
 
 	// Set platform frequency based on which platforms have personas
-	const platforms: Record<string, { enabled: boolean; frequency: number; bestTimes: string[] }> = {};
+	const platforms: Record<string, { enabled: boolean; frequency: number; bestTimes: string[] }> =
+		{};
 	const platformKeys: Platform[] = ["x", "linkedin", "instagram", "tiktok"];
 
 	let totalFrequency = 0;
@@ -193,10 +224,7 @@ export function generateStrategy(profile: VoiceProfile): StrategyConfig {
 
 // ─── Save Strategy ──────────────────────────────────────────────────────────
 
-export async function saveStrategy(
-	strategy: StrategyConfig,
-	strategyPath?: string,
-): Promise<void> {
+export async function saveStrategy(strategy: StrategyConfig, strategyPath?: string): Promise<void> {
 	const path = strategyPath ?? DEFAULT_STRATEGY_PATH;
 
 	const result = strategyConfigSchema.safeParse(strategy);
@@ -210,3 +238,7 @@ export async function saveStrategy(
 	await writeFile(tmpPath, content, "utf-8");
 	await rename(tmpPath, path);
 }
+
+// ─── Re-exports ─────────────────────────────────────────────────────────────
+
+export type { EntitySummary } from "./entity-profiles.ts";

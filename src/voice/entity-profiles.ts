@@ -98,13 +98,18 @@ export async function loadProfileByEntity(
 		return null;
 	}
 
+	const row = result[0];
+	if (!row) {
+		return null;
+	}
+
 	// Update lastUsedAt timestamp
 	await db
 		.update(voiceProfiles)
 		.set({ lastUsedAt: new Date() })
-		.where(eq(voiceProfiles.id, result[0].id));
+		.where(eq(voiceProfiles.id, row.id));
 
-	return result[0].profileData;
+	return row.profileData;
 }
 
 /**
