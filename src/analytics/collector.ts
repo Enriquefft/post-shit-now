@@ -177,10 +177,10 @@ export async function collectAnalytics(
 			const rateBps = computeEngagementRateBps(metrics);
 
 			// Extract context from post metadata
-			const metadata = (post.metadata ?? {}) as Record<string, unknown>;
-			const postFormat = (metadata.format as string) ?? null;
-			const postTopic = (metadata.topic as string) ?? null;
-			const postPillar = (metadata.pillar as string) ?? null;
+			const metadata = post.metadata ?? {};
+			const postFormat = metadata.format ?? null;
+			const postTopic = metadata.topic ?? null;
+			const postPillar = metadata.pillar ?? null;
 
 			// Non-public metrics from first tweet (if available)
 			const firstTweet = tweetMetricsMap.get(tweetIds[0] as string);
@@ -371,10 +371,10 @@ export async function collectLinkedInAnalytics(
 			const rateBps = computeLinkedInEngagementRateBps(linkedInMetrics, stats.impressionCount);
 
 			// Extract context from post metadata
-			const metadata = (post.metadata ?? {}) as Record<string, unknown>;
-			const postFormat = (metadata.format as string) ?? null;
-			const postTopic = (metadata.topic as string) ?? null;
-			const postPillar = (metadata.pillar as string) ?? null;
+			const metadata = post.metadata ?? {};
+			const postFormat = metadata.format ?? null;
+			const postTopic = metadata.topic ?? null;
+			const postPillar = metadata.pillar ?? null;
 
 			// Upsert into postMetrics
 			await db
@@ -542,8 +542,8 @@ export async function collectInstagramAnalytics(
 
 		try {
 			// Get the Instagram media ID from platformPostIds or externalPostId
-			const metadata = (post.metadata ?? {}) as Record<string, unknown>;
-			const platformPostIds = metadata.platformPostIds as Record<string, string> | undefined;
+			const metadata = post.metadata ?? {};
+			const platformPostIds = metadata.platformPostIds;
 			const mediaId = platformPostIds?.instagram ?? post.externalPostId;
 			if (!mediaId) continue;
 
@@ -561,9 +561,9 @@ export async function collectInstagramAnalytics(
 			const score = computeInstagramEngagementScore(igMetrics);
 			const rateBps = computeInstagramEngagementRateBps(igMetrics, impressions);
 
-			const postFormat = (metadata.format as string) ?? null;
-			const postTopic = (metadata.topic as string) ?? null;
-			const postPillar = (metadata.pillar as string) ?? null;
+			const postFormat = metadata.format ?? null;
+			const postTopic = metadata.topic ?? null;
+			const postPillar = metadata.pillar ?? null;
 
 			await db
 				.insert(postMetrics)
@@ -719,8 +719,8 @@ export async function collectTikTokAnalytics(
 	// Build a map of TikTok video ID -> post for matching
 	const tiktokIdToPost = new Map<string, (typeof postsToCollect)[number]>();
 	for (const post of postsToCollect) {
-		const metadata = (post.metadata ?? {}) as Record<string, unknown>;
-		const platformPostIds = metadata.platformPostIds as Record<string, string> | undefined;
+		const metadata = post.metadata ?? {};
+		const platformPostIds = metadata.platformPostIds;
 		const tiktokId = platformPostIds?.tiktok ?? post.externalPostId;
 		if (tiktokId) {
 			tiktokIdToPost.set(tiktokId, post);
@@ -756,10 +756,10 @@ export async function collectTikTokAnalytics(
 					const score = computeTikTokEngagementScore(ttMetrics);
 					const rateBps = computeTikTokEngagementRateBps(ttMetrics, views);
 
-					const metadata = (post.metadata ?? {}) as Record<string, unknown>;
-					const postFormat = (metadata.format as string) ?? null;
-					const postTopic = (metadata.topic as string) ?? null;
-					const postPillar = (metadata.pillar as string) ?? null;
+					const metadata = post.metadata ?? {};
+					const postFormat = metadata.format ?? null;
+					const postTopic = metadata.topic ?? null;
+					const postPillar = metadata.pillar ?? null;
 
 					await db
 						.insert(postMetrics)

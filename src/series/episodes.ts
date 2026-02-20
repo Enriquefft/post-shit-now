@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
-import { series } from "../core/db/schema.ts";
-import type { Series, SeriesCadence } from "./types.ts";
+import { SeriesCadence, series } from "../core/db/schema.ts";
+import type { Series } from "./types.ts";
 import { CADENCE_DAYS } from "./types.ts";
 
 // ─── Due Episodes ────────────────────────────────────────────────────────────
@@ -108,9 +108,13 @@ export async function recordEpisodePublished(db: HubDb, seriesId: string) {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function getCadenceDays(cadence: SeriesCadence, customDays: number | null): number {
-	if (cadence === "custom") {
+	if (cadence === SeriesCadence.custom) {
 		if (!customDays) throw new Error("Custom cadence requires cadenceCustomDays");
 		return customDays;
 	}
-	return CADENCE_DAYS[cadence];
+	const days = CADENCE_DAYS[cadence];
+	if (!days) {
+		throw new Error(`Unknown cadence: ${cadence}`);
+	}
+	return days;
 }

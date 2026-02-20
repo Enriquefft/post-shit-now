@@ -76,12 +76,12 @@ export function getMaturityAdaptation(
 export async function generateSamplePost(options: {
 	profile: VoiceProfile;
 	topic: string;
-	platform: string;
+	platform: keyof typeof options.profile.platforms;
 }): Promise<string> {
 	const { profile, topic, platform } = options;
 
 	// Get tone hints from profile
-	const platformPersona = profile.platforms[platform as keyof typeof profile.platforms];
+	const platformPersona = profile.platforms[platform];
 	const _tone = platformPersona?.tone ?? "professional";
 	const formality = profile.style.formality;
 
@@ -150,14 +150,10 @@ export async function generatePlanIdeas(
 	try {
 		const model = await getPreferenceModel(db, userId);
 		if (model) {
-			const ft = model.fatiguedTopics as Array<{
-				topic: string;
-				cooldownUntil: string;
-				lastScores: number[];
-			}> | null;
+			const ft = model.fatiguedTopics;
 			fatiguedTopics = ft?.filter((t) => isTopicFatigued(t.topic, ft)) ?? [];
 
-			const tf = model.topFormats as Array<{ format: string; avgScore: number }> | null;
+			const tf = model.topFormats;
 			topFormats = tf ? [...tf].sort((a, b) => b.avgScore - a.avgScore).map((f) => f.format) : [];
 		}
 	} catch {
@@ -187,13 +183,13 @@ export async function generatePlanIdeas(
 			if (ideas.length >= trendTarget) break;
 			if (fatiguedSet.has(trend.title.toLowerCase())) continue;
 
-			const angles = trend.suggestedAngles as string[] | null;
+			const angles = trend.suggestedAngles;
 			ideas.push({
 				topic: trend.title,
-				pillar: findBestPillar(trend.pillarRelevance as Record<string, number> | null, pillars),
+				pillar: findBestPillar(trend.pillarRelevance, pillars),
 				angle: angles?.[0] ?? "trend",
 				format: topFormats[0] ?? "short-post",
-				source: "trend" as PlanIdeaSource,
+				source: "trend",
 				sourceId: trend.id,
 				score: trend.overallScore,
 			});
@@ -215,7 +211,7 @@ export async function generatePlanIdeas(
 				pillar: idea.pillar ?? pillars[0]?.name ?? "general",
 				angle: "bank",
 				format: (idea.format as PostFormat) ?? topFormats[0] ?? "short-post",
-				source: "bank" as PlanIdeaSource,
+				source: "bank",
 				sourceId: idea.id,
 			});
 		}
@@ -260,7 +256,7 @@ export async function generatePlanIdeas(
 				pillar: suggestion.pillar,
 				angle: suggestion.angle,
 				format: suggestion.suggestedFormat,
-				source: "generated" as PlanIdeaSource,
+				source: "generated",
 			});
 		}
 	} catch {
@@ -273,10 +269,11 @@ export async function generatePlanIdeas(
 			const profile = await loadProfile(opts?.profilePath ?? "content/voice/personal.yaml");
 			const topIdea = ideas[0];
 			if (topIdea) {
+				const platformKey = (opts?.platform ?? "x") as keyof typeof profile.platforms;
 				const samplePost = await generateSamplePost({
 					profile,
 					topic: topIdea.topic,
-					platform: opts?.platform ?? "x",
+					platform: platformKey,
 				});
 				topIdea.samplePost = samplePost;
 			}

@@ -12,6 +12,71 @@ import {
 } from "drizzle-orm/pg-core";
 import type { VoiceProfile } from "../../voice/types";
 
+// ─── Enums ─────────────────────────────────────────────────────────────────────
+
+export enum HubRole {
+	admin = "admin",
+	member = "member",
+}
+
+export enum Platform {
+	x = "x",
+	linkedin = "linkedin",
+	instagram = "instagram",
+	tiktok = "tiktok",
+}
+
+export enum SeriesCadence {
+	weekly = "weekly",
+	biweekly = "biweekly",
+	monthly = "monthly",
+	custom = "custom",
+}
+
+// ─── Metadata Types ─────────────────────────────────────────────────────────────
+
+export interface OAuthTokenMetadata {
+	personUrn?: string;
+	lastRefreshedAt?: string;
+	state?: string;
+}
+
+export interface PostMetadata {
+	format?: string;
+	topic?: string;
+	pillar?: string;
+	platformPostIds?: Record<string, string>;
+	hookPatterns?: string[];
+	seriesEpisodeId?: string;
+	// Slot claiming metadata (for approval calendar)
+	slotClaimed?: boolean;
+	hubId?: string;
+	// Publishing metadata (for trigger/publish-post.ts)
+	skippedReason?: string;
+	skippedAt?: string;
+	platformStatus?: Record<string, { status: string; externalPostId?: string; error?: string }>;
+	failedAt?: string;
+	retryCount?: number;
+	failReason?: string;
+	watchdogRetryAt?: string;
+	lastTriggerRunId?: string;
+	// Thread progress (for X threads)
+	threadProgress?: string;
+	// LinkedIn-specific metadata
+	linkedinFormat?: string;
+	linkedinVisibility?: "PUBLIC" | "CONNECTIONS";
+	carouselTitle?: string;
+	imageAltText?: string;
+	articleUrl?: string;
+	articleTitle?: string;
+	articleDescription?: string;
+	// Instagram-specific metadata
+	instagramFormat?: string;
+	// TikTok-specific metadata
+	tiktokFormat?: string;
+	tiktokTitle?: string;
+}
+
 // Role for hub users — expected to exist in the database
 export const hubUser = pgRole("hub_user").existing();
 
@@ -38,7 +103,7 @@ export const oauthTokens = pgTable(
 		refreshToken: text("refresh_token"), // encrypted, nullable (not all platforms use refresh)
 		expiresAt: timestamp("expires_at", { withTimezone: true }),
 		scopes: text("scopes"),
-		metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+		metadata: jsonb("metadata").$type<OAuthTokenMetadata>(),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
@@ -73,7 +138,7 @@ export const posts = pgTable(
 		scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
 		publishedAt: timestamp("published_at", { withTimezone: true }),
 		externalPostId: text("external_post_id"),
-		metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+		metadata: jsonb("metadata").$type<PostMetadata>(),
 		seriesId: text("series_id"), // references series.id when post is part of a series
 		language: text("language"), // "en" | "es" | "both" for bilingual tracking
 		// Approval workflow columns (null for personal posts)
@@ -373,7 +438,7 @@ export const series = pgTable(
 		description: text("description"),
 		platform: text("platform").notNull(),
 		template: jsonb("template").$type<SeriesTemplate>(),
-		cadence: text("cadence").notNull(), // weekly | biweekly | monthly | custom
+		cadence: text("cadence").$type<SeriesCadence>().notNull(),
 		cadenceCustomDays: integer("cadence_custom_days"),
 		trackingMode: text("tracking_mode").notNull().default("auto-increment"), // none | auto-increment | custom
 		trackingFormat: text("tracking_format"), // e.g., "Season {s}, Ep {e}"
@@ -499,7 +564,7 @@ export const teamMembers = pgTable(
 		id: uuid("id").defaultRandom().primaryKey(),
 		userId: text("user_id").notNull(),
 		hubId: text("hub_id").notNull(),
-		role: text("role").notNull().default("member"), // admin | member
+		role: text("role").$type<HubRole>().notNull().default(HubRole.member),
 		displayName: text("display_name"),
 		email: text("email"),
 		joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow().notNull(),

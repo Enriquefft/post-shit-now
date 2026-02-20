@@ -320,7 +320,13 @@ export function generateQuestions(state: InterviewState): InterviewQuestion[] {
 
 // ─── Answer Processing ──────────────────────────────────────────────────────
 
-const PHASE_ORDER: InterviewPhase[] = ["identity", "style", "platforms", "language", "review"];
+const PHASE_ORDER = [
+	"identity",
+	"style",
+	"platforms",
+	"language",
+	"review",
+] as const satisfies readonly InterviewPhase[];
 
 export function processAnswer(
 	state: InterviewState,
@@ -362,8 +368,9 @@ export function processAnswer(
 
 	if (answeredRequired >= requiredInPhase && answeredInPhase >= currentQuestions.length) {
 		const currentIndex = PHASE_ORDER.indexOf(updated.phase);
-		if (currentIndex < PHASE_ORDER.length - 1) {
-			updated.phase = PHASE_ORDER[currentIndex + 1] as InterviewPhase;
+		const nextPhase = PHASE_ORDER[currentIndex + 1];
+		if (nextPhase) {
+			updated.phase = nextPhase;
 			updated.questionIndex = 0;
 		}
 	}
@@ -373,10 +380,11 @@ export function processAnswer(
 
 export function advancePhase(state: InterviewState): InterviewState {
 	const currentIndex = PHASE_ORDER.indexOf(state.phase);
-	if (currentIndex < PHASE_ORDER.length - 1) {
+	const nextPhase = PHASE_ORDER[currentIndex + 1];
+	if (nextPhase) {
 		return {
 			...state,
-			phase: PHASE_ORDER[currentIndex + 1] as InterviewPhase,
+			phase: nextPhase,
 			questionIndex: 0,
 		};
 	}

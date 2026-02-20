@@ -253,11 +253,14 @@ export async function generateWeeklyReview(
 
 	// Fatigue warnings
 	const fatigueInputs = currentMetrics
-		.filter((r) => r.metric.postTopic && r.postPublishedAt)
+		.filter(
+			(r): r is typeof r & { metric: { postTopic: string }; postPublishedAt: Date } =>
+				r.metric.postTopic !== null && r.postPublishedAt !== null,
+		)
 		.map((r) => ({
-			topic: r.metric.postTopic as string,
+			topic: r.metric.postTopic,
 			score: r.metric.engagementScore,
-			publishedAt: r.postPublishedAt as Date,
+			publishedAt: r.postPublishedAt,
 		}));
 	const fatiguedTopics = detectTopicFatigue(fatigueInputs);
 
@@ -274,7 +277,7 @@ export async function generateWeeklyReview(
 	// ── 7. Follower trend ───────────────────────────────────────────────
 
 	const followerHistory = model?.followerHistory ?? [];
-	const lastTwo = followerHistory.slice(-2);
+	const lastTwo = (followerHistory as Array<{ count: number; date: string }>).slice(-2);
 	const followerTrend = {
 		current: lastTwo.length > 0 ? (lastTwo[lastTwo.length - 1]?.count ?? 0) : 0,
 		previous: lastTwo.length > 1 ? (lastTwo[0]?.count ?? 0) : 0,
@@ -312,16 +315,10 @@ export async function generateWeeklyReview(
 			const weeksOfData = Math.floor(days / 7) || 1;
 			const adjustments = computeAdjustments(
 				{
-					topFormats: model.topFormats as Array<{ format: string; avgScore: number }> | null,
-					topPillars: model.topPillars as Array<{ pillar: string; avgScore: number }> | null,
-					bestPostingTimes: model.bestPostingTimes as Array<{
-						hour: number;
-						dayOfWeek: number;
-						avgScore: number;
-					}> | null,
-					lockedSettings: model.lockedSettings as Parameters<
-						typeof computeAdjustments
-					>[0]["lockedSettings"],
+					topFormats: model.topFormats,
+					topPillars: model.topPillars,
+					bestPostingTimes: model.bestPostingTimes,
+					lockedSettings: model.lockedSettings,
 				},
 				strategy,
 				currentMetrics.length,

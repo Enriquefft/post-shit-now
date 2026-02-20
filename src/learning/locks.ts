@@ -39,7 +39,7 @@ export async function lockSetting(
 		.where(eq(preferenceModel.userId, userId))
 		.limit(1);
 
-	const current = (rows[0]?.lockedSettings as LockedSetting[] | null) ?? [];
+	const current = rows[0]?.lockedSettings ?? [];
 
 	const newEntry: LockedSetting = {
 		field,
@@ -73,7 +73,7 @@ export async function unlockSetting(
 		.where(eq(preferenceModel.userId, userId))
 		.limit(1);
 
-	const current = (rows[0]?.lockedSettings as LockedSetting[] | null) ?? [];
+	const current = rows[0]?.lockedSettings ?? [];
 	const updated = current.filter((s) => s.field !== field);
 
 	await db
@@ -94,5 +94,5 @@ export async function getLockedSettings(db: HubDb, userId: string): Promise<Lock
 		.where(eq(preferenceModel.userId, userId))
 		.limit(1);
 
-	return (rows[0]?.lockedSettings as LockedSetting[] | null) ?? [];
+	return rows[0]?.lockedSettings ?? [];
 }

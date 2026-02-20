@@ -16,49 +16,49 @@ export interface TopicSuggestion {
 // ─── Angle Templates ────────────────────────────────────────────────────────
 
 export const ANGLES = [
-	{ name: "hot-take", template: "Hot take: {pillar}", format: "short-post" as PostFormat },
-	{ name: "how-to", template: "How to {pillar}", format: "thread" as PostFormat },
+	{ name: "hot-take", template: "Hot take: {pillar}", format: "short-post" },
+	{ name: "how-to", template: "How to {pillar}", format: "thread" },
 	{
 		name: "story",
 		template: "A lesson I learned about {pillar}",
-		format: "short-post" as PostFormat,
+		format: "short-post",
 	},
 	{
 		name: "trend",
 		template: "What's changing in {pillar} right now",
-		format: "thread" as PostFormat,
+		format: "thread",
 	},
 	{
 		name: "myth-busting",
 		template: "The biggest myth about {pillar}",
-		format: "short-post" as PostFormat,
+		format: "short-post",
 	},
 	{
 		name: "comparison",
 		template: "{pillar}: what most people get wrong",
-		format: "carousel" as PostFormat,
+		format: "carousel",
 	},
 	{
 		name: "prediction",
 		template: "Where {pillar} is headed in the next year",
-		format: "thread" as PostFormat,
+		format: "thread",
 	},
 	{
 		name: "behind-the-scenes",
 		template: "Behind the scenes of my {pillar} work",
-		format: "image-post" as PostFormat,
+		format: "image-post",
 	},
 	{
 		name: "tool-recommendation",
 		template: "Best tools for {pillar}",
-		format: "carousel" as PostFormat,
+		format: "carousel",
 	},
 	{
 		name: "quick-tip",
 		template: "Quick {pillar} tip that changed everything",
-		format: "short-post" as PostFormat,
+		format: "short-post",
 	},
-];
+] as const;
 
 // Platform-specific format overrides
 const PLATFORM_FORMAT_MAP: Record<Platform, Partial<Record<string, PostFormat>>> = {
@@ -97,7 +97,7 @@ export function suggestTopics(params: {
 				topic: `Ready: ${idea.title} (${idea.pillar ?? "general"})`,
 				pillar: idea.pillar ?? "general",
 				angle: "idea-bank",
-				suggestedFormat: "short-post" as PostFormat,
+				suggestedFormat: "short-post",
 			});
 		}
 	}

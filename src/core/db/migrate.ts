@@ -1,4 +1,3 @@
-import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { migrate } from "drizzle-orm/neon-http/migrator";
 
@@ -11,8 +10,7 @@ export async function runMigrations(
 	migrationsFolder = "./drizzle/migrations",
 ): Promise<{ success: boolean; error?: string }> {
 	try {
-		const sql = neon(databaseUrl);
-		const db = drizzle(sql);
+		const db = drizzle(databaseUrl);
 		await migrate(db, { migrationsFolder });
 		return { success: true };
 	} catch (err) {

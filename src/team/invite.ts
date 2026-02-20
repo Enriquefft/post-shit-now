@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { and, eq, gt, isNull, lt } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
-import { inviteCodes, teamMembers } from "../core/db/schema.ts";
+import { HubRole, inviteCodes, teamMembers } from "../core/db/schema.ts";
 
 // ─── Invite Code Generation ────────────────────────────────────────────────
 
@@ -95,7 +95,7 @@ export async function redeemInviteCode(
 	await db.insert(teamMembers).values({
 		userId,
 		hubId: invite.hubId,
-		role: "member",
+		role: HubRole.member,
 		displayName,
 		email,
 	});

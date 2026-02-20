@@ -1,4 +1,3 @@
-import { neon } from "@neondatabase/serverless";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 import { oauthTokens } from "../core/db/schema.ts";
@@ -70,8 +69,7 @@ export async function setupXOAuth(configDir = "config"): Promise<SetupResult> {
 	// Check for existing valid token in DB
 	if (encryptionKey && databaseUrl) {
 		try {
-			const sql = neon(databaseUrl);
-			const db = drizzle(sql);
+			const db = drizzle(databaseUrl);
 			const existing = await db
 				.select()
 				.from(oauthTokens)
@@ -106,7 +104,7 @@ export async function setupXOAuth(configDir = "config"): Promise<SetupResult> {
 		clientSecret,
 		callbackUrl: X_CALLBACK_URL,
 	});
-	const { url, state, codeVerifier } = generateAuthUrl(client);
+	const { url, state: _state, codeVerifier } = generateAuthUrl(client);
 
 	return {
 		step: "x-oauth",
@@ -114,7 +112,7 @@ export async function setupXOAuth(configDir = "config"): Promise<SetupResult> {
 		message: "X authorization required",
 		data: {
 			authUrl: url,
-			state,
+			state: _state,
 			codeVerifier,
 			instructions:
 				"Open the URL above in your browser, authorize the app, then paste the authorization code from the redirect URL (the 'code' parameter)",
@@ -129,7 +127,8 @@ export async function setupXOAuth(configDir = "config"): Promise<SetupResult> {
 export async function completeXOAuth(
 	configDir: string,
 	code: string,
-	state: string,
+	_state: string,
+	// biome-ignore lint/correctness/noUnusedVariables: Parameter is used for metadata storage
 	codeVerifier: string,
 ): Promise<SetupResult> {
 	// Load hub.env
@@ -178,8 +177,7 @@ export async function completeXOAuth(
 	const encryptedRefresh = encrypt(tokens.refreshToken, key);
 
 	// Upsert into oauth_tokens
-	const sql = neon(databaseUrl);
-	const db = drizzle(sql);
+	const db = drizzle(databaseUrl);
 
 	const existing = await db
 		.select()
@@ -195,7 +193,7 @@ export async function completeXOAuth(
 				refreshToken: encryptedRefresh,
 				expiresAt: tokens.expiresAt,
 				scopes: "tweet.read,tweet.write,users.read,media.write,offline.access",
-				metadata: { lastRefreshedAt: new Date().toISOString(), state },
+				metadata: { lastRefreshedAt: new Date().toISOString(), state: undefined },
 				updatedAt: new Date(),
 			})
 			.where(eq(oauthTokens.platform, "x"));
@@ -207,7 +205,9 @@ export async function completeXOAuth(
 			refreshToken: encryptedRefresh,
 			expiresAt: tokens.expiresAt,
 			scopes: "tweet.read,tweet.write,users.read,media.write,offline.access",
-			metadata: { lastRefreshedAt: new Date().toISOString(), state },
+			metadata: { lastRefreshedAt: new Date().toISOString(), state: undefined },
+			createdAt: new Date(),
+			updatedAt: new Date(),
 		});
 	}
 

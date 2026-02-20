@@ -1,7 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
-import { teamMembers } from "../core/db/schema.ts";
-import type { HubRole, TeamMember } from "./types.ts";
+import { HubRole, teamMembers } from "../core/db/schema.ts";
+import type { TeamMember } from "./types.ts";
 
 // ─── Add Member ────────────────────────────────────────────────────────────
 
@@ -41,7 +41,7 @@ export async function addTeamMember(
 		id: row.id,
 		userId: row.userId,
 		hubId: row.hubId,
-		role: row.role as HubRole,
+		role: row.role,
 		displayName: row.displayName ?? undefined,
 		email: row.email ?? undefined,
 		joinedAt: row.joinedAt,
@@ -84,7 +84,7 @@ export async function promoteToAdmin(
 ): Promise<void> {
 	const result = await db
 		.update(teamMembers)
-		.set({ role: "admin", updatedAt: new Date() })
+		.set({ role: HubRole.admin, updatedAt: new Date() })
 		.where(
 			and(
 				eq(teamMembers.userId, params.userId),
@@ -114,7 +114,7 @@ export async function demoteToMember(
 		.where(
 			and(
 				eq(teamMembers.hubId, params.hubId),
-				eq(teamMembers.role, "admin"),
+				eq(teamMembers.role, HubRole.admin),
 				isNull(teamMembers.leftAt),
 			),
 		);
@@ -125,7 +125,7 @@ export async function demoteToMember(
 
 	const result = await db
 		.update(teamMembers)
-		.set({ role: "member", updatedAt: new Date() })
+		.set({ role: HubRole.member, updatedAt: new Date() })
 		.where(
 			and(
 				eq(teamMembers.userId, params.userId),
@@ -157,7 +157,7 @@ export async function listTeamMembers(db: HubDb, hubId: string): Promise<TeamMem
 		id: row.id,
 		userId: row.userId,
 		hubId: row.hubId,
-		role: row.role as HubRole,
+		role: row.role,
 		displayName: row.displayName ?? undefined,
 		email: row.email ?? undefined,
 		joinedAt: row.joinedAt,
@@ -192,7 +192,7 @@ export async function getTeamMember(
 		id: row.id,
 		userId: row.userId,
 		hubId: row.hubId,
-		role: row.role as HubRole,
+		role: row.role,
 		displayName: row.displayName ?? undefined,
 		email: row.email ?? undefined,
 		joinedAt: row.joinedAt,
@@ -215,7 +215,7 @@ export async function isAdmin(
 			and(
 				eq(teamMembers.userId, params.userId),
 				eq(teamMembers.hubId, params.hubId),
-				eq(teamMembers.role, "admin"),
+				eq(teamMembers.role, HubRole.admin),
 				isNull(teamMembers.leftAt),
 			),
 		)

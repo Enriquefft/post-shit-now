@@ -35,7 +35,7 @@ export async function getReadyIdeas(
 	db: HubDb,
 	userId: string,
 	opts?: { pillar?: string; platform?: string; limit?: number },
-): Promise<Idea[]> {
+) {
 	const conditions = [eq(ideas.userId, userId), eq(ideas.status, "ready")];
 
 	if (opts?.pillar) conditions.push(eq(ideas.pillar, opts.pillar));

@@ -126,7 +126,7 @@ export async function createCompanyHub(
 	await db.insert(schema.teamMembers).values({
 		userId: adminUserId,
 		hubId,
-		role: "admin",
+		role: schema.HubRole.admin,
 	});
 
 	// Get Trigger.dev project ref from hub.env (reuse personal hub's project)

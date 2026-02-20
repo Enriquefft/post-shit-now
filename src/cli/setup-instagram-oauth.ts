@@ -1,4 +1,3 @@
-import { neon } from "@neondatabase/serverless";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 import { oauthTokens } from "../core/db/schema.ts";
@@ -67,8 +66,7 @@ export async function setupInstagramOAuth(configDir = "config"): Promise<SetupRe
 	// Check for existing valid token in DB
 	if (encryptionKey && databaseUrl) {
 		try {
-			const sql = neon(databaseUrl);
-			const db = drizzle(sql);
+			const db = drizzle(databaseUrl);
 			const existing = await db
 				.select()
 				.from(oauthTokens)
@@ -175,8 +173,7 @@ export async function completeInstagramOAuth(
 	const expiresAt = new Date(Date.now() + tokens.expiresIn * 1000);
 
 	// Upsert into oauth_tokens
-	const sql = neon(databaseUrl);
-	const db = drizzle(sql);
+	const db = drizzle(databaseUrl);
 
 	const existing = await db
 		.select()

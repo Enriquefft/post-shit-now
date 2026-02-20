@@ -1,7 +1,13 @@
 import { logger, task, wait } from "@trigger.dev/sdk";
 import { eq, sql } from "drizzle-orm";
 import { createHubConnection } from "../core/db/connection.ts";
-import { oauthTokens, posts, preferenceModel } from "../core/db/schema.ts";
+import {
+	type OAuthTokenMetadata,
+	oauthTokens,
+	type PostMetadata,
+	posts,
+	preferenceModel,
+} from "../core/db/schema.ts";
 import type { Platform, PlatformPublishResult } from "../core/types/index.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { splitIntoThread } from "../core/utils/thread-splitter.ts";
@@ -97,7 +103,7 @@ export const publishPost = task({
 		}
 
 		// 2b. Approval gate for company posts
-		const postMetadata = (post.metadata ?? {}) as Record<string, unknown>;
+		const postMetadata = post.metadata ?? {};
 		if (postMetadata.hubId) {
 			// Company post — check approval status
 			if (post.approvalStatus !== "approved") {
@@ -178,7 +184,7 @@ export const publishPost = task({
 		const succeeded = results.filter((r) => r.status === "published");
 		const failed = results.filter((r) => r.status === "failed");
 
-		const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+		const metadata = (post.metadata ?? {}) as PostMetadata;
 		const platformStatus: Record<
 			string,
 			{ status: string; externalPostId?: string; error?: string }
@@ -290,8 +296,8 @@ async function publishToX(
 	const postId = post.id as string;
 	const userId = post.userId as string;
 	const content = post.content as string;
-	const mediaUrls = post.mediaUrls as string[] | null;
-	const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+	const mediaUrls = (post.mediaUrls as string[] | null) ?? [];
+	const metadata = (post.metadata ?? {}) as PostMetadata;
 
 	const xClientId = process.env.X_CLIENT_ID;
 	const xClientSecret = process.env.X_CLIENT_SECRET;
@@ -409,7 +415,9 @@ async function publishToX(
 		}
 
 		// Thread posting
-		const threadProgress = metadata.threadProgress as ThreadProgress | undefined;
+		const threadProgress = metadata.threadProgress
+			? (JSON.parse(metadata.threadProgress) as ThreadProgress)
+			: undefined;
 		const startIndex = threadProgress?.posted ?? 0;
 		const tweetIds = threadProgress?.tweetIds ?? [];
 
@@ -460,8 +468,8 @@ async function publishToLinkedIn(
 	const postId = post.id as string;
 	const userId = post.userId as string;
 	const content = post.content as string;
-	const mediaUrls = post.mediaUrls as string[] | null;
-	const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+	const mediaUrls = (post.mediaUrls as string[] | null) ?? [];
+	const metadata = (post.metadata ?? {}) as PostMetadata;
 
 	const linkedInClientId = process.env.LINKEDIN_CLIENT_ID;
 	const linkedInClientSecret = process.env.LINKEDIN_CLIENT_SECRET;
@@ -528,8 +536,8 @@ async function publishToLinkedIn(
 	const client = new LinkedInClient(accessToken);
 
 	// Get author URN from token metadata
-	const tokenMetadata = (token.metadata ?? {}) as Record<string, unknown>;
-	const personUrn = tokenMetadata.personUrn as string | undefined;
+	const tokenMetadata = (token.metadata ?? {}) as OAuthTokenMetadata;
+	const personUrn = tokenMetadata.personUrn;
 
 	if (!personUrn) {
 		return {
@@ -540,9 +548,8 @@ async function publishToLinkedIn(
 	}
 
 	// Determine content type from metadata
-	const linkedinFormat =
-		(metadata.linkedinFormat as string) ?? (metadata.format as string) ?? "text";
-	const visibility = (metadata.linkedinVisibility as "PUBLIC" | "CONNECTIONS") ?? "PUBLIC";
+	const linkedinFormat = metadata.linkedinFormat ?? metadata.format ?? "text";
+	const visibility = metadata.linkedinVisibility ?? "PUBLIC";
 
 	// Extract plain text from content (strip thread JSON if needed)
 	let commentary: string;
@@ -576,7 +583,7 @@ async function publishToLinkedIn(
 				await uploadDocumentBinary(docUpload.uploadUrl, accessToken, pdfBuffer);
 				await waitForMediaReady(accessToken, docUpload.documentUrn, "document");
 
-				const title = (metadata.carouselTitle as string) ?? undefined;
+				const title = metadata.carouselTitle;
 				linkedInPostId = await client.createDocumentPost(
 					personUrn,
 					commentary,
@@ -604,7 +611,7 @@ async function publishToLinkedIn(
 					await uploadImageBinary(imgUpload.uploadUrl, accessToken, imgBuffer);
 					await waitForMediaReady(accessToken, imgUpload.imageUrn, "image");
 
-					const altText = (metadata.imageAltText as string) ?? undefined;
+					const altText = metadata.imageAltText;
 					linkedInPostId = await client.createImagePost(
 						personUrn,
 						commentary,
@@ -637,9 +644,9 @@ async function publishToLinkedIn(
 
 			case "article":
 			case "linkedin-article": {
-				const articleUrl = (metadata.articleUrl as string) ?? "";
-				const articleTitle = (metadata.articleTitle as string) ?? "";
-				const articleDescription = (metadata.articleDescription as string) ?? "";
+				const articleUrl = metadata.articleUrl ?? "";
+				const articleTitle = metadata.articleTitle ?? "";
+				const articleDescription = metadata.articleDescription ?? "";
 
 				if (!articleUrl) {
 					linkedInPostId = await client.createTextPost(personUrn, commentary, visibility);
@@ -695,8 +702,8 @@ async function publishToInstagram(
 	const postId = post.id as string;
 	const userId = post.userId as string;
 	const content = post.content as string;
-	const mediaUrls = post.mediaUrls as string[] | null;
-	const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+	const mediaUrls = (post.mediaUrls as string[] | null) ?? [];
+	const metadata = (post.metadata ?? {}) as PostMetadata;
 
 	const instagramAppId = process.env.INSTAGRAM_APP_ID;
 	const instagramAppSecret = process.env.INSTAGRAM_APP_SECRET;
@@ -802,8 +809,7 @@ async function publishToInstagram(
 	}
 
 	// Determine Instagram format from metadata
-	const instagramFormat =
-		(metadata.instagramFormat as string) ?? (metadata.format as string) ?? "image-post";
+	const instagramFormat = metadata.instagramFormat ?? metadata.format ?? "image-post";
 
 	try {
 		let publishedMediaId: string;
@@ -895,8 +901,8 @@ async function publishToTikTok(
 	const postId = post.id as string;
 	const userId = post.userId as string;
 	const content = post.content as string;
-	const mediaUrls = post.mediaUrls as string[] | null;
-	const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+	const mediaUrls = (post.mediaUrls as string[] | null) ?? [];
+	const metadata = (post.metadata ?? {}) as PostMetadata;
 
 	const tiktokClientKey = process.env.TIKTOK_CLIENT_KEY;
 	const tiktokClientSecret = process.env.TIKTOK_CLIENT_SECRET;
@@ -977,11 +983,10 @@ async function publishToTikTok(
 	}
 
 	// Extract title from metadata or first 90 chars of description
-	const title = (metadata.tiktokTitle as string) ?? description.slice(0, 90);
+	const title = metadata.tiktokTitle ?? description.slice(0, 90);
 
 	// Determine TikTok format
-	const tiktokFormat =
-		(metadata.tiktokFormat as string) ?? (metadata.format as string) ?? "video-post";
+	const tiktokFormat = metadata.tiktokFormat ?? metadata.format ?? "video-post";
 
 	try {
 		let publishId: string;
@@ -1106,7 +1111,7 @@ async function markFailed(
 	extraMetadata?: Record<string, unknown>,
 ) {
 	const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
-	const existingMetadata = (post?.metadata ?? {}) as Record<string, unknown>;
+	const existingMetadata = post?.metadata ?? {};
 
 	await db
 		.update(posts)
@@ -1160,14 +1165,14 @@ async function updateBrandPreferenceIfCompany(
 	db: ReturnType<typeof createHubConnection>,
 	post: Record<string, unknown>,
 ) {
-	const metadata = (post.metadata ?? {}) as Record<string, unknown>;
-	const hubId = metadata.hubId as string | undefined;
+	const metadata = (post.metadata ?? {}) as PostMetadata;
+	const hubId = metadata.hubId;
 	if (!hubId) return; // Not a company post
 
 	try {
 		const platform = post.platform as string;
-		const postFormat = (metadata.format as string) ?? "text";
-		const postPillar = (metadata.pillar as string) ?? "general";
+		const postFormat = metadata.format ?? "text";
+		const postPillar = metadata.pillar ?? "general";
 
 		// Upsert the company-level preference model
 		// Uses hubId as the userId for company-wide tracking

@@ -1,14 +1,13 @@
-import { neon } from "@neondatabase/serverless";
 import type { NeonHttpDatabase } from "drizzle-orm/neon-http";
 import { drizzle as drizzleHttp } from "drizzle-orm/neon-http";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { NeonDatabase } from "drizzle-orm/neon-serverless";
 import * as schema from "./schema.ts";
 
 /**
  * Generic type for both database implementations.
- * Accepts both Neon HTTP and Postgres.js database types.
+ * Accepts both Neon HTTP and Neon Serverless (WebSocket) database types.
  */
-export type DbClient = PostgresJsDatabase<typeof schema> | NeonHttpDatabase<typeof schema>;
+export type DbClient = NeonDatabase<typeof schema> | NeonHttpDatabase<typeof schema>;
 
 /**
  * Create a Hub database connection using Neon HTTP driver.
@@ -16,8 +15,7 @@ export type DbClient = PostgresJsDatabase<typeof schema> | NeonHttpDatabase<type
  * Each call is a stateless HTTP request — no connection pooling needed.
  */
 export function createHubConnection(databaseUrl: string) {
-	const sql = neon(databaseUrl);
-	return drizzleHttp(sql, { schema });
+	return drizzleHttp({ connection: databaseUrl, schema });
 }
 
 /**
@@ -34,7 +32,7 @@ export async function createHubConnectionWs(databaseUrl: string) {
 	neonConfig.webSocketConstructor = ws as unknown as typeof WebSocket;
 
 	const pool = new Pool({ connectionString: databaseUrl });
-	return drizzle(pool, { schema });
+	return drizzle({ client: pool, schema });
 }
 
 export type HubDb = ReturnType<typeof createHubConnection>;

@@ -145,8 +145,8 @@ export async function updateBrandPreferenceModel(
 	}
 
 	// Update existing brand model
-	const topFormats = (existing.topFormats ?? []) as Array<{ format: string; avgScore: number }>;
-	const topPillars = (existing.topPillars ?? []) as Array<{ pillar: string; avgScore: number }>;
+	const topFormats = existing.topFormats ?? [];
+	const topPillars = existing.topPillars ?? [];
 
 	if (!topFormats.find((f) => f.format === format)) {
 		topFormats.push({ format, avgScore: 0 });

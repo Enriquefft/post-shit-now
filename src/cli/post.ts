@@ -1,5 +1,6 @@
 import { runs } from "@trigger.dev/sdk";
 import { and, desc, eq, sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
 import { posts } from "../core/db/schema.ts";
 import type { Platform } from "../core/types/index.ts";
@@ -382,12 +383,12 @@ export async function getRecentFailures(): Promise<FailedPost[]> {
 		.limit(10);
 
 	return failedPosts.map((post) => {
-		const metadata = post.metadata as Record<string, unknown> | null;
+		const metadata = post.metadata;
 		return {
 			postId: post.id,
 			content: post.content.length > 100 ? `${post.content.slice(0, 100)}...` : post.content,
 			failReason: post.failReason,
-			failedAt: (metadata?.failedAt as string | null) ?? post.updatedAt.toISOString(),
+			failedAt: metadata?.failedAt ?? post.updatedAt.toISOString(),
 			platform: post.platform,
 		};
 	});
@@ -409,7 +410,9 @@ if (import.meta.main) {
 		switch (command) {
 			case "create": {
 				const content = getArg("content");
-				const platform = (getArg("platform") ?? "x") as Platform;
+				const platform = z
+					.enum(["x", "linkedin", "instagram", "tiktok"])
+					.parse(getArg("platform") ?? "x");
 				const mediaFiles = getArg("media")?.split(",");
 
 				if (!content) {
@@ -424,7 +427,9 @@ if (import.meta.main) {
 
 			case "create-thread": {
 				const tweetsJson = getArg("tweets");
-				const platform = (getArg("platform") ?? "x") as Platform;
+				const platform = z
+					.enum(["x", "linkedin", "instagram", "tiktok"])
+					.parse(getArg("platform") ?? "x");
 				const mediaFiles = getArg("media")?.split(",");
 
 				if (!tweetsJson) {
@@ -432,7 +437,7 @@ if (import.meta.main) {
 					process.exit(1);
 				}
 
-				const tweets = JSON.parse(tweetsJson) as string[];
+				const tweets = z.array(z.string()).parse(JSON.parse(tweetsJson));
 				const result = await createThreadPost({ tweets, platform, mediaFiles });
 				console.log(JSON.stringify(result, null, 2));
 				break;

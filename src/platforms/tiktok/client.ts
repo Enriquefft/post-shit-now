@@ -80,7 +80,8 @@ export class TikTokClient {
 		const json = await response.json();
 
 		// Check for API-level errors in the response body
-		const errorObj = (json as Record<string, unknown>).error as
+		const jsonObj = json as Record<string, unknown>;
+		const errorObj = jsonObj.error as
 			| { code?: string; message?: string; log_id?: string }
 			| undefined;
 		if (errorObj?.code && errorObj.code !== "ok") {

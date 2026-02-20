@@ -1,6 +1,6 @@
 import { and, eq, gt } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
-import { type EditPattern, editHistory, postMetrics, preferenceModel } from "../core/db/schema.ts";
+import { editHistory, postMetrics, preferenceModel } from "../core/db/schema.ts";
 import { getKilledIdeasSince } from "../ideas/bank.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -193,7 +193,9 @@ export async function computeWeeklyUpdate(db: HubDb, userId: string): Promise<We
 		}> = [];
 		for (const [key, scores] of byTime) {
 			if (scores.length >= MIN_POSTS_FOR_DIMENSION) {
-				const [hour, dayOfWeek] = key.split("-").map(Number) as [number, number];
+				const parts = key.split("-").map(Number);
+				const hour = parts[0] ?? 0;
+				const dayOfWeek = parts[1] ?? 0;
 				const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
 				bestPostingTimes.push({
 					hour,
@@ -224,7 +226,7 @@ export async function computeWeeklyUpdate(db: HubDb, userId: string): Promise<We
 		// Aggregate edit patterns by type
 		const patternCounts = new Map<string, number>();
 		for (const edit of edits) {
-			const patterns = edit.editPatterns as EditPattern[] | null;
+			const patterns = edit.editPatterns;
 			if (patterns) {
 				for (const p of patterns) {
 					patternCounts.set(p.type, (patternCounts.get(p.type) ?? 0) + p.count);

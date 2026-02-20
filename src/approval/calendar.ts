@@ -305,7 +305,7 @@ export async function releaseSlot(
 
 	if (!post) return;
 
-	const metadata = (post.metadata ?? {}) as Record<string, unknown>;
+	const metadata = post.metadata ?? {};
 	if (post.status !== "draft" || !metadata.slotClaimed) {
 		return; // Not a claimable placeholder
 	}

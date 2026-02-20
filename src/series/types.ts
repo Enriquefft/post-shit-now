@@ -1,20 +1,21 @@
 import type { SeriesTemplate } from "../core/db/schema.ts";
+import { SeriesCadence } from "../core/db/schema.ts";
 
 // Re-export SeriesTemplate from schema (single source of truth)
 export type { SeriesTemplate };
 
-// ─── Series Status & Cadence ─────────────────────────────────────────────────
+// ─── Series Status & Tracking Mode ─────────────────────────────────────────────
 
 export type SeriesStatus = "active" | "paused" | "retired";
-export type SeriesCadence = "weekly" | "biweekly" | "monthly" | "custom";
 export type TrackingMode = "none" | "auto-increment" | "custom";
+export type { SeriesCadence };
 
 // ─── Cadence Constants ───────────────────────────────────────────────────────
 
-export const CADENCE_DAYS: Record<Exclude<SeriesCadence, "custom">, number> = {
-	weekly: 7,
-	biweekly: 14,
-	monthly: 30,
+export const CADENCE_DAYS: Record<string, number> = {
+	[SeriesCadence.weekly]: 7,
+	[SeriesCadence.biweekly]: 14,
+	[SeriesCadence.monthly]: 30,
 };
 
 // ─── Input/Output Interfaces ─────────────────────────────────────────────────
