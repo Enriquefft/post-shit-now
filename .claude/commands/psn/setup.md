@@ -4,13 +4,20 @@ description: Hub setup, team management, and notifications configuration
 
 # /psn:setup -- Hub Setup and Team Management
 
-You are running the Post Shit Now setup wizard. Supports Personal Hub provisioning, Company Hub creation, team joining, and notification configuration.
+You are running the Post Shit Now setup wizard. Supports Personal Hub provisioning, Company Hub creation, team joining, notification configuration, and voice profile management.
 
 ## Arguments
 $ARGUMENTS
 
 ## Usage
 - `/psn:setup` -- Personal Hub setup wizard (default)
+- `/psn:setup status` -- show what's configured and recommended next action
+- `/psn:setup voice` -- voice profile setup (absorbs /psn:voice interview)
+- `/psn:setup voice --entity <slug>` -- update specific entity voice
+- `/psn:setup entity` -- list entities or create new one
+- `/psn:setup entity --list` -- list all entities
+- `/psn:setup entity --create "My Project"` -- create new entity
+- `/psn:setup entity --create "My Project" --description "Description"` -- create with description
 - `/psn:setup hub` -- create a new Company Hub
 - `/psn:setup join <invite_bundle>` -- join a Company Hub with invite bundle
 - `/psn:setup disconnect <slug>` -- disconnect from a Company Hub
@@ -18,6 +25,105 @@ $ARGUMENTS
 - `/psn:setup team <slug>` -- list team members of a Company Hub
 - `/psn:setup promote <slug> <userId>` -- promote a member to admin (admin only)
 - `/psn:setup notifications` -- configure WhatsApp notification preferences
+
+---
+
+## /psn:setup status -- Show Setup Status
+
+### Returning User Flow
+
+When user runs `/psn:setup status`:
+
+```bash
+bun run src/cli/setup.ts status
+```
+
+Show the status screen with checkmarks for completed steps and gaps highlighted:
+
+```
+Setup Status
+------------
+[x] Personal Hub configured
+[x] Voice profile created (2 entities)
+[ ] Platform connections (0 connected)
+
+Recommended: Connect a platform to start posting
+```
+
+**If all steps complete:**
+```
+Setup Status
+------------
+[x] Personal Hub configured
+[x] Voice profile created (3 entities)
+[x] Platform connections (x, linkedin)
+
+All set! You're ready to post.
+```
+
+Offer shortcuts: "Want to [add voice] / [connect platform] / [create entity]?"
+
+---
+
+## /psn:setup voice -- Voice Setup Flow
+
+Voice interviews are now managed through `/psn:setup voice`:
+
+```bash
+bun run src/cli/setup.ts voice
+```
+
+### Flow
+
+1. **If no entities exist:** First-run interview creates default entity
+   - Present the voice interview questions from `/psn:voice interview`
+   - Guide through identity, style, platforms, language phases
+   - Create the entity with the captured profile
+
+2. **If entities exist:** Show picker
+   ```
+   Voice Profiles
+   --------------
+   1. psn-founder (Personal) - last used 2 days ago
+   2. my-side-project (Project) - last used 1 week ago
+
+   Select entity to update, or create new with: /psn:setup entity --create "Name"
+   ```
+
+3. **After selection:** Start/update voice interview
+
+4. **For specific entity:**
+   ```bash
+   bun run src/cli/setup.ts voice --entity my-project
+   ```
+
+Preserves existing /psn:voice interview functionality through unified entry point.
+
+---
+
+## /psn:setup entity -- Entity Management
+
+### List Entities
+
+```bash
+bun run src/cli/setup.ts entity --list
+```
+
+Shows all entities with slug, display name, description, and last used date.
+
+### Create Entity
+
+```bash
+bun run src/cli/setup.ts entity --create "My Side Project"
+bun run src/cli/setup.ts entity --create "My Side Project" --description "My personal project for X"
+```
+
+### Entity Creation Flow
+
+1. Create entity with auto-slugified name (e.g., "My Side Project" -> "my-side-project")
+2. Start voice interview for new entity
+3. After interview: suggest platform connections
+4. Smart defaults: if existing entity has X connected, suggest X for new entity
 
 ---
 
@@ -354,3 +460,6 @@ This runs all steps in order, skipping any that are already complete. Parse the 
 - Company Hub creation requires a Personal Hub to exist first (shares Neon project)
 - Invite bundles contain the database URL -- share only with trusted team members
 - Soft-delete on disconnect preserves content attribution in the hub
+
+> **Note:** `/psn:voice interview` is now accessible via `/psn:setup voice`.
+> `/psn:voice` still works for voice-only operations (tweak, calibrate, import).
