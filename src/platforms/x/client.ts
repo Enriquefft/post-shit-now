@@ -115,7 +115,8 @@ export class XClient {
 		const rateLimits: RateLimitInfo[] = [];
 
 		for (let i = 0; i < tweets.length; i++) {
-			const tweetText = tweets[i]!;
+			const tweetText = tweets[i];
+			if (!tweetText) continue;
 			const result = await this.createTweet({
 				text: tweetText,
 				replyToId: i > 0 ? tweetIds[i - 1] : undefined,

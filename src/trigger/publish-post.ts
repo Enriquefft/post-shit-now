@@ -412,7 +412,7 @@ async function publishToX(
 	try {
 		if (!isThread) {
 			const result = await client.createTweet({
-				text: tweets[0]!,
+				text: tweets[0] ?? content,
 				mediaIds,
 			});
 
@@ -431,9 +431,11 @@ async function publishToX(
 		);
 
 		for (let i = startIndex; i < tweets.length; i++) {
+			const tweetText = tweets[i];
+			if (!tweetText) continue;
 			try {
 				const result = await client.createTweet({
-					text: tweets[i]!,
+					text: tweetText,
 					replyToId: i > 0 ? tweetIds[i - 1] : undefined,
 					mediaIds: mediaIdsPerTweet[i],
 				});
@@ -579,7 +581,7 @@ async function publishToLinkedIn(
 				}
 
 				// Load PDF file
-				const pdfPath = mediaUrls[0]!;
+				const pdfPath = mediaUrls[0] ?? "";
 				const pdfFile = Bun.file(pdfPath);
 				const pdfBuffer = new Uint8Array(await pdfFile.arrayBuffer());
 
@@ -608,7 +610,7 @@ async function publishToLinkedIn(
 
 				if (mediaUrls.length === 1) {
 					// Single image post
-					const imgPath = mediaUrls[0]!;
+					const imgPath = mediaUrls[0] ?? "";
 					const imgFile = Bun.file(imgPath);
 					const imgBuffer = new Uint8Array(await imgFile.arrayBuffer());
 
@@ -828,7 +830,7 @@ async function publishToInstagram(
 					return { platform: "instagram", status: "failed", error: "reel_requires_video_url" };
 				}
 
-				const videoUrl = mediaUrls[0]!;
+				const videoUrl = mediaUrls[0] ?? "";
 				const container = await createReelsContainer(client, videoUrl, caption);
 				await waitForContainerReady(client, container.id);
 				const published = await publishContainer(client, container.id);
@@ -841,7 +843,7 @@ async function publishToInstagram(
 				if (!mediaUrls || mediaUrls.length < 2) {
 					// Fall back to single image if only 1 media
 					if (mediaUrls && mediaUrls.length === 1) {
-						const container = await createImageContainer(client, mediaUrls[0]!, caption);
+						const container = await createImageContainer(client, mediaUrls[0] ?? "", caption);
 						await waitForContainerReady(client, container.id);
 						const published = await publishContainer(client, container.id);
 						publishedMediaId = published.id;
@@ -867,7 +869,7 @@ async function publishToInstagram(
 					return { platform: "instagram", status: "failed", error: "instagram_requires_media_url" };
 				}
 
-				const imageUrl = mediaUrls[0]!;
+				const imageUrl = mediaUrls[0] ?? "";
 				const container = await createImageContainer(client, imageUrl, caption);
 				await waitForContainerReady(client, container.id);
 				const published = await publishContainer(client, container.id);
@@ -1005,7 +1007,7 @@ async function publishToTikTok(
 					return { platform: "tiktok", status: "failed", error: "tiktok_video_requires_media" };
 				}
 
-				const videoPath = mediaUrls[0]!;
+				const videoPath = mediaUrls[0] ?? "";
 				const videoFile = Bun.file(videoPath);
 				const videoBuffer = Buffer.from(await videoFile.arrayBuffer());
 
@@ -1067,7 +1069,7 @@ async function publishToTikTok(
 					return { platform: "tiktok", status: "failed", error: "tiktok_requires_media" };
 				}
 
-				const defaultVideoPath = mediaUrls[0]!;
+				const defaultVideoPath = mediaUrls[0] ?? "";
 				const defaultVideoFile = Bun.file(defaultVideoPath);
 				const defaultVideoBuffer = Buffer.from(await defaultVideoFile.arrayBuffer());
 

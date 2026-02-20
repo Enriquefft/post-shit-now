@@ -55,7 +55,13 @@ export function detectTopicFatigue(posts: FatigueInput[]): FatigueResult[] {
 		const last3 = sorted.slice(-3);
 		const scores = last3.map((p) => p.score);
 
-		const isDeclined = scores.length === 3 && scores[0]! > scores[1]! && scores[1]! > scores[2]!;
+		const isDeclined =
+			scores.length === 3 &&
+			scores[0] !== undefined &&
+			scores[1] !== undefined &&
+			scores[2] !== undefined &&
+			scores[0] > scores[1] &&
+			scores[1] > scores[2];
 
 		if (isDeclined) {
 			results.push({
