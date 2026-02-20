@@ -2,6 +2,7 @@ import type { ImportedContent } from "./import.ts";
 import {
 	createBlankSlateProfile,
 	createDefaultProfile,
+	type MaturityLevel,
 	type VoiceProfile,
 	voiceProfileSchema,
 } from "./types.ts";
@@ -15,6 +16,7 @@ export interface InterviewState {
 	questionIndex: number;
 	answers: Map<string, string>;
 	detectedExperience: "beginner" | "intermediate" | "advanced" | null;
+	maturityLevel: MaturityLevel | null;
 	languages: ("en" | "es")[];
 	importedContent: ImportedContent[] | null;
 	isBlankSlate: boolean;
@@ -104,6 +106,20 @@ const IDENTITY_QUESTIONS: InterviewQuestion[] = [
 		text: "What does success look like for your social media presence?",
 		hint: "E.g., 'thought leadership in my niche, driving traffic to my product, building a community'",
 		type: "open",
+		required: true,
+	},
+	{
+		id: "posting_frequency",
+		phase: "identity",
+		text: "How often do you currently post on social media?",
+		hint: "This helps us tailor the experience to your comfort level",
+		type: "choice",
+		options: [
+			"Never posted / just starting",
+			"Sporadically (a few times per month)",
+			"Consistently (multiple times per week)",
+			"Very active (daily or near-daily)",
+		],
 		required: true,
 	},
 ];
@@ -269,6 +285,7 @@ export function createInterviewState(options?: {
 		detectedExperience: options?.importedContent?.length
 			? detectExperienceLevel(new Map(), options.importedContent)
 			: null,
+		maturityLevel: null,
 		languages: ["en"],
 		importedContent: options?.importedContent ?? null,
 		isBlankSlate: !options?.importedContent?.length && !options?.existingProfile,
@@ -323,6 +340,11 @@ export function processAnswer(
 		} else if (answer.toLowerCase().includes("spanish only")) {
 			updated.languages = ["es"];
 		}
+	}
+
+	// Handle maturity detection from posting_frequency answer
+	if (questionId === "posting_frequency") {
+		updated.maturityLevel = detectMaturityFromAnswer(answer);
 	}
 
 	// Auto-advance phase when current questions are exhausted
@@ -399,6 +421,21 @@ export function detectExperienceLevel(
 	if (score >= 5) return "advanced";
 	if (score >= 2) return "intermediate";
 	return "beginner";
+}
+
+// ─── Maturity Detection ──────────────────────────────────────────────────────
+
+/**
+ * Detect maturity level from posting_frequency answer.
+ * Maps natural language answers to MaturityLevel enum.
+ */
+export function detectMaturityFromAnswer(answer: string): MaturityLevel | null {
+	const lower = answer.toLowerCase();
+	if (lower.includes("never") || lower.includes("starting")) return "never_posted";
+	if (lower.includes("sporadically") || lower.includes("few times per month")) return "sporadic";
+	if (lower.includes("consistently") || lower.includes("multiple times per week")) return "consistent";
+	if (lower.includes("very active") || lower.includes("daily")) return "very_active";
+	return null;
 }
 
 // ─── Profile Finalization ───────────────────────────────────────────────────
@@ -520,6 +557,11 @@ export function finalizeProfile(state: InterviewState): VoiceProfile {
 	} else if (state.importedContent?.length) {
 		base.calibration.status = "calibrating";
 		base.calibration.confidence = 0.3;
+	}
+
+	// Maturity level
+	if (state.maturityLevel) {
+		base.maturityLevel = state.maturityLevel;
 	}
 
 	// Update timestamps
