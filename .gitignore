@@ -5,12 +5,6 @@ node_modules/
 dist/
 *.tsbuildinfo
 
-# Bun
-bun.lock
-
-# npm (project uses Bun)
-package-lock.json
-
 # Trigger.dev
 .trigger/
 
