@@ -62,8 +62,8 @@ export const postWatchdog = schedules.task({
 		result.checked += stuckScheduled.length;
 
 		for (const post of stuckScheduled) {
-			const metadata = (post.metadata ?? {}) as Record<string, unknown>;
-			const retryCount = (metadata.retryCount as number) ?? 0;
+			const metadata = post.metadata ?? {};
+			const retryCount = metadata.retryCount ?? 0;
 
 			logger.warn("Stuck scheduled post detected", {
 				postId: post.id,
@@ -144,7 +144,7 @@ export const postWatchdog = schedules.task({
 					failReason: "watchdog_timeout",
 					updatedAt: new Date(),
 					metadata: {
-						...(post.metadata as Record<string, unknown> | undefined),
+						...(post.metadata ?? {}),
 						failReason: "watchdog_timeout",
 						failedAt: new Date().toISOString(),
 					},

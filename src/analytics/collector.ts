@@ -168,7 +168,7 @@ export async function collectAnalytics(
 				if (threadMetrics.length === 0) continue;
 				metrics = aggregateThreadMetrics(threadMetrics);
 			} else {
-				const tweet = tweetMetricsMap.get(tweetIds[0] as string);
+				const tweet = tweetMetricsMap.get(tweetIds[0]!);
 				if (!tweet?.public_metrics) continue;
 				metrics = tweet.public_metrics;
 			}
@@ -183,7 +183,7 @@ export async function collectAnalytics(
 			const postPillar = metadata.pillar ?? null;
 
 			// Non-public metrics from first tweet (if available)
-			const firstTweet = tweetMetricsMap.get(tweetIds[0] as string);
+			const firstTweet = tweetMetricsMap.get(tweetIds[0]!);
 			const nonPublic = firstTweet?.non_public_metrics;
 
 			// Upsert into postMetrics (ON CONFLICT postId+platform)
@@ -193,7 +193,7 @@ export async function collectAnalytics(
 					userId,
 					postId: post.id,
 					platform: "x",
-					externalPostId: post.externalPostId ?? (tweetIds[0] as string),
+					externalPostId: post.externalPostId ?? tweetIds[0]!,
 					impressionCount: metrics.impression_count,
 					likeCount: metrics.like_count,
 					retweetCount: metrics.retweet_count,

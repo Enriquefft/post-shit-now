@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import type { createHubConnection } from "../core/db/connection.ts";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -18,11 +19,11 @@ export interface DigestContent {
 	period: string;
 }
 
-interface NotificationRow {
-	event_type: string;
-	tier: string;
-	created_at: Date;
-}
+const NotificationRowSchema = z.object({
+	event_type: z.string(),
+	tier: z.string(),
+	created_at: z.union([z.date(), z.string()]),
+});
 
 // ─── Digest Compiler ───────────────────────────────────────────────────────
 // Aggregates queued notification events into a structured digest message.
@@ -44,7 +45,7 @@ export async function compileDigest(
 		ORDER BY created_at ASC
 	`);
 
-	const events = eventsResult.rows as unknown as NotificationRow[];
+	const events = z.array(NotificationRowSchema).parse(eventsResult.rows);
 	const sections: DigestSection[] = [];
 
 	// Group events by category

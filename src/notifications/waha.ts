@@ -1,9 +1,12 @@
+import { z } from "zod/v4";
 import type { MessageResult, WhatsAppProvider } from "./types.ts";
 
 // ─── WAHA REST API Client ──────────────────────────────────────────────────
 // Implements WhatsAppProvider via WAHA (WhatsApp HTTP API).
 // Supports both WAHA Core (text only) and WAHA Plus (buttons, lists).
 // Core tier fallback: buttons/lists render as numbered text options.
+
+const WahaResponseSchema = z.object({ id: z.string().optional() });
 
 export interface WahaConfig {
 	baseUrl: string;
@@ -53,7 +56,7 @@ export class WahaProvider implements WhatsAppProvider {
 				return { success: false, error: `WAHA sendText failed (${res.status}): ${text}` };
 			}
 
-			const data = (await res.json()) as { id?: string };
+			const data = WahaResponseSchema.parse(await res.json());
 			return { success: true, messageId: data.id };
 		} catch (error) {
 			return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -89,7 +92,7 @@ export class WahaProvider implements WhatsAppProvider {
 				return { success: false, error: `WAHA sendButtons failed (${res.status}): ${text}` };
 			}
 
-			const data = (await res.json()) as { id?: string };
+			const data = WahaResponseSchema.parse(await res.json());
 			return { success: true, messageId: data.id };
 		} catch (error) {
 			return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -129,7 +132,7 @@ export class WahaProvider implements WhatsAppProvider {
 				return { success: false, error: `WAHA sendList failed (${res.status}): ${text}` };
 			}
 
-			const data = (await res.json()) as { id?: string };
+			const data = WahaResponseSchema.parse(await res.json());
 			return { success: true, messageId: data.id };
 		} catch (error) {
 			return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -154,7 +157,7 @@ export class WahaProvider implements WhatsAppProvider {
 				return { success: false, error: `WAHA sendImage failed (${res.status}): ${text}` };
 			}
 
-			const data = (await res.json()) as { id?: string };
+			const data = WahaResponseSchema.parse(await res.json());
 			return { success: true, messageId: data.id };
 		} catch (error) {
 			return { success: false, error: error instanceof Error ? error.message : String(error) };

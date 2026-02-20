@@ -1,6 +1,6 @@
 import { and, desc, eq, gt, gte } from "drizzle-orm";
+import { z } from "zod/v4";
 import { isTopicFatigued } from "../analytics/fatigue.ts";
-import type { PostFormat } from "../content/format-picker.ts";
 import { suggestTopics } from "../content/topic-suggest.ts";
 import type { HubDb } from "../core/db/connection.ts";
 import { trends } from "../core/db/schema.ts";
@@ -10,6 +10,8 @@ import { getPreferenceModel } from "../learning/preference-model.ts";
 import { loadProfile } from "../voice/profile.ts";
 import type { MaturityLevel, VoiceProfile } from "../voice/types.ts";
 import type { PlanIdea, PlanIdeaSource } from "./types.ts";
+
+const platformSchema = z.enum(["x", "linkedin", "instagram", "tiktok"]);
 
 // ─── Source Constants ──────────────────────────────────────────────────────────
 
@@ -210,7 +212,7 @@ export async function generatePlanIdeas(
 				topic: idea.title,
 				pillar: idea.pillar ?? pillars[0]?.name ?? "general",
 				angle: "bank",
-				format: (idea.format as PostFormat) ?? topFormats[0] ?? "short-post",
+				format: idea.format ?? topFormats[0] ?? "short-post",
 				source: "bank",
 				sourceId: idea.id,
 			});
@@ -245,7 +247,7 @@ export async function generatePlanIdeas(
 		const profile = await loadProfile(opts?.profilePath ?? "content/voice/personal.yaml");
 		const suggestions = suggestTopics({
 			profile,
-			platform: (opts?.platform as "x" | "linkedin" | "instagram" | "tiktok") ?? "x",
+			platform: platformSchema.parse(opts?.platform ?? "x"),
 			count: generatedTarget,
 			fatiguedTopics: fatiguedTopics.map((t) => t.topic),
 		});
@@ -269,7 +271,7 @@ export async function generatePlanIdeas(
 			const profile = await loadProfile(opts?.profilePath ?? "content/voice/personal.yaml");
 			const topIdea = ideas[0];
 			if (topIdea) {
-				const platformKey = (opts?.platform ?? "x") as keyof typeof profile.platforms;
+				const platformKey = platformSchema.parse(opts?.platform ?? "x");
 				const samplePost = await generateSamplePost({
 					profile,
 					topic: topIdea.topic,

@@ -62,7 +62,8 @@ export class InstagramClient {
 			throw new InstagramApiError(response.status, bodyText);
 		}
 
-		const json = await response.json();
+		const json: unknown = await response.json();
+		// Intentional cast: callers without a schema accept responsibility for type safety
 		return schema ? schema.parse(json) : (json as T);
 	}
 
@@ -91,7 +92,8 @@ export class InstagramClient {
 			throw new InstagramApiError(response.status, bodyText);
 		}
 
-		const json = await response.json();
+		const json: unknown = await response.json();
+		// Intentional cast: callers without a schema accept responsibility for type safety
 		return schema ? schema.parse(json) : (json as T);
 	}
 

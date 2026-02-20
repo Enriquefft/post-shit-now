@@ -191,10 +191,10 @@ export async function getPreferenceModelLearnings(
 		if (!model) return null;
 
 		// Extract top 3 hook patterns
-		const hooks = (model.hookPatterns as string[] | null)?.slice(0, 3) ?? [];
+		const hooks = model.hookPatterns?.slice(0, 3) ?? [];
 
 		// Extract top 3 format names sorted by score
-		const topFormats = model.topFormats as Array<{ format: string; avgScore: number }> | null;
+		const topFormats = model.topFormats;
 		const formats = topFormats
 			? [...topFormats]
 					.sort((a, b) => b.avgScore - a.avgScore)
@@ -203,11 +203,7 @@ export async function getPreferenceModelLearnings(
 			: [];
 
 		// Extract fatigued topics with active cooldowns only
-		const fatiguedEntries = model.fatiguedTopics as Array<{
-			topic: string;
-			cooldownUntil: string;
-			lastScores: number[];
-		}> | null;
+		const fatiguedEntries = model.fatiguedTopics;
 		const fatiguedTopics = fatiguedEntries
 			? fatiguedEntries
 					.filter((ft) => isTopicFatigued(ft.topic, fatiguedEntries))

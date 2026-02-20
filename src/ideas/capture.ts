@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import type { HubDb } from "../core/db/connection.ts";
 import { ideas } from "../core/db/schema.ts";
 import type { CaptureInput, Idea, Urgency } from "./types.ts";
@@ -74,8 +75,9 @@ export function inferUrgency(text: string): Urgency {
 // ─── Capture Idea ───────────────────────────────────────────────────────────
 
 export async function captureIdea(db: HubDb, userId: string, input: CaptureInput): Promise<Idea> {
+	const tagUrgency = z.enum(["timely", "seasonal", "evergreen"]).safeParse(input.tags?.urgency);
 	const urgency =
-		input.urgency ?? (input.tags?.urgency as Urgency | undefined) ?? inferUrgency(input.text);
+		input.urgency ?? (tagUrgency.success ? tagUrgency.data : undefined) ?? inferUrgency(input.text);
 
 	// Calculate expiry for timely/seasonal ideas
 	let expiresAt: Date | null = null;
@@ -110,25 +112,5 @@ export async function captureIdea(db: HubDb, userId: string, input: CaptureInput
 	const row = rows[0];
 	if (!row) throw new Error("Failed to insert idea");
 
-	return {
-		id: row.id,
-		userId: row.userId,
-		hubId: row.hubId,
-		title: row.title,
-		notes: row.notes,
-		tags: row.tags,
-		status: row.status as Idea["status"],
-		urgency: row.urgency as Idea["urgency"],
-		pillar: row.pillar,
-		platform: row.platform,
-		format: row.format,
-		claimedBy: row.claimedBy,
-		killReason: row.killReason,
-		expiresAt: row.expiresAt,
-		lastTouchedAt: row.lastTouchedAt,
-		sourceType: row.sourceType as Idea["sourceType"],
-		sourceId: row.sourceId,
-		createdAt: row.createdAt,
-		updatedAt: row.updatedAt,
-	};
+	return row;
 }

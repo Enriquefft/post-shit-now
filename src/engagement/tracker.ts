@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import type { HubDb } from "../core/db/connection.ts";
 import { detectFeedbackMoments } from "../learning/feedback.ts";
 
@@ -9,6 +10,12 @@ export interface EngagementOutcome {
 	likes?: number;
 	replies?: number;
 }
+
+const engagementOutcomeSchema = z.object({
+	impressions: z.number().optional(),
+	likes: z.number().optional(),
+	replies: z.number().optional(),
+});
 
 export interface EngagementStat {
 	totalEngagements: number;
@@ -41,6 +48,62 @@ export interface EngagementHistoryEntry {
 	engagedAt: string;
 }
 
+// ─── Raw SQL Row Schemas ──────────────────────────────────────────────────
+
+const userIdRowSchema = z
+	.object({
+		user_id: z.string(),
+	})
+	.passthrough();
+
+const scoringRowSchema = z.object({
+	id: z.string(),
+	outcome: engagementOutcomeSchema.nullable(),
+	relevance_score_bps: z.coerce.number().nullable(),
+	recency_score_bps: z.coerce.number().nullable(),
+	reach_score_bps: z.coerce.number().nullable(),
+	potential_score_bps: z.coerce.number().nullable(),
+	composite_score_bps: z.coerce.number().nullable(),
+});
+
+const countGroupRowSchema = z
+	.object({
+		total: z.coerce.number(),
+		platform: z.string(),
+		engagement_type: z.string(),
+	})
+	.passthrough();
+
+const avgOutcomeRowSchema = z
+	.object({
+		avg_impressions: z.coerce.number().nullable(),
+		avg_likes: z.coerce.number().nullable(),
+		avg_replies: z.coerce.number().nullable(),
+	})
+	.passthrough();
+
+const topPerformerRowSchema = z
+	.object({
+		id: z.string(),
+		platform: z.string(),
+		engagement_type: z.string(),
+		impressions: z.coerce.number().nullable(),
+		likes: z.coerce.number().nullable(),
+	})
+	.passthrough();
+
+const historyRowSchema = z
+	.object({
+		id: z.string(),
+		opportunity_id: z.string(),
+		platform: z.string(),
+		engagement_type: z.string(),
+		content: z.string(),
+		outcome: engagementOutcomeSchema.nullable(),
+		engaged_at: z.coerce.string(),
+	})
+	.passthrough();
+
 // ─── Track Engagement Outcome ─────────────────────────────────────────────
 
 /**
@@ -65,9 +128,9 @@ export async function trackEngagementOutcome(
 	const logResult = await db.execute(sql`
 		SELECT user_id FROM engagement_log WHERE id = ${engagementLogId}::uuid
 	`);
-	const logRow = logResult.rows[0] as Record<string, unknown> | undefined;
+	const logRow = userIdRowSchema.optional().parse(logResult.rows[0]);
 	if (logRow?.user_id) {
-		await feedEngagementToLearningLoop(db, logRow.user_id as string);
+		await feedEngagementToLearningLoop(db, logRow.user_id);
 	}
 }
 
@@ -114,7 +177,7 @@ export async function updateScoringWeights(
 		LIMIT 50
 	`);
 
-	const rows = result.rows as Array<Record<string, unknown>>;
+	const rows = z.array(scoringRowSchema).parse(result.rows);
 
 	if (rows.length < 5) {
 		// Not enough data to make suggestions
@@ -127,19 +190,17 @@ export async function updateScoringWeights(
 		{};
 
 	for (const dim of dimensions) {
-		const bpsKey = `${dim}_score_bps`;
-		const sorted = [...rows].sort(
-			(a, b) => ((b[bpsKey] as number) ?? 0) - ((a[bpsKey] as number) ?? 0),
-		);
+		const bpsKey = `${dim}_score_bps` as const;
+		const sorted = [...rows].sort((a, b) => (b[bpsKey] ?? 0) - (a[bpsKey] ?? 0));
 
 		const topHalf = sorted.slice(0, Math.ceil(sorted.length / 2));
 		const bottomHalf = sorted.slice(Math.ceil(sorted.length / 2));
 
-		const avgOutcome = (entries: Array<Record<string, unknown>>): number => {
+		const avgOutcome = (entries: z.infer<typeof scoringRowSchema>[]): number => {
 			if (entries.length === 0) return 0;
 			let total = 0;
 			for (const entry of entries) {
-				const outcome = entry.outcome as EngagementOutcome | null;
+				const outcome = entry.outcome;
 				total +=
 					(outcome?.impressions ?? 0) + (outcome?.likes ?? 0) * 10 + (outcome?.replies ?? 0) * 20;
 			}
@@ -232,16 +293,16 @@ export async function getEngagementStats(
 		GROUP BY platform, engagement_type
 	`);
 
-	const countRows = countResult.rows as Array<Record<string, unknown>>;
+	const countRows = z.array(countGroupRowSchema).parse(countResult.rows);
 
 	let totalEngagements = 0;
 	const byPlatform: Record<string, number> = {};
 	const byType: Record<string, number> = {};
 
 	for (const row of countRows) {
-		const count = (row.total as number) ?? 0;
-		const platform = row.platform as string;
-		const type = row.engagement_type as string;
+		const count = row.total ?? 0;
+		const platform = row.platform;
+		const type = row.engagement_type;
 
 		totalEngagements += count;
 		byPlatform[platform] = (byPlatform[platform] ?? 0) + count;
@@ -260,7 +321,7 @@ export async function getEngagementStats(
 			AND outcome IS NOT NULL
 	`);
 
-	const outcomeRow = outcomeResult.rows[0] as Record<string, unknown> | undefined;
+	const outcomeRow = avgOutcomeRowSchema.optional().parse(outcomeResult.rows[0]);
 
 	// Top performing engagement
 	const topResult = await db.execute(sql`
@@ -280,24 +341,24 @@ export async function getEngagementStats(
 		LIMIT 1
 	`);
 
-	const topRow = topResult.rows[0] as Record<string, unknown> | undefined;
+	const topRow = topPerformerRowSchema.optional().parse(topResult.rows[0]);
 
 	return {
 		totalEngagements,
 		byPlatform,
 		byType,
 		avgOutcome: {
-			impressions: (outcomeRow?.avg_impressions as number) ?? 0,
-			likes: (outcomeRow?.avg_likes as number) ?? 0,
-			replies: (outcomeRow?.avg_replies as number) ?? 0,
+			impressions: outcomeRow?.avg_impressions ?? 0,
+			likes: outcomeRow?.avg_likes ?? 0,
+			replies: outcomeRow?.avg_replies ?? 0,
 		},
 		topPerforming: topRow
 			? {
-					id: topRow.id as string,
-					platform: topRow.platform as string,
-					type: topRow.engagement_type as string,
-					impressions: (topRow.impressions as number) ?? 0,
-					likes: (topRow.likes as number) ?? 0,
+					id: topRow.id,
+					platform: topRow.platform,
+					type: topRow.engagement_type,
+					impressions: topRow.impressions ?? 0,
+					likes: topRow.likes ?? 0,
 				}
 			: null,
 	};
@@ -323,13 +384,16 @@ export async function getEngagementHistory(
 		LIMIT ${limit}
 	`);
 
-	return (result.rows as Array<Record<string, unknown>>).map((row) => ({
-		id: row.id as string,
-		opportunityId: row.opportunity_id as string,
-		platform: row.platform as string,
-		engagementType: row.engagement_type as string,
-		content: row.content as string,
-		outcome: (row.outcome as EngagementOutcome) ?? null,
-		engagedAt: String(row.engaged_at),
-	}));
+	return z
+		.array(historyRowSchema)
+		.parse(result.rows)
+		.map((row) => ({
+			id: row.id,
+			opportunityId: row.opportunity_id,
+			platform: row.platform,
+			engagementType: row.engagement_type,
+			content: row.content,
+			outcome: row.outcome ?? null,
+			engagedAt: row.engaged_at,
+		}));
 }

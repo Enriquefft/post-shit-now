@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
+import { z } from "zod/v4";
 import { oauthTokens } from "../core/db/schema.ts";
 import type { SetupResult } from "../core/types/index.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
@@ -174,6 +175,19 @@ export async function completeTikTokOAuth(
 	const key = keyFromHex(encryptionKey);
 
 	// Fetch user info to get open_id
+	const tiktokUserInfoSchema = z.object({
+		data: z
+			.object({
+				user: z
+					.object({
+						open_id: z.string().optional(),
+						display_name: z.string().optional(),
+					})
+					.optional(),
+			})
+			.optional(),
+	});
+
 	let openId: string | undefined;
 	let displayName: string | undefined;
 	try {
@@ -184,9 +198,7 @@ export async function completeTikTokOAuth(
 			},
 		);
 		if (userInfoResponse.ok) {
-			const userInfo = (await userInfoResponse.json()) as {
-				data?: { user?: { open_id?: string; display_name?: string } };
-			};
+			const userInfo = tiktokUserInfoSchema.parse(await userInfoResponse.json());
 			openId = userInfo.data?.user?.open_id;
 			displayName = userInfo.data?.user?.display_name;
 		}

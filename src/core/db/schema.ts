@@ -33,12 +33,30 @@ export enum SeriesCadence {
 	custom = "custom",
 }
 
+// ─── Column Type Aliases ────────────────────────────────────────────────────────
+
+export type IdeaStatus = "spark" | "seed" | "ready" | "claimed" | "developed" | "used" | "killed";
+
+export type Urgency = "timely" | "seasonal" | "evergreen";
+
+export type IdeaSourceType = "trend" | "capture" | "plan" | "remix" | "recycle";
+
+export type AdjustmentType =
+	| "pillar_weight"
+	| "posting_time"
+	| "format_preference"
+	| "frequency"
+	| "new_pillar"
+	| "drop_format";
+
 // ─── Metadata Types ─────────────────────────────────────────────────────────────
 
 export interface OAuthTokenMetadata {
 	personUrn?: string;
 	lastRefreshedAt?: string;
 	state?: string;
+	accountId?: string;
+	auditStatus?: "unaudited" | "audited";
 }
 
 export interface PostMetadata {
@@ -359,7 +377,7 @@ export const strategyAdjustments = pgTable(
 	{
 		id: uuid("id").defaultRandom().primaryKey(),
 		userId: text("user_id").notNull(),
-		adjustmentType: text("adjustment_type").notNull(), // pillar_weight, posting_time, format_preference, frequency, new_pillar, drop_format
+		adjustmentType: text("adjustment_type").$type<AdjustmentType>().notNull(),
 		field: text("field").notNull(),
 		oldValue: jsonb("old_value"),
 		newValue: jsonb("new_value"),
@@ -392,8 +410,8 @@ export const ideas = pgTable(
 		title: text("title").notNull(),
 		notes: text("notes"),
 		tags: jsonb("tags").$type<string[]>(),
-		status: text("status").notNull().default("spark"), // spark | seed | ready | claimed | developed | used | killed
-		urgency: text("urgency").notNull().default("evergreen"), // timely | seasonal | evergreen
+		status: text("status").$type<IdeaStatus>().notNull().default("spark"),
+		urgency: text("urgency").$type<Urgency>().notNull().default("evergreen"),
 		pillar: text("pillar"),
 		platform: text("platform"),
 		format: text("format"),
@@ -401,7 +419,7 @@ export const ideas = pgTable(
 		killReason: text("kill_reason"),
 		expiresAt: timestamp("expires_at", { withTimezone: true }),
 		lastTouchedAt: timestamp("last_touched_at", { withTimezone: true }).defaultNow().notNull(),
-		sourceType: text("source_type"), // trend | capture | plan | remix | recycle
+		sourceType: text("source_type").$type<IdeaSourceType>(),
 		sourceId: text("source_id"),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

@@ -29,6 +29,7 @@ export async function createHubConnectionWs(databaseUrl: string) {
 	const { default: ws } = await import("ws");
 	const { drizzle } = await import("drizzle-orm/neon-serverless");
 
+	// Inherent adapter cast: ws library's WebSocket is compatible but not identical to the DOM WebSocket type
 	neonConfig.webSocketConstructor = ws as unknown as typeof WebSocket;
 
 	const pool = new Pool({ connectionString: databaseUrl });

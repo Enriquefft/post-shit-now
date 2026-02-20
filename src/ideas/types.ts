@@ -1,10 +1,9 @@
 // ─── Idea Status & Urgency ──────────────────────────────────────────────────
+// Canonical definitions are in core/db/schema.ts — re-exported here for convenience.
 
-export type IdeaStatus = "spark" | "seed" | "ready" | "claimed" | "developed" | "used" | "killed";
+export type { IdeaSourceType, IdeaStatus, Urgency } from "../core/db/schema.ts";
 
-export type Urgency = "timely" | "seasonal" | "evergreen";
-
-export type IdeaSourceType = "trend" | "capture" | "plan" | "remix" | "recycle";
+import type { IdeaSourceType, IdeaStatus, Urgency } from "../core/db/schema.ts";
 
 // ─── Idea Interface ─────────────────────────────────────────────────────────
 

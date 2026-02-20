@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import { getApiKey } from "../../core/db/api-keys";
 import type { DbClient } from "../../core/db/connection.ts";
 import type { GeneratedVideo, VideoGenParams, VideoProvider } from "../video-gen.ts";
@@ -76,9 +77,10 @@ export const klingProvider: VideoProvider = {
 				timeout: 300000, // 5 minute timeout
 			});
 
-			const data = result.data as unknown as {
-				video?: { url: string };
-			};
+			const falVideoResultSchema = z.object({
+				video: z.object({ url: z.string() }).optional(),
+			});
+			const data = falVideoResultSchema.parse(result.data);
 			const videoUrl = data.video?.url;
 			if (!videoUrl) {
 				throw new Error("Kling returned no video data");

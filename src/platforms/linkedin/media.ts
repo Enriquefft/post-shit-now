@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import {
 	LinkedInApiError,
 	LinkedInDocumentUploadResponseSchema,
@@ -95,8 +96,9 @@ export async function getImageStatus(
 		throw new LinkedInApiError(response.status, `Image status check failed: ${bodyText}`);
 	}
 
-	const json = await response.json();
-	return (json as Record<string, string>).status ?? "UNKNOWN";
+	const json: unknown = await response.json();
+	const statusSchema = z.object({ status: z.string().optional() });
+	return statusSchema.parse(json).status ?? "UNKNOWN";
 }
 
 // ─── Document Upload ────────────────────────────────────────────────────────
@@ -188,8 +190,9 @@ export async function getDocumentStatus(
 		throw new LinkedInApiError(response.status, `Document status check failed: ${bodyText}`);
 	}
 
-	const json = await response.json();
-	return (json as Record<string, string>).status ?? "UNKNOWN";
+	const json: unknown = await response.json();
+	const statusSchema = z.object({ status: z.string().optional() });
+	return statusSchema.parse(json).status ?? "UNKNOWN";
 }
 
 // ─── Shared Helpers ─────────────────────────────────────────────────────────

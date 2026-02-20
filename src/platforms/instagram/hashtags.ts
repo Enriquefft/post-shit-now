@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { z } from "zod/v4";
 import type { InstagramClient } from "./client.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -32,7 +33,20 @@ function loadCache(projectRoot = "."): HashtagPoolCache | null {
 	try {
 		if (!fs.existsSync(cachePath)) return null;
 		const raw = fs.readFileSync(cachePath, "utf-8");
-		return JSON.parse(raw) as HashtagPoolCache;
+		const HashtagPoolCacheSchema = z.object({
+			lastRefreshed: z.string(),
+			searchesUsedThisWeek: z.number(),
+			weekStartDate: z.string(),
+			hashtags: z.array(
+				z.object({
+					tag: z.string(),
+					id: z.string(),
+					mediaCount: z.number(),
+					relevantPillar: z.string(),
+				}),
+			),
+		});
+		return HashtagPoolCacheSchema.parse(JSON.parse(raw));
 	} catch {
 		return null;
 	}

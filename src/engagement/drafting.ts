@@ -48,7 +48,9 @@ interface VoiceContext {
  * Extract voice context from profile, adapting to target platform.
  */
 function extractVoiceContext(voiceProfile: VoiceProfile, platform: string): VoiceContext {
-	const platformPersona = voiceProfile.platforms[platform as keyof typeof voiceProfile.platforms];
+	const platforms = voiceProfile.platforms;
+	const platformPersona =
+		platform in platforms ? platforms[platform as keyof typeof platforms] : undefined;
 	const primaryLang = voiceProfile.languages.en ?? voiceProfile.languages.es;
 
 	return {

@@ -344,7 +344,7 @@ export async function createBrandAmbassadorProfile(params: {
 	const personal = await loadProfile(params.personalProfilePath);
 
 	// Clone personal profile
-	const profile = JSON.parse(JSON.stringify(personal)) as VoiceProfile;
+	const profile = structuredClone(personal);
 
 	// Apply guardrails
 	if (params.guardrails) {
@@ -370,8 +370,10 @@ export async function createBrandAmbassadorProfile(params: {
 		}
 		if (params.guardrails.toneOverride) {
 			for (const key of Object.keys(profile.platforms)) {
-				const p = profile.platforms[key as keyof typeof profile.platforms];
-				if (p) p.tone = params.guardrails.toneOverride;
+				if (key in profile.platforms) {
+					const p = profile.platforms[key as keyof typeof profile.platforms];
+					if (p) p.tone = params.guardrails.toneOverride;
+				}
 			}
 		}
 	}

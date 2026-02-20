@@ -1,6 +1,7 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
 import { and, eq, gt } from "drizzle-orm";
 import { parse, stringify } from "yaml";
+import { z } from "zod/v4";
 import type { HubDb } from "../core/db/connection.ts";
 import { strategyAdjustments } from "../core/db/schema.ts";
 import { isSettingLocked, type LockedSetting } from "./locks.ts";
@@ -48,6 +49,19 @@ interface StrategyYaml {
 	};
 	locked: string[];
 }
+
+const strategyYamlSchema = z.object({
+	pillars: z.array(z.object({ name: z.string(), weight: z.number() })),
+	posting: z.object({
+		frequency: z.record(z.string(), z.number()),
+		preferred_times: z.record(z.string(), z.array(z.string())),
+		timezone: z.string(),
+	}),
+	formats: z.object({
+		preferences: z.array(z.string()),
+	}),
+	locked: z.array(z.string()),
+});
 
 // ─── Auto-apply Rules ───────────────────────────────────────────────────────
 
@@ -269,7 +283,7 @@ export async function applyAutoAdjustments(
 	// Apply auto adjustments to strategy.yaml
 	if (autoAdjustments.length > 0) {
 		const raw = await readFile(strategyPath, "utf-8");
-		const strategy = parse(raw) as StrategyYaml;
+		const strategy = strategyYamlSchema.parse(parse(raw));
 
 		for (const adj of autoAdjustments) {
 			applyFieldUpdate(strategy, adj);
@@ -288,8 +302,8 @@ export async function applyAutoAdjustments(
 			userId,
 			adjustmentType: adj.adjustmentType,
 			field: adj.field,
-			oldValue: adj.oldValue as Record<string, unknown>,
-			newValue: adj.newValue as Record<string, unknown>,
+			oldValue: adj.oldValue,
+			newValue: adj.newValue,
 			reason: adj.reason,
 			evidence: adj.evidence,
 			tier: "auto",
@@ -303,8 +317,8 @@ export async function applyAutoAdjustments(
 			userId,
 			adjustmentType: adj.adjustmentType,
 			field: adj.field,
-			oldValue: adj.oldValue as Record<string, unknown>,
-			newValue: adj.newValue as Record<string, unknown>,
+			oldValue: adj.oldValue,
+			newValue: adj.newValue,
 			reason: adj.reason,
 			evidence: adj.evidence,
 			tier: "approval",
@@ -325,29 +339,31 @@ function applyFieldUpdate(strategy: StrategyYaml, adj: StrategyAdjustment): void
 			// field: "pillars.<name>.weight"
 			const pillarName = parts[1];
 			const pillar = strategy.pillars.find((p) => p.name === pillarName);
-			if (pillar) {
-				pillar.weight = adj.newValue as number;
+			if (pillar && typeof adj.newValue === "number") {
+				pillar.weight = adj.newValue;
 			}
 			break;
 		}
 		case "posting_time": {
 			// field: "posting.preferred_times.<platform>"
 			const platform = parts[2];
-			if (platform) {
-				strategy.posting.preferred_times[platform] = adj.newValue as string[];
+			if (platform && Array.isArray(adj.newValue)) {
+				strategy.posting.preferred_times[platform] = z.array(z.string()).parse(adj.newValue);
 			}
 			break;
 		}
 		case "format_preference": {
 			// field: "formats.preferences"
-			strategy.formats.preferences = adj.newValue as string[];
+			if (Array.isArray(adj.newValue)) {
+				strategy.formats.preferences = z.array(z.string()).parse(adj.newValue);
+			}
 			break;
 		}
 		case "frequency": {
 			// field: "posting.frequency.<platform>"
 			const platform = parts[2];
-			if (platform) {
-				strategy.posting.frequency[platform] = adj.newValue as number;
+			if (platform && typeof adj.newValue === "number") {
+				strategy.posting.frequency[platform] = adj.newValue;
 			}
 			break;
 		}
@@ -390,14 +406,14 @@ export async function approveAdjustment(
 
 	// Apply to strategy.yaml
 	const raw = await readFile(strategyPath, "utf-8");
-	const strategy = parse(raw) as StrategyYaml;
+	const strategy = strategyYamlSchema.parse(parse(raw));
 	applyFieldUpdate(strategy, {
-		adjustmentType: adjustment.adjustmentType as AdjustmentType,
+		adjustmentType: adjustment.adjustmentType,
 		field: adjustment.field,
 		oldValue: adjustment.oldValue,
 		newValue: adjustment.newValue,
 		reason: adjustment.reason,
-		evidence: (adjustment.evidence as string[]) ?? [],
+		evidence: adjustment.evidence ?? [],
 		tier: "approval",
 	});
 

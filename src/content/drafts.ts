@@ -1,23 +1,37 @@
 import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { stringify } from "yaml";
+import { z } from "zod/v4";
 import type { Platform } from "../core/types/index.ts";
 import type { PostFormat } from "./format-picker.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export interface DraftFrontmatter {
-	id: string;
-	platform: Platform;
-	format: PostFormat;
-	persona: string;
-	language: string;
-	status: "draft" | "review" | "approved" | "published" | "awaiting-recording";
-	createdAt: string;
-	publishedAt: string | null;
-	hub?: "personal" | "company";
-	metadata?: Record<string, unknown>;
-}
+const draftFrontmatterSchema = z.object({
+	id: z.string(),
+	platform: z.enum(["x", "linkedin", "instagram", "tiktok"]),
+	format: z.enum([
+		"short-post",
+		"long-post",
+		"thread",
+		"carousel",
+		"image-post",
+		"reel-script",
+		"video-post",
+		"quote-image",
+		"infographic",
+		"linkedin-article",
+	]),
+	persona: z.string(),
+	language: z.string(),
+	status: z.enum(["draft", "review", "approved", "published", "awaiting-recording"]),
+	createdAt: z.string(),
+	publishedAt: z.string().nullable(),
+	hub: z.enum(["personal", "company"]).optional(),
+	metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type DraftFrontmatter = z.infer<typeof draftFrontmatterSchema>;
 
 export interface DraftSummary {
 	id: string;
@@ -83,7 +97,7 @@ export async function loadDraft(
 	}
 
 	const { parse } = await import("yaml");
-	const frontmatter = parse(fmMatch[1] ?? "") as DraftFrontmatter;
+	const frontmatter = draftFrontmatterSchema.parse(parse(fmMatch[1] ?? ""));
 	const content = (fmMatch[2] ?? "").trim();
 
 	return { frontmatter, content };
@@ -131,7 +145,7 @@ export async function listDrafts(filter?: {
 				if (!fmMatch) continue;
 
 				const { parse } = await import("yaml");
-				const fm = parse(fmMatch[1] ?? "") as DraftFrontmatter;
+				const fm = draftFrontmatterSchema.parse(parse(fmMatch[1] ?? ""));
 
 				// Apply filters
 				if (filter?.platform && fm.platform !== filter.platform) continue;
@@ -179,7 +193,7 @@ export async function pruneDrafts(options?: {
 				if (!fmMatch) continue;
 
 				const { parse } = await import("yaml");
-				const fm = parse(fmMatch[1] ?? "") as DraftFrontmatter;
+				const fm = draftFrontmatterSchema.parse(parse(fmMatch[1] ?? ""));
 
 				// Only prune published drafts older than maxAge
 				if (fm.status === "published" && fm.publishedAt) {

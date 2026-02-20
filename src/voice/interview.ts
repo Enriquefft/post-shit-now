@@ -553,9 +553,8 @@ export function finalizeProfile(state: InterviewState): VoiceProfile {
 
 	for (const [qId, platformKey] of Object.entries(platformToneMap)) {
 		const answer = state.answers.get(qId);
-		if (answer) {
-			const key = platformKey as keyof typeof base.platforms;
-			base.platforms[key] = {
+		if (answer && platformKey in base.platforms) {
+			base.platforms[platformKey as keyof typeof base.platforms] = {
 				tone: answer.slice(0, 100),
 				formatPreferences: [],
 				hashtagStyle: "minimal",

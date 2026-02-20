@@ -55,7 +55,8 @@ export class XClient {
 			throw new XApiError(response.status, bodyText, rateLimit);
 		}
 
-		const json = await response.json();
+		const json: unknown = await response.json();
+		// Intentional cast: callers without a schema accept responsibility for type safety
 		const data = schema ? schema.parse(json) : (json as T);
 
 		return { data, rateLimit };
@@ -114,7 +115,7 @@ export class XClient {
 		const rateLimits: RateLimitInfo[] = [];
 
 		for (let i = 0; i < tweets.length; i++) {
-			const tweetText = tweets[i] as string;
+			const tweetText = tweets[i]!;
 			const result = await this.createTweet({
 				text: tweetText,
 				replyToId: i > 0 ? tweetIds[i - 1] : undefined,

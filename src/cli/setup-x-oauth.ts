@@ -128,7 +128,6 @@ export async function completeXOAuth(
 	configDir: string,
 	code: string,
 	_state: string,
-	// biome-ignore lint/correctness/noUnusedVariables: Parameter is used for metadata storage
 	codeVerifier: string,
 ): Promise<SetupResult> {
 	// Load hub.env

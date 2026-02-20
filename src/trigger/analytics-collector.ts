@@ -331,8 +331,7 @@ async function collectInstagramAnalyticsTask(
 	const accessToken = decrypt(accessTokenEncrypted, encKey);
 
 	// Get account ID from token metadata
-	const tokenMetadata = (token.metadata ?? {}) as Record<string, unknown>;
-	const accountId = tokenMetadata.accountId as string | undefined;
+	const accountId = token.metadata?.accountId;
 
 	if (!accountId) {
 		logger.warn("Instagram account ID not found in token metadata — skipping", { userId });
@@ -417,8 +416,7 @@ async function collectTikTokAnalyticsTask(
 	const accessToken = decrypt(accessTokenEncrypted, encKey);
 
 	// Get audit status from token metadata
-	const tokenMetadata = (token.metadata ?? {}) as Record<string, unknown>;
-	const auditStatus = (tokenMetadata.auditStatus as "unaudited" | "audited") ?? "unaudited";
+	const auditStatus = token.metadata?.auditStatus ?? "unaudited";
 
 	const client = new TikTokClient(accessToken, { auditStatus });
 

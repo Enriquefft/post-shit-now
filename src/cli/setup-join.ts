@@ -1,18 +1,21 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
 import type { SetupResult } from "../core/types/index.ts";
 import { redeemInviteCode } from "../team/invite.ts";
 import type { HubConnection } from "../team/types.ts";
 
-interface InviteBundle {
-	code: string;
-	slug: string;
-	displayName: string;
-	databaseUrl: string;
-	triggerProjectId: string;
-	encryptionKey?: string;
-}
+const inviteBundleSchema = z.object({
+	code: z.string(),
+	slug: z.string(),
+	displayName: z.string(),
+	databaseUrl: z.string(),
+	triggerProjectId: z.string(),
+	encryptionKey: z.string().optional(),
+});
+
+type InviteBundle = z.infer<typeof inviteBundleSchema>;
 
 interface SetupJoinParams {
 	/** Base64-encoded JSON invite bundle from admin */
@@ -48,7 +51,7 @@ export async function setupJoinHub(params: SetupJoinParams): Promise<SetupResult
 	let bundle: InviteBundle;
 	try {
 		const decoded = Buffer.from(inviteBundle, "base64").toString("utf-8");
-		bundle = JSON.parse(decoded) as InviteBundle;
+		bundle = inviteBundleSchema.parse(JSON.parse(decoded));
 	} catch {
 		return {
 			step: "join-hub",

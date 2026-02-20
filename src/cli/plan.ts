@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { z } from "zod/v4";
 import { getUnifiedCalendar, type UnifiedCalendar } from "../approval/calendar.ts";
 import { createHubConnection } from "../core/db/connection.ts";
 import { type PlanSlot as DbPlanSlot, weeklyPlans } from "../core/db/schema.ts";
@@ -9,7 +10,6 @@ import { generatePlanIdeas } from "../planning/ideation.ts";
 import { suggestLanguages } from "../planning/language.ts";
 import { getRecycleSuggestions, getRemixSuggestions } from "../planning/recycling.ts";
 import { allocateSlots } from "../planning/slotting.ts";
-import type { PlanSlot } from "../planning/types.ts";
 import { discoverCompanyHubs, getHubDb } from "../team/hub.ts";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -139,9 +139,28 @@ export async function recycleCommand(limit?: number) {
 	return getRecycleSuggestions(db, "default", limit);
 }
 
+const planSchema = z.object({
+	slots: z.array(
+		z.object({
+			day: z.string(),
+			platform: z.string(),
+			topic: z.string(),
+			format: z.string(),
+			pillar: z.string(),
+			language: z.string(),
+			seriesId: z.string().optional(),
+			seriesEpisode: z.string().optional(),
+			ideaId: z.string().optional(),
+			postId: z.string().optional(),
+			status: z.enum(["outlined", "drafted", "approved", "scheduled", "published", "skipped"]),
+			targetPlatforms: z.array(z.string()).optional(),
+		}),
+	),
+});
+
 export async function saveCommand(planJson: string) {
 	const db = await getDb();
-	const plan = JSON.parse(planJson) as { slots: PlanSlot[] };
+	const plan = planSchema.parse(JSON.parse(planJson));
 	const weekStart = getWeekStart();
 	const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -212,14 +231,15 @@ if (import.meta.main) {
 
 			case "rate": {
 				const ideaId = args[1];
-				const rating = args[2] as "love" | "maybe" | "kill";
+				const ratingArg = args[2];
 				const reason = getArg(args, "reason");
-				if (!ideaId || !rating) {
+				if (!ideaId || !ratingArg) {
 					console.log(
 						JSON.stringify({ error: "Usage: rate <ideaId> <love|maybe|kill> [--reason text]" }),
 					);
 					process.exit(1);
 				}
+				const rating = z.enum(["love", "maybe", "kill"]).parse(ratingArg);
 				const result = await rateCommand(ideaId, rating, reason);
 				console.log(JSON.stringify(result, null, 2));
 				break;

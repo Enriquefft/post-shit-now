@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { and, eq, gt, lte } from "drizzle-orm";
 import { parse } from "yaml";
+import { z } from "zod/v4";
 import type { HubDb } from "../core/db/connection.ts";
 import { postMetrics, posts } from "../core/db/schema.ts";
 import {
@@ -277,7 +278,7 @@ export async function generateWeeklyReview(
 	// ── 7. Follower trend ───────────────────────────────────────────────
 
 	const followerHistory = model?.followerHistory ?? [];
-	const lastTwo = (followerHistory as Array<{ count: number; date: string }>).slice(-2);
+	const lastTwo = followerHistory.slice(-2);
 	const followerTrend = {
 		current: lastTwo.length > 0 ? (lastTwo[lastTwo.length - 1]?.count ?? 0) : 0,
 		previous: lastTwo.length > 1 ? (lastTwo[0]?.count ?? 0) : 0,
@@ -307,9 +308,22 @@ export async function generateWeeklyReview(
 	}
 
 	// Compute adjustments from preference model + strategy.yaml
+	const reviewStrategySchema = z.object({
+		pillars: z.array(z.object({ name: z.string(), weight: z.number() })),
+		posting: z.object({
+			frequency: z.record(z.string(), z.number()),
+			preferred_times: z.record(z.string(), z.array(z.string())),
+			timezone: z.string(),
+		}),
+		formats: z.object({
+			preferences: z.array(z.string()),
+		}),
+		locked: z.array(z.string()),
+	});
+
 	try {
 		const strategyRaw = await readFile("content/strategy.yaml", "utf-8");
-		const strategy = parse(strategyRaw) as Parameters<typeof computeAdjustments>[1];
+		const strategy = reviewStrategySchema.parse(parse(strategyRaw));
 
 		if (model) {
 			const weeksOfData = Math.floor(days / 7) || 1;

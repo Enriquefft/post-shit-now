@@ -26,7 +26,7 @@ export async function getDueEpisodes(db: HubDb, userId: string, asOfDate?: Date)
 	}> = [];
 
 	for (const s of userSeries) {
-		const cadenceDays = getCadenceDays(s.cadence as SeriesCadence, s.cadenceCustomDays);
+		const cadenceDays = getCadenceDays(s.cadence, s.cadenceCustomDays);
 		// Use lastPublishedAt if available, otherwise createdAt
 		const baseDate = s.lastPublishedAt ?? s.createdAt;
 		const nextDueDate = new Date(baseDate.getTime() + cadenceDays * 24 * 60 * 60 * 1000);
@@ -35,7 +35,10 @@ export async function getDueEpisodes(db: HubDb, userId: string, asOfDate?: Date)
 			dueEpisodes.push({
 				series: s,
 				nextDueDate,
-				nextEpisodeLabel: getNextEpisodeLabel(s as unknown as Series),
+				nextEpisodeLabel: getNextEpisodeLabel({
+					...s,
+					template: s.template ?? null,
+				}),
 			});
 		}
 	}
@@ -65,9 +68,9 @@ export function getNextEpisodeLabel(s: Series): string | undefined {
 			if (!s.trackingFormat) return `#${nextEp}`;
 			let label = s.trackingFormat.replace("{e}", String(nextEp));
 			// Season tracking: stored in template metadata if present
-			if (label.includes("{s}")) {
-				const template = s.template as Record<string, unknown> | null;
-				const season = (template?.season as number) ?? 1;
+			if (label.includes("{s}") && s.template && typeof s.template === "object") {
+				const tmpl: Record<string, unknown> = { ...s.template };
+				const season = typeof tmpl.season === "number" ? tmpl.season : 1;
 				label = label.replace("{s}", String(season));
 			}
 			return label;

@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import { getApiKey } from "../../core/db/api-keys";
 import type { DbClient } from "../../core/db/connection.ts";
 import type { SearchResult } from "../types.ts";
@@ -38,15 +39,22 @@ export async function searchBrave(
 		throw new Error(`Brave Search API error: ${response.status} ${response.statusText}`);
 	}
 
-	const json = (await response.json()) as {
-		web?: {
-			results?: Array<{
-				title?: string;
-				url: string;
-				description?: string;
-			}>;
-		};
-	};
+	const braveResponseSchema = z.object({
+		web: z
+			.object({
+				results: z
+					.array(
+						z.object({
+							title: z.string().optional(),
+							url: z.string(),
+							description: z.string().optional(),
+						}),
+					)
+					.optional(),
+			})
+			.optional(),
+	});
+	const json = braveResponseSchema.parse(await response.json());
 
 	return (json.web?.results ?? []).map((r) => ({
 		title: r.title ?? query,

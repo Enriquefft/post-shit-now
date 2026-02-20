@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import { getApiKey } from "../../core/db/api-keys";
 import type { DbClient } from "../../core/db/connection.ts";
 import type { GeneratedImage, ImageGenOptions, ImageProvider } from "../image-gen.ts";
@@ -62,7 +63,7 @@ function mapStyle(style?: string): "AUTO" | "GENERAL" | "REALISTIC" | "DESIGN" |
 	if (!style) return undefined;
 	const upper = style.toUpperCase();
 	if (upper === "REALISTIC" || upper === "GENERAL" || upper === "DESIGN" || upper === "AUTO") {
-		return upper as "AUTO" | "GENERAL" | "REALISTIC" | "DESIGN";
+		return upper;
 	}
 	return "AUTO";
 }
@@ -97,10 +98,18 @@ async function generateViaFal(
 		},
 	});
 
-	// Output type has images as File[] but at runtime they have url/width/height
-	const data = result.data as unknown as {
-		images?: Array<{ url: string; width: number; height: number }>;
-	};
+	const falImageResultSchema = z.object({
+		images: z
+			.array(
+				z.object({
+					url: z.string(),
+					width: z.number(),
+					height: z.number(),
+				}),
+			)
+			.optional(),
+	});
+	const data = falImageResultSchema.parse(result.data);
 	const image = data.images?.[0];
 	if (!image?.url) {
 		throw new Error("Ideogram via fal.ai returned no image data");
@@ -151,9 +160,17 @@ async function generateViaDirect(
 		throw new Error(`Ideogram API error (${response.status}): ${text}`);
 	}
 
-	const data = (await response.json()) as {
-		data?: Array<{ url: string; resolution: { width: number; height: number } }>;
-	};
+	const ideogramResponseSchema = z.object({
+		data: z
+			.array(
+				z.object({
+					url: z.string(),
+					resolution: z.object({ width: z.number(), height: z.number() }),
+				}),
+			)
+			.optional(),
+	});
+	const data = ideogramResponseSchema.parse(await response.json());
 	const image = data.data?.[0];
 	if (!image?.url) {
 		throw new Error("Ideogram API returned no image data");

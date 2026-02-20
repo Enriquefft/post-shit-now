@@ -1,5 +1,6 @@
 import { logger, schedules } from "@trigger.dev/sdk";
 import { sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
 import { compileDigest, formatDigestMessage } from "../notifications/digest.ts";
 import { isQuietHours } from "../notifications/dispatcher.ts";
@@ -23,10 +24,22 @@ interface PreferenceRow {
 	timezone: string;
 }
 
-interface SessionRow {
-	phone: string;
-	session_state: string;
-}
+const PreferenceRowSchema = z.object({
+	user_id: z.string(),
+	provider: z.enum(["waha", "twilio"]),
+	digest_enabled: z.number(),
+	digest_frequency: z.enum(["daily", "twice_daily", "weekly"]),
+	digest_time: z.string(),
+	quiet_hours_start: z.string().nullable(),
+	quiet_hours_end: z.string().nullable(),
+	max_push_per_day: z.number(),
+	timezone: z.string(),
+});
+
+const SessionRowSchema = z.object({
+	phone: z.string(),
+	session_state: z.string(),
+});
 
 export const digestCompilerTask = schedules.task({
 	id: "digest-compiler",
@@ -50,7 +63,7 @@ export const digestCompilerTask = schedules.task({
 			WHERE digest_enabled = 1
 		`);
 
-		const prefs = prefsResult.rows as unknown as PreferenceRow[];
+		const prefs = z.array(PreferenceRowSchema).parse(prefsResult.rows);
 
 		for (const pref of prefs) {
 			try {
@@ -60,12 +73,12 @@ export const digestCompilerTask = schedules.task({
 				}
 
 				// Build NotificationPreference for quiet hours check
-				const preferences: NotificationPreference & { timezone: string } = {
+				const preferences: NotificationPreference = {
 					userId: pref.user_id,
-					provider: pref.provider as "waha" | "twilio",
+					provider: pref.provider,
 					pushEnabled: false,
 					digestEnabled: true,
-					digestFrequency: pref.digest_frequency as "daily" | "twice_daily" | "weekly",
+					digestFrequency: pref.digest_frequency,
 					digestTime: pref.digest_time,
 					quietHoursStart: pref.quiet_hours_start ?? undefined,
 					quietHoursEnd: pref.quiet_hours_end ?? undefined,
@@ -86,7 +99,9 @@ export const digestCompilerTask = schedules.task({
 					WHERE user_id = ${pref.user_id}
 					LIMIT 1
 				`);
-				const session = sessionResult.rows[0] as SessionRow | undefined;
+				const session = sessionResult.rows[0]
+					? SessionRowSchema.parse(sessionResult.rows[0])
+					: undefined;
 				if (!session || session.session_state !== "active") {
 					result.skipped++;
 					continue;
@@ -98,7 +113,7 @@ export const digestCompilerTask = schedules.task({
 				// Compile digest
 				const digest = await compileDigest(db, {
 					userId: pref.user_id,
-					frequency: pref.digest_frequency as "daily" | "twice_daily" | "weekly",
+					frequency: pref.digest_frequency,
 					since,
 				});
 
@@ -110,7 +125,7 @@ export const digestCompilerTask = schedules.task({
 
 				// Format and send
 				const message = formatDigestMessage(digest);
-				const provider = createProviderFromEnv(pref.provider as "waha" | "twilio");
+				const provider = createProviderFromEnv(pref.provider);
 				if (!provider) {
 					logger.warn("Cannot create provider for digest", { userId: pref.user_id });
 					result.skipped++;

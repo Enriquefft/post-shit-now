@@ -68,9 +68,11 @@ export class LinkedInClient {
 		let data: T;
 		const contentType = response.headers.get("content-type");
 		if (contentType?.includes("application/json")) {
-			const json = await response.json();
+			const json: unknown = await response.json();
+			// Intentional cast: callers without a schema accept responsibility for type safety
 			data = schema ? schema.parse(json) : (json as T);
 		} else {
+			// Intentional cast: empty body for non-JSON responses (e.g. 201 Created)
 			data = {} as T;
 		}
 
@@ -96,7 +98,8 @@ export class LinkedInClient {
 			throw new LinkedInApiError(response.status, bodyText);
 		}
 
-		const json = await response.json();
+		const json: unknown = await response.json();
+		// Intentional cast: callers without a schema accept responsibility for type safety
 		return schema ? schema.parse(json) : (json as T);
 	}
 

@@ -48,7 +48,7 @@ function truncateContent(content: string, maxLen = 80): string {
 	try {
 		const parsed = JSON.parse(content);
 		if (Array.isArray(parsed)) {
-			const first = (parsed[0] ?? "") as string;
+			const first = String(parsed[0] ?? "");
 			return first.length > maxLen ? `${first.slice(0, maxLen)}...` : first;
 		}
 	} catch {

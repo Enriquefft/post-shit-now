@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import type { HubDb } from "../core/db/connection.ts";
 import { loadProfile } from "../voice/profile.ts";
 import {
@@ -11,6 +12,36 @@ import {
 import { draftQuotePost, draftReplies, type QuotePostDraft, type ReplyDraft } from "./drafting.ts";
 import { fromBasisPoints } from "./scoring.ts";
 import type { DailyCapResult, EngagementOpportunity, SuggestedEngagement } from "./types.ts";
+import { suggestedEngagementSchema } from "./types.ts";
+
+// ─── Raw SQL Row Schemas ──────────────────────────────────────────────────
+
+const opportunityRowSchema = z
+	.object({
+		id: z.string(),
+		user_id: z.string(),
+		platform: z.string(),
+		external_post_id: z.string(),
+		author_handle: z.string(),
+		author_follower_count: z.coerce.number().nullable(),
+		post_snippet: z.string(),
+		post_url: z.string().nullable(),
+		posted_at: z.coerce.date().nullable(),
+		composite_score_bps: z.coerce.number().nullable(),
+		relevance_score_bps: z.coerce.number().nullable(),
+		recency_score_bps: z.coerce.number().nullable(),
+		reach_score_bps: z.coerce.number().nullable(),
+		potential_score_bps: z.coerce.number().nullable(),
+		suggested_type: suggestedEngagementSchema.nullable(),
+		detected_at: z.coerce.date().nullable().optional(),
+	})
+	.passthrough();
+
+const authorHandleRowSchema = z
+	.object({
+		author_handle: z.string(),
+	})
+	.passthrough();
 
 // ─── Session Types ────────────────────────────────────────────────────────
 
@@ -81,28 +112,28 @@ export async function createEngagementSession(
 		LIMIT 50
 	`);
 
-	const rows = result.rows as Array<Record<string, unknown>>;
+	const rows = z.array(opportunityRowSchema).parse(result.rows);
 
 	const opportunities: EngagementOpportunity[] = rows.map((row) => ({
-		id: row.id as string,
-		userId: row.user_id as string,
-		platform: row.platform as string,
-		externalPostId: row.external_post_id as string,
-		authorHandle: row.author_handle as string,
-		authorFollowerCount: (row.author_follower_count as number) ?? undefined,
-		postSnippet: row.post_snippet as string,
-		postUrl: (row.post_url as string) ?? undefined,
-		postedAt: row.posted_at ? new Date(row.posted_at as string) : undefined,
+		id: row.id,
+		userId: row.user_id,
+		platform: row.platform,
+		externalPostId: row.external_post_id,
+		authorHandle: row.author_handle,
+		authorFollowerCount: row.author_follower_count ?? undefined,
+		postSnippet: row.post_snippet,
+		postUrl: row.post_url ?? undefined,
+		postedAt: row.posted_at ?? undefined,
 		score: {
-			composite: fromBasisPoints((row.composite_score_bps as number) ?? 0),
-			relevance: fromBasisPoints((row.relevance_score_bps as number) ?? 0),
-			recency: fromBasisPoints((row.recency_score_bps as number) ?? 0),
-			reach: fromBasisPoints((row.reach_score_bps as number) ?? 0),
-			potential: fromBasisPoints((row.potential_score_bps as number) ?? 0),
+			composite: fromBasisPoints(row.composite_score_bps ?? 0),
+			relevance: fromBasisPoints(row.relevance_score_bps ?? 0),
+			recency: fromBasisPoints(row.recency_score_bps ?? 0),
+			reach: fromBasisPoints(row.reach_score_bps ?? 0),
+			potential: fromBasisPoints(row.potential_score_bps ?? 0),
 		},
 		status: "pending",
-		suggestedType: (row.suggested_type as SuggestedEngagement) ?? "reply",
-		detectedAt: row.detected_at ? new Date(row.detected_at as string) : undefined,
+		suggestedType: row.suggested_type ?? "reply",
+		detectedAt: row.detected_at ?? undefined,
 	}));
 
 	// Check daily caps for each platform
@@ -182,28 +213,28 @@ export async function draftForApproved(
 			WHERE id = ${oppId}::uuid
 		`);
 
-		const row = oppResult.rows[0] as Record<string, unknown> | undefined;
+		const row = opportunityRowSchema.optional().parse(oppResult.rows[0]);
 		if (!row) continue;
 
 		const opportunity: EngagementOpportunity = {
-			id: row.id as string,
-			userId: row.user_id as string,
-			platform: row.platform as string,
-			externalPostId: row.external_post_id as string,
-			authorHandle: row.author_handle as string,
-			authorFollowerCount: (row.author_follower_count as number) ?? undefined,
-			postSnippet: row.post_snippet as string,
-			postUrl: (row.post_url as string) ?? undefined,
-			postedAt: row.posted_at ? new Date(row.posted_at as string) : undefined,
+			id: row.id,
+			userId: row.user_id,
+			platform: row.platform,
+			externalPostId: row.external_post_id,
+			authorHandle: row.author_handle,
+			authorFollowerCount: row.author_follower_count ?? undefined,
+			postSnippet: row.post_snippet,
+			postUrl: row.post_url ?? undefined,
+			postedAt: row.posted_at ?? undefined,
 			score: {
-				composite: fromBasisPoints((row.composite_score_bps as number) ?? 0),
-				relevance: fromBasisPoints((row.relevance_score_bps as number) ?? 0),
-				recency: fromBasisPoints((row.recency_score_bps as number) ?? 0),
-				reach: fromBasisPoints((row.reach_score_bps as number) ?? 0),
-				potential: fromBasisPoints((row.potential_score_bps as number) ?? 0),
+				composite: fromBasisPoints(row.composite_score_bps ?? 0),
+				relevance: fromBasisPoints(row.relevance_score_bps ?? 0),
+				recency: fromBasisPoints(row.recency_score_bps ?? 0),
+				reach: fromBasisPoints(row.reach_score_bps ?? 0),
+				potential: fromBasisPoints(row.potential_score_bps ?? 0),
 			},
 			status: "triaged_yes",
-			suggestedType: (row.suggested_type as SuggestedEngagement) ?? "reply",
+			suggestedType: row.suggested_type ?? "reply",
 		};
 
 		const suggestedType = opportunity.suggestedType ?? "reply";
@@ -277,8 +308,8 @@ export async function executeEngagement(
 				SELECT author_handle FROM engagement_opportunities
 				WHERE id = ${engagement.opportunityId}::uuid
 			`);
-			const oppRow = oppResult.rows[0] as Record<string, unknown> | undefined;
-			if (oppRow && isBlocked(config, oppRow.author_handle as string)) {
+			const oppRow = authorHandleRowSchema.optional().parse(oppResult.rows[0]);
+			if (oppRow && isBlocked(config, oppRow.author_handle)) {
 				results.push({
 					opportunityId: engagement.opportunityId,
 					success: false,

@@ -541,7 +541,7 @@ export async function runSetup(configDir = "config"): Promise<SetupOutput> {
 		message: validation.allPassed
 			? "All validation checks passed"
 			: `${validation.results.filter((r) => r.status === "fail").length} checks failed`,
-		data: { results: validation.results as unknown as Record<string, unknown>[] },
+		data: { results: validation.results as unknown[] },
 	});
 
 	return {

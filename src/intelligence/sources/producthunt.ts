@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import type { RawTrend } from "../types.ts";
 
 /**
@@ -48,27 +49,32 @@ export async function fetchProductHuntFeatured(limit = 10): Promise<RawTrend[]> 
 		throw new Error(`Product Hunt API failed: ${response.status}`);
 	}
 
-	const json = (await response.json()) as {
-		data: {
-			posts: {
-				edges: Array<{
-					node: {
-						id: string;
-						name: string;
-						tagline: string;
-						url: string;
-						votesCount: number;
-						createdAt: string;
-						topics: {
-							edges: Array<{
-								node: { name: string };
-							}>;
-						};
-					};
-				}>;
-			};
-		};
-	};
+	const phResponseSchema = z.object({
+		data: z.object({
+			posts: z.object({
+				edges: z.array(
+					z.object({
+						node: z.object({
+							id: z.string(),
+							name: z.string(),
+							tagline: z.string(),
+							url: z.string(),
+							votesCount: z.number(),
+							createdAt: z.string(),
+							topics: z.object({
+								edges: z.array(
+									z.object({
+										node: z.object({ name: z.string() }),
+									}),
+								),
+							}),
+						}),
+					}),
+				),
+			}),
+		}),
+	});
+	const json = phResponseSchema.parse(await response.json());
 
 	return json.data.posts.edges.map((edge) => {
 		const node = edge.node;

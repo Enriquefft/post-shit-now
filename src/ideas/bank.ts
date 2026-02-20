@@ -3,32 +3,6 @@ import type { HubDb } from "../core/db/connection.ts";
 import { ideas } from "../core/db/schema.ts";
 import type { Idea, IdeaStatus, Urgency } from "./types.ts";
 
-// ─── Row to Idea Mapper ────────────────────────────────────────────────────
-
-function rowToIdea(row: typeof ideas.$inferSelect): Idea {
-	return {
-		id: row.id,
-		userId: row.userId,
-		hubId: row.hubId,
-		title: row.title,
-		notes: row.notes,
-		tags: row.tags,
-		status: row.status as IdeaStatus,
-		urgency: row.urgency as Urgency,
-		pillar: row.pillar,
-		platform: row.platform,
-		format: row.format,
-		claimedBy: row.claimedBy,
-		killReason: row.killReason,
-		expiresAt: row.expiresAt,
-		lastTouchedAt: row.lastTouchedAt,
-		sourceType: row.sourceType as Idea["sourceType"],
-		sourceId: row.sourceId,
-		createdAt: row.createdAt,
-		updatedAt: row.updatedAt,
-	};
-}
-
 // ─── Get Ready Ideas ────────────────────────────────────────────────────────
 
 export async function getReadyIdeas(
@@ -48,7 +22,7 @@ export async function getReadyIdeas(
 		.orderBy(desc(ideas.lastTouchedAt))
 		.limit(opts?.limit ?? 10);
 
-	return rows.map(rowToIdea);
+	return rows;
 }
 
 // ─── Search Ideas ───────────────────────────────────────────────────────────
@@ -74,7 +48,7 @@ export async function searchIdeas(
 		.orderBy(desc(ideas.lastTouchedAt))
 		.limit(opts?.limit ?? 20);
 
-	return rows.map(rowToIdea);
+	return rows;
 }
 
 // ─── Get Ideas by Status ────────────────────────────────────────────────────
@@ -92,7 +66,7 @@ export async function getIdeasByStatus(
 		.orderBy(desc(ideas.lastTouchedAt))
 		.limit(opts?.limit ?? 50);
 
-	return rows.map(rowToIdea);
+	return rows;
 }
 
 // ─── Get Idea Stats ─────────────────────────────────────────────────────────
@@ -118,9 +92,8 @@ export async function getIdeaStats(db: HubDb, userId: string): Promise<Record<Id
 	};
 
 	for (const row of rows) {
-		const status = row.status as IdeaStatus;
-		if (status in stats) {
-			stats[status] = row.count;
+		if (row.status in stats) {
+			stats[row.status] = row.count;
 		}
 	}
 
@@ -154,7 +127,7 @@ export async function listIdeas(
 		.limit(opts?.limit ?? 50)
 		.offset(opts?.offset ?? 0);
 
-	return rows.map(rowToIdea);
+	return rows;
 }
 
 // ─── Get Killed Ideas Since ─────────────────────────────────────────────────
@@ -168,5 +141,5 @@ export async function getKilledIdeasSince(db: HubDb, userId: string, since: Date
 		)
 		.orderBy(desc(ideas.lastTouchedAt));
 
-	return rows.map(rowToIdea);
+	return rows;
 }

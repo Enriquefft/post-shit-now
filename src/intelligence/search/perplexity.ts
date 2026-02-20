@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import { getApiKey } from "../../core/db/api-keys";
 import type { DbClient } from "../../core/db/connection.ts";
 import type { SearchResult } from "../types.ts";
@@ -39,12 +40,17 @@ export async function searchPerplexity(
 		throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
 	}
 
-	const json = (await response.json()) as {
-		choices?: Array<{
-			message?: { content?: string };
-		}>;
-		citations?: string[];
-	};
+	const perplexityResponseSchema = z.object({
+		choices: z
+			.array(
+				z.object({
+					message: z.object({ content: z.string().optional() }).optional(),
+				}),
+			)
+			.optional(),
+		citations: z.array(z.string()).optional(),
+	});
+	const json = perplexityResponseSchema.parse(await response.json());
 
 	const content = json.choices?.[0]?.message?.content ?? "";
 	const citations = json.citations ?? [];

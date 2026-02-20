@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import type { RawTrend } from "../types.ts";
 
 /**
@@ -27,7 +28,8 @@ export async function fetchRedditTrending(subreddits: string[], limit = 10): Pro
 		throw new Error(`Reddit auth failed: ${tokenResponse.status}`);
 	}
 
-	const tokenData = (await tokenResponse.json()) as { access_token: string };
+	const tokenSchema = z.object({ access_token: z.string() });
+	const tokenData = tokenSchema.parse(await tokenResponse.json());
 	const accessToken = tokenData.access_token;
 
 	const allTrends: RawTrend[] = [];
@@ -42,19 +44,22 @@ export async function fetchRedditTrending(subreddits: string[], limit = 10): Pro
 
 		if (!res.ok) continue;
 
-		const data = (await res.json()) as {
-			data: {
-				children: Array<{
-					data: {
-						title: string;
-						url: string;
-						score: number;
-						created_utc: number;
-						link_flair_text?: string;
-					};
-				}>;
-			};
-		};
+		const redditListingSchema = z.object({
+			data: z.object({
+				children: z.array(
+					z.object({
+						data: z.object({
+							title: z.string(),
+							url: z.string(),
+							score: z.number(),
+							created_utc: z.number(),
+							link_flair_text: z.string().optional(),
+						}),
+					}),
+				),
+			}),
+		});
+		const data = redditListingSchema.parse(await res.json());
 
 		for (const child of data.data.children) {
 			const post = child.data;

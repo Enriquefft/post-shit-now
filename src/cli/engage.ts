@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
 import { loadHubEnv } from "../core/utils/env.ts";
 import {
@@ -204,7 +205,7 @@ if (import.meta.main) {
 			}
 
 			case "stats": {
-				const period = (getArg(args, "period") ?? "week") as "day" | "week" | "month";
+				const period = z.enum(["day", "week", "month"]).parse(getArg(args, "period") ?? "week");
 				const result = await engagementStats(period);
 				console.log(JSON.stringify(result, null, 2));
 				break;

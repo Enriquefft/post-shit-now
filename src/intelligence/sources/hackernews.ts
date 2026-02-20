@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import type { RawTrend } from "../types.ts";
 
 /**
@@ -10,21 +11,23 @@ export async function fetchHNTopStories(limit = 30): Promise<RawTrend[]> {
 		throw new Error(`HN topstories failed: ${idsResponse.status}`);
 	}
 
-	const ids = (await idsResponse.json()) as number[];
+	const ids = z.array(z.number()).parse(await idsResponse.json());
 	const topIds = ids.slice(0, limit);
+
+	const hnItemSchema = z.object({
+		id: z.number(),
+		type: z.string(),
+		title: z.string(),
+		url: z.string().optional(),
+		score: z.number(),
+		time: z.number(),
+	});
 
 	const stories = await Promise.all(
 		topIds.map(async (id) => {
 			const res = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
 			if (!res.ok) return null;
-			return res.json() as Promise<{
-				id: number;
-				type: string;
-				title: string;
-				url?: string;
-				score: number;
-				time: number;
-			}>;
+			return hnItemSchema.parse(await res.json());
 		}),
 	);
 

@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import type { Platform } from "../core/types/index.ts";
 import { applyTweak, loadProfile } from "../voice/profile.ts";
 import type { VoiceProfile, VoiceTweak } from "../voice/types.ts";
@@ -12,7 +13,8 @@ export interface ParsedTweak {
 
 // ─── Tweak Parsing ──────────────────────────────────────────────────────────
 
-const PLATFORMS: Platform[] = ["x", "linkedin", "instagram", "tiktok"];
+const _PLATFORMS: Platform[] = ["x", "linkedin", "instagram", "tiktok"];
+const platformSchema = z.enum(["x", "linkedin", "instagram", "tiktok"]);
 
 export function parseTweakString(input: string): ParsedTweak {
 	const trimmed = input.trim();
@@ -86,12 +88,8 @@ export function parseTweakString(input: string): ParsedTweak {
 	// tone-{platform}:{tone}
 	const toneMatch = trimmed.match(/^tone-(\w+):(.+)$/);
 	if (toneMatch) {
-		const platform = (toneMatch[1] ?? "") as Platform;
+		const platform = platformSchema.parse(toneMatch[1] ?? "");
 		const tone = toneMatch[2] ?? "";
-
-		if (!PLATFORMS.includes(platform)) {
-			throw new Error(`Unknown platform "${platform}". Valid: ${PLATFORMS.join(", ")}`);
-		}
 
 		return {
 			raw: trimmed,

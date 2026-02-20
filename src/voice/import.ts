@@ -1,3 +1,5 @@
+import { z } from "zod/v4";
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export interface ImportedContent {
@@ -150,18 +152,6 @@ const COMMON_WORDS = new Set([
 
 const X_API_BASE = "https://api.x.com";
 
-interface XTweetData {
-	id: string;
-	text: string;
-	created_at?: string;
-	public_metrics?: {
-		like_count: number;
-		retweet_count: number;
-		reply_count: number;
-		impression_count?: number;
-	};
-}
-
 export async function importXHistory(accessToken: string): Promise<ImportedContent[]> {
 	// Get user ID
 	const meResponse = await fetch(`${X_API_BASE}/2/users/me`, {
@@ -172,7 +162,8 @@ export async function importXHistory(accessToken: string): Promise<ImportedConte
 		throw new Error(`X API error (${meResponse.status}): Failed to get user info`);
 	}
 
-	const meData = (await meResponse.json()) as { data?: { id: string } };
+	const meDataSchema = z.object({ data: z.object({ id: z.string() }).optional() });
+	const meData = meDataSchema.parse(await meResponse.json());
 	const userId = meData.data?.id;
 	if (!userId) {
 		throw new Error("X API returned no user ID");
@@ -203,10 +194,24 @@ export async function importXHistory(accessToken: string): Promise<ImportedConte
 			throw new Error(`X API error (${tweetsResponse.status}): Failed to fetch tweets`);
 		}
 
-		const tweetsData = (await tweetsResponse.json()) as {
-			data?: XTweetData[];
-			meta?: { next_token?: string };
-		};
+		const xTweetDataSchema = z.object({
+			id: z.string(),
+			text: z.string(),
+			created_at: z.string().optional(),
+			public_metrics: z
+				.object({
+					like_count: z.number(),
+					retweet_count: z.number(),
+					reply_count: z.number(),
+					impression_count: z.number().optional(),
+				})
+				.optional(),
+		});
+		const tweetsDataSchema = z.object({
+			data: z.array(xTweetDataSchema).optional(),
+			meta: z.object({ next_token: z.string().optional() }).optional(),
+		});
+		const tweetsData = tweetsDataSchema.parse(await tweetsResponse.json());
 
 		if (!tweetsData.data?.length) break;
 

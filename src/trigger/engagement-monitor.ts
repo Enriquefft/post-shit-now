@@ -90,8 +90,7 @@ export const engagementMonitor = schedules.task({
 
 				const igToken = tokenResult[0];
 				if (igToken) {
-					const metadata = igToken.metadata as Record<string, unknown> | null;
-					const accountId = (metadata?.accountId as string) ?? "";
+					const accountId = igToken.metadata?.accountId ?? "";
 					if (accountId) {
 						platformClients.instagram = new InstagramClient(
 							decrypt(igToken.accessToken, encKey),

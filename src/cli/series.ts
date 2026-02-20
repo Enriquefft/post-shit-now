@@ -1,4 +1,6 @@
+import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
+import { SeriesCadence } from "../core/db/schema.ts";
 import { loadHubEnv } from "../core/utils/env.ts";
 import { detectSeriesPatterns } from "../series/detection.ts";
 import { getDueEpisodes } from "../series/episodes.ts";
@@ -11,6 +13,24 @@ import {
 	retireSeries,
 } from "../series/manager.ts";
 import type { CreateSeriesInput, SeriesTemplate } from "../series/types.ts";
+
+const seriesTemplateSchema = z.object({
+	formatStructure: z.string(),
+	sections: z.array(z.string()),
+	introPattern: z.string().optional(),
+	outroPattern: z.string().optional(),
+	visualStyle: z.string().optional(),
+	hashtags: z.array(z.string()).optional(),
+});
+
+const cadenceValues: Record<string, SeriesCadence> = {
+	weekly: SeriesCadence.weekly,
+	biweekly: SeriesCadence.biweekly,
+	monthly: SeriesCadence.monthly,
+	custom: SeriesCadence.custom,
+};
+
+const trackingModeSchema = z.enum(["none", "auto-increment", "custom"]);
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -96,17 +116,27 @@ if (import.meta.main) {
 				}
 
 				const template: SeriesTemplate = templateJson
-					? (JSON.parse(templateJson) as SeriesTemplate)
+					? seriesTemplateSchema.parse(JSON.parse(templateJson))
 					: { formatStructure: "standard", sections: [] };
+
+				const parsedCadence = cadenceValues[cadence];
+				if (!parsedCadence) {
+					console.log(
+						JSON.stringify({
+							error: `Invalid cadence: ${cadence}. Valid: weekly, biweekly, monthly, custom`,
+						}),
+					);
+					process.exit(1);
+				}
 
 				const input: CreateSeriesInput = {
 					name,
 					description,
 					platform,
 					template,
-					cadence: cadence as CreateSeriesInput["cadence"],
+					cadence: parsedCadence,
 					cadenceCustomDays: cadenceCustomDays ? Number(cadenceCustomDays) : undefined,
-					trackingMode: trackingMode as CreateSeriesInput["trackingMode"] | undefined,
+					trackingMode: trackingMode ? trackingModeSchema.parse(trackingMode) : undefined,
 					trackingFormat,
 					pillar,
 					hubId,

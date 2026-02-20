@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import { getApiKey } from "../../core/db/api-keys";
 import type { DbClient } from "../../core/db/connection.ts";
 import type { SearchResult } from "../types.ts";
@@ -34,14 +35,19 @@ export async function searchTavily(
 		throw new Error(`Tavily API error: ${response.status} ${response.statusText}`);
 	}
 
-	const json = (await response.json()) as {
-		results?: Array<{
-			title?: string;
-			url: string;
-			content?: string;
-			score?: number;
-		}>;
-	};
+	const tavilyResponseSchema = z.object({
+		results: z
+			.array(
+				z.object({
+					title: z.string().optional(),
+					url: z.string(),
+					content: z.string().optional(),
+					score: z.number().optional(),
+				}),
+			)
+			.optional(),
+	});
+	const json = tavilyResponseSchema.parse(await response.json());
 
 	return (json.results ?? []).map((r) => ({
 		title: r.title ?? query,

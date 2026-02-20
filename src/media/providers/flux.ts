@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import { getApiKey } from "../../core/db/api-keys";
 import type { DbClient } from "../../core/db/connection.ts";
 import type { GeneratedImage, ImageGenOptions, ImageProvider } from "../image-gen.ts";
@@ -69,10 +70,18 @@ export const fluxProvider: ImageProvider = {
 			},
 		});
 
-		// Output type has images as ImageFile[] but at runtime they have url/width/height
-		const data = result.data as unknown as {
-			images?: Array<{ url: string; width: number; height: number }>;
-		};
+		const falImageResultSchema = z.object({
+			images: z
+				.array(
+					z.object({
+						url: z.string(),
+						width: z.number(),
+						height: z.number(),
+					}),
+				)
+				.optional(),
+		});
+		const data = falImageResultSchema.parse(result.data);
 		const image = data.images?.[0];
 		if (!image?.url) {
 			throw new Error("Flux 2 via fal.ai returned no image data");

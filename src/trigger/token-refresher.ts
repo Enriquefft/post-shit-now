@@ -1,5 +1,6 @@
 import { logger, schedules } from "@trigger.dev/sdk";
 import { sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { refreshInstagramToken } from "../platforms/instagram/oauth.ts";
@@ -24,9 +25,19 @@ interface TokenRow {
 	platform: string;
 	access_token: string;
 	refresh_token: string | null;
-	expires_at: Date | null;
+	expires_at: Date | string | null;
 	metadata: Record<string, unknown> | null;
 }
+
+const TokenRowSchema = z.object({
+	id: z.string(),
+	user_id: z.string(),
+	platform: z.string(),
+	access_token: z.string(),
+	refresh_token: z.string().nullable(),
+	expires_at: z.union([z.date(), z.string(), z.null()]),
+	metadata: z.record(z.string(), z.unknown()).nullable(),
+});
 
 /**
  * Token refresher cron task.
@@ -75,7 +86,7 @@ export const tokenRefresher = schedules.task({
 			LIMIT 10
 		`);
 
-		const rows = queryResult.rows as unknown as TokenRow[];
+		const rows = z.array(TokenRowSchema).parse(queryResult.rows);
 		result.total = rows.length;
 
 		// Build platform-specific OAuth clients lazily

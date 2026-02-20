@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import type { HubDb } from "../core/db/connection.ts";
 import {
 	type CooldownResult,
@@ -8,6 +9,31 @@ import {
 	DEFAULT_DAILY_CAPS,
 	type EngagementConfig,
 } from "./types.ts";
+
+// ─── Raw SQL Row Schemas ────────────────────────────────────────────────────
+
+const configRowSchema = z
+	.object({
+		user_id: z.string(),
+		niche_keywords: z.array(z.string()).nullable(),
+		platform_toggles: z.record(z.string(), z.boolean()).nullable(),
+		daily_caps: z.record(z.string(), z.number()).nullable(),
+		cooldown_minutes: z.record(z.string(), z.number()).nullable(),
+		blocklist: z.array(z.string()).nullable(),
+	})
+	.passthrough();
+
+const countRowSchema = z
+	.object({
+		count: z.coerce.number(),
+	})
+	.passthrough();
+
+const engagedAtRowSchema = z
+	.object({
+		engaged_at: z.coerce.date().nullable(),
+	})
+	.passthrough();
 
 // ─── Load Engagement Config ─────────────────────────────────────────────────
 
@@ -22,7 +48,7 @@ export async function loadEngagementConfig(db: HubDb, userId: string): Promise<E
 		LIMIT 1
 	`);
 
-	const row = result.rows[0] as Record<string, unknown> | undefined;
+	const row = configRowSchema.optional().parse(result.rows[0]);
 
 	if (!row) {
 		return {
@@ -37,13 +63,13 @@ export async function loadEngagementConfig(db: HubDb, userId: string): Promise<E
 
 	return {
 		userId,
-		nicheKeywords: (row.niche_keywords as string[] | null) ?? [],
-		platformToggles: (row.platform_toggles as Record<string, boolean> | null) ?? {},
-		dailyCaps: (row.daily_caps as Record<string, number> | null) ?? { ...DEFAULT_DAILY_CAPS },
-		cooldownMinutes: (row.cooldown_minutes as Record<string, number> | null) ?? {
+		nicheKeywords: row.niche_keywords ?? [],
+		platformToggles: row.platform_toggles ?? {},
+		dailyCaps: row.daily_caps ?? { ...DEFAULT_DAILY_CAPS },
+		cooldownMinutes: row.cooldown_minutes ?? {
 			...DEFAULT_COOLDOWN_MINUTES,
 		},
-		blocklist: (row.blocklist as string[] | null) ?? [],
+		blocklist: row.blocklist ?? [],
 	};
 }
 
@@ -169,8 +195,8 @@ export async function checkDailyCap(
 			AND engaged_at >= CURRENT_DATE
 	`);
 
-	const countRow = countResult.rows[0] as Record<string, unknown> | undefined;
-	const used = (countRow?.count as number) ?? 0;
+	const countRow = countRowSchema.optional().parse(countResult.rows[0]);
+	const used = countRow?.count ?? 0;
 	const remaining = Math.max(0, cap - used);
 
 	return {
@@ -203,13 +229,13 @@ export async function checkCooldown(
 		LIMIT 1
 	`);
 
-	const cooldownRow = cooldownResult.rows[0] as Record<string, unknown> | undefined;
+	const cooldownRow = engagedAtRowSchema.optional().parse(cooldownResult.rows[0]);
 
 	if (!cooldownRow?.engaged_at) {
 		return { allowed: true, waitMinutes: 0 };
 	}
 
-	const lastEngagedAt = new Date(cooldownRow.engaged_at as string);
+	const lastEngagedAt = cooldownRow.engaged_at;
 	const minutesSinceLast = (Date.now() - lastEngagedAt.getTime()) / 60_000;
 	const waitMinutes = Math.max(0, Math.ceil(cooldown - minutesSinceLast));
 

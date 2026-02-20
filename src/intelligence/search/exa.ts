@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import { getApiKey } from "../../core/db/api-keys";
 import type { DbClient } from "../../core/db/connection.ts";
 import type { SearchResult } from "../types.ts";
@@ -34,14 +35,19 @@ export async function searchExa(
 		throw new Error(`Exa API error: ${response.status} ${response.statusText}`);
 	}
 
-	const json = (await response.json()) as {
-		results?: Array<{
-			title?: string;
-			url: string;
-			text?: string;
-			publishedDate?: string;
-		}>;
-	};
+	const exaResponseSchema = z.object({
+		results: z
+			.array(
+				z.object({
+					title: z.string().optional(),
+					url: z.string(),
+					text: z.string().optional(),
+					publishedDate: z.string().optional(),
+				}),
+			)
+			.optional(),
+	});
+	const json = exaResponseSchema.parse(await response.json());
 
 	return (json.results ?? []).map((r) => ({
 		title: r.title ?? query,

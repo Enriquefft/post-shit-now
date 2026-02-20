@@ -1,9 +1,12 @@
+import { z } from "zod/v4";
 import type { MessageResult, WhatsAppProvider } from "./types.ts";
 
 // ─── Twilio WhatsApp API Client ────────────────────────────────────────────
 // Implements WhatsAppProvider via Twilio's Messages API.
 // Buttons/lists fall back to numbered text (Twilio requires pre-registered
 // Content Templates for interactive messages).
+
+const TwilioResponseSchema = z.object({ sid: z.string().optional() });
 
 export interface TwilioConfig {
 	accountSid: string;
@@ -53,7 +56,7 @@ export class TwilioProvider implements WhatsAppProvider {
 				return { success: false, error: `Twilio sendText failed (${res.status}): ${text}` };
 			}
 
-			const data = (await res.json()) as { sid?: string };
+			const data = TwilioResponseSchema.parse(await res.json());
 			return { success: true, messageId: data.sid };
 		} catch (error) {
 			return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -111,7 +114,7 @@ export class TwilioProvider implements WhatsAppProvider {
 				return { success: false, error: `Twilio sendImage failed (${res.status}): ${text}` };
 			}
 
-			const data = (await res.json()) as { sid?: string };
+			const data = TwilioResponseSchema.parse(await res.json());
 			return { success: true, messageId: data.sid };
 		} catch (error) {
 			return { success: false, error: error instanceof Error ? error.message : String(error) };

@@ -50,8 +50,7 @@ export async function loadProfile(
 	try {
 		raw = await readFile(path, "utf-8");
 	} catch (err) {
-		const code = (err as NodeJS.ErrnoException).code;
-		if (code === "ENOENT") {
+		if (err instanceof Error && "code" in err && (err as NodeJS.ErrnoException).code === "ENOENT") {
 			throw new Error(
 				`Voice profile not found at: ${path}. Run /psn:voice interview to create one.`,
 			);
@@ -142,7 +141,7 @@ export async function applyTweak(profilePath: string, tweaks: VoiceTweak[]): Pro
 				profile.identity.pillars = profile.identity.pillars.filter((p) => p !== tweak.pillar);
 				break;
 			case "set_platform_tone": {
-				const platform = tweak.platform as keyof typeof profile.platforms;
+				const platform = tweak.platform;
 				if (profile.platforms[platform]) {
 					profile.platforms[platform].tone = tweak.tone;
 				} else {

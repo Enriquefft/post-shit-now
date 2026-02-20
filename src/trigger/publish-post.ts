@@ -1,5 +1,6 @@
 import { logger, task, wait } from "@trigger.dev/sdk";
 import { eq, sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
 import {
 	type OAuthTokenMetadata,
@@ -56,12 +57,16 @@ interface PublishPostPayload {
 	targetPlatforms?: Platform[];
 }
 
-interface ThreadProgress {
-	posted: number;
-	total: number;
-	lastPostedId: string;
-	tweetIds: string[];
-}
+type PostRow = typeof posts.$inferSelect;
+
+const threadProgressSchema = z.object({
+	posted: z.number(),
+	total: z.number(),
+	lastPostedId: z.string(),
+	tweetIds: z.array(z.string()),
+});
+
+const stringArraySchema = z.array(z.string());
 
 /**
  * Publish-post Trigger.dev task.
@@ -103,7 +108,7 @@ export const publishPost = task({
 		}
 
 		// 2b. Approval gate for company posts
-		const postMetadata = post.metadata ?? {};
+		const postMetadata: PostMetadata = post.metadata ?? {};
 		if (postMetadata.hubId) {
 			// Company post — check approval status
 			if (post.approvalStatus !== "approved") {
@@ -184,7 +189,7 @@ export const publishPost = task({
 		const succeeded = results.filter((r) => r.status === "published");
 		const failed = results.filter((r) => r.status === "failed");
 
-		const metadata = (post.metadata ?? {}) as PostMetadata;
+		const metadata: PostMetadata = post.metadata ?? {};
 		const platformStatus: Record<
 			string,
 			{ status: string; externalPostId?: string; error?: string }
@@ -245,13 +250,13 @@ export const publishPost = task({
 		try {
 			await notificationDispatcherTask.trigger({
 				eventType: "post.failed",
-				userId: post.userId as string,
-				hubId: (postMetadata.hubId as string) ?? undefined,
+				userId: post.userId,
+				hubId: postMetadata.hubId ?? undefined,
 				payload: {
 					postId: post.id,
 					platform: targetPlatforms.join(","),
 					error: "all_platforms_failed",
-					title: (post.content as string).slice(0, 60),
+					title: post.content.slice(0, 60),
 				},
 			});
 		} catch (notifError) {
@@ -270,7 +275,7 @@ export const publishPost = task({
  */
 async function publishToPlatform(
 	db: ReturnType<typeof createHubConnection>,
-	post: Record<string, unknown>,
+	post: PostRow,
 	platform: Platform,
 	encKey: Buffer,
 ): Promise<PlatformPublishResult> {
@@ -290,14 +295,14 @@ async function publishToPlatform(
 
 async function publishToX(
 	db: ReturnType<typeof createHubConnection>,
-	post: Record<string, unknown>,
+	post: PostRow,
 	encKey: Buffer,
 ): Promise<PlatformPublishResult> {
-	const postId = post.id as string;
-	const userId = post.userId as string;
-	const content = post.content as string;
-	const mediaUrls = (post.mediaUrls as string[] | null) ?? [];
-	const metadata = (post.metadata ?? {}) as PostMetadata;
+	const postId = post.id;
+	const userId = post.userId;
+	const content = post.content;
+	const mediaUrls = post.mediaUrls ?? [];
+	const metadata: PostMetadata = post.metadata ?? {};
 
 	const xClientId = process.env.X_CLIENT_ID;
 	const xClientSecret = process.env.X_CLIENT_SECRET;
@@ -390,7 +395,7 @@ async function publishToX(
 	try {
 		const parsed = JSON.parse(content);
 		if (Array.isArray(parsed)) {
-			tweets = parsed as string[];
+			tweets = stringArraySchema.parse(parsed);
 			isThread = tweets.length > 1;
 		} else {
 			tweets = [content];
@@ -407,7 +412,7 @@ async function publishToX(
 	try {
 		if (!isThread) {
 			const result = await client.createTweet({
-				text: tweets[0] as string,
+				text: tweets[0]!,
 				mediaIds,
 			});
 
@@ -416,7 +421,7 @@ async function publishToX(
 
 		// Thread posting
 		const threadProgress = metadata.threadProgress
-			? (JSON.parse(metadata.threadProgress) as ThreadProgress)
+			? threadProgressSchema.parse(JSON.parse(metadata.threadProgress))
 			: undefined;
 		const startIndex = threadProgress?.posted ?? 0;
 		const tweetIds = threadProgress?.tweetIds ?? [];
@@ -428,7 +433,7 @@ async function publishToX(
 		for (let i = startIndex; i < tweets.length; i++) {
 			try {
 				const result = await client.createTweet({
-					text: tweets[i] as string,
+					text: tweets[i]!,
 					replyToId: i > 0 ? tweetIds[i - 1] : undefined,
 					mediaIds: mediaIdsPerTweet[i],
 				});
@@ -462,14 +467,14 @@ async function publishToX(
 
 async function publishToLinkedIn(
 	db: ReturnType<typeof createHubConnection>,
-	post: Record<string, unknown>,
+	post: PostRow,
 	encKey: Buffer,
 ): Promise<PlatformPublishResult> {
-	const postId = post.id as string;
-	const userId = post.userId as string;
-	const content = post.content as string;
-	const mediaUrls = (post.mediaUrls as string[] | null) ?? [];
-	const metadata = (post.metadata ?? {}) as PostMetadata;
+	const postId = post.id;
+	const userId = post.userId;
+	const content = post.content;
+	const mediaUrls = post.mediaUrls ?? [];
+	const metadata: PostMetadata = post.metadata ?? {};
 
 	const linkedInClientId = process.env.LINKEDIN_CLIENT_ID;
 	const linkedInClientSecret = process.env.LINKEDIN_CLIENT_SECRET;
@@ -536,7 +541,7 @@ async function publishToLinkedIn(
 	const client = new LinkedInClient(accessToken);
 
 	// Get author URN from token metadata
-	const tokenMetadata = (token.metadata ?? {}) as OAuthTokenMetadata;
+	const tokenMetadata: OAuthTokenMetadata = token.metadata ?? {};
 	const personUrn = tokenMetadata.personUrn;
 
 	if (!personUrn) {
@@ -555,7 +560,7 @@ async function publishToLinkedIn(
 	let commentary: string;
 	try {
 		const parsed = JSON.parse(content);
-		commentary = Array.isArray(parsed) ? (parsed as string[]).join("\n\n") : content;
+		commentary = Array.isArray(parsed) ? stringArraySchema.parse(parsed).join("\n\n") : content;
 	} catch {
 		commentary = content;
 	}
@@ -574,7 +579,7 @@ async function publishToLinkedIn(
 				}
 
 				// Load PDF file
-				const pdfPath = mediaUrls[0] as string;
+				const pdfPath = mediaUrls[0]!;
 				const pdfFile = Bun.file(pdfPath);
 				const pdfBuffer = new Uint8Array(await pdfFile.arrayBuffer());
 
@@ -603,7 +608,7 @@ async function publishToLinkedIn(
 
 				if (mediaUrls.length === 1) {
 					// Single image post
-					const imgPath = mediaUrls[0] as string;
+					const imgPath = mediaUrls[0]!;
 					const imgFile = Bun.file(imgPath);
 					const imgBuffer = new Uint8Array(await imgFile.arrayBuffer());
 
@@ -696,14 +701,14 @@ async function publishToLinkedIn(
 
 async function publishToInstagram(
 	db: ReturnType<typeof createHubConnection>,
-	post: Record<string, unknown>,
+	post: PostRow,
 	encKey: Buffer,
 ): Promise<PlatformPublishResult> {
-	const postId = post.id as string;
-	const userId = post.userId as string;
-	const content = post.content as string;
-	const mediaUrls = (post.mediaUrls as string[] | null) ?? [];
-	const metadata = (post.metadata ?? {}) as PostMetadata;
+	const postId = post.id;
+	const userId = post.userId;
+	const content = post.content;
+	const mediaUrls = post.mediaUrls ?? [];
+	const metadata: PostMetadata = post.metadata ?? {};
 
 	const instagramAppId = process.env.INSTAGRAM_APP_ID;
 	const instagramAppSecret = process.env.INSTAGRAM_APP_SECRET;
@@ -765,8 +770,8 @@ async function publishToInstagram(
 	const accessToken = decrypt(accessTokenEncrypted, encKey);
 
 	// Get account ID from token metadata
-	const tokenMetadata = (token.metadata ?? {}) as Record<string, unknown>;
-	const accountId = tokenMetadata.accountId as string | undefined;
+	const tokenMetadata: OAuthTokenMetadata = token.metadata ?? {};
+	const accountId = tokenMetadata.accountId;
 
 	if (!accountId) {
 		return {
@@ -803,7 +808,7 @@ async function publishToInstagram(
 	let caption: string;
 	try {
 		const parsed = JSON.parse(content);
-		caption = Array.isArray(parsed) ? (parsed as string[]).join("\n\n") : content;
+		caption = Array.isArray(parsed) ? stringArraySchema.parse(parsed).join("\n\n") : content;
 	} catch {
 		caption = content;
 	}
@@ -823,7 +828,7 @@ async function publishToInstagram(
 					return { platform: "instagram", status: "failed", error: "reel_requires_video_url" };
 				}
 
-				const videoUrl = mediaUrls[0] as string;
+				const videoUrl = mediaUrls[0]!;
 				const container = await createReelsContainer(client, videoUrl, caption);
 				await waitForContainerReady(client, container.id);
 				const published = await publishContainer(client, container.id);
@@ -836,7 +841,7 @@ async function publishToInstagram(
 				if (!mediaUrls || mediaUrls.length < 2) {
 					// Fall back to single image if only 1 media
 					if (mediaUrls && mediaUrls.length === 1) {
-						const container = await createImageContainer(client, mediaUrls[0] as string, caption);
+						const container = await createImageContainer(client, mediaUrls[0]!, caption);
 						await waitForContainerReady(client, container.id);
 						const published = await publishContainer(client, container.id);
 						publishedMediaId = published.id;
@@ -862,7 +867,7 @@ async function publishToInstagram(
 					return { platform: "instagram", status: "failed", error: "instagram_requires_media_url" };
 				}
 
-				const imageUrl = mediaUrls[0] as string;
+				const imageUrl = mediaUrls[0]!;
 				const container = await createImageContainer(client, imageUrl, caption);
 				await waitForContainerReady(client, container.id);
 				const published = await publishContainer(client, container.id);
@@ -895,14 +900,14 @@ async function publishToInstagram(
 
 async function publishToTikTok(
 	db: ReturnType<typeof createHubConnection>,
-	post: Record<string, unknown>,
+	post: PostRow,
 	encKey: Buffer,
 ): Promise<PlatformPublishResult> {
-	const postId = post.id as string;
-	const userId = post.userId as string;
-	const content = post.content as string;
-	const mediaUrls = (post.mediaUrls as string[] | null) ?? [];
-	const metadata = (post.metadata ?? {}) as PostMetadata;
+	const postId = post.id;
+	const userId = post.userId;
+	const content = post.content;
+	const mediaUrls = post.mediaUrls ?? [];
+	const metadata: PostMetadata = post.metadata ?? {};
 
 	const tiktokClientKey = process.env.TIKTOK_CLIENT_KEY;
 	const tiktokClientSecret = process.env.TIKTOK_CLIENT_SECRET;
@@ -968,8 +973,8 @@ async function publishToTikTok(
 	const accessToken = decrypt(accessTokenEncrypted, encKey);
 
 	// Get audit status from token metadata
-	const tokenMetadata = (token.metadata ?? {}) as Record<string, unknown>;
-	const auditStatus = (tokenMetadata.auditStatus as "unaudited" | "audited") ?? "unaudited";
+	const tokenMetadata: OAuthTokenMetadata = token.metadata ?? {};
+	const auditStatus = tokenMetadata.auditStatus ?? "unaudited";
 
 	const client = new TikTokClient(accessToken, { auditStatus });
 
@@ -977,7 +982,7 @@ async function publishToTikTok(
 	let description: string;
 	try {
 		const parsed = JSON.parse(content);
-		description = Array.isArray(parsed) ? (parsed as string[]).join("\n\n") : content;
+		description = Array.isArray(parsed) ? stringArraySchema.parse(parsed).join("\n\n") : content;
 	} catch {
 		description = content;
 	}
@@ -1000,7 +1005,7 @@ async function publishToTikTok(
 					return { platform: "tiktok", status: "failed", error: "tiktok_video_requires_media" };
 				}
 
-				const videoPath = mediaUrls[0] as string;
+				const videoPath = mediaUrls[0]!;
 				const videoFile = Bun.file(videoPath);
 				const videoBuffer = Buffer.from(await videoFile.arrayBuffer());
 
@@ -1062,7 +1067,7 @@ async function publishToTikTok(
 					return { platform: "tiktok", status: "failed", error: "tiktok_requires_media" };
 				}
 
-				const defaultVideoPath = mediaUrls[0] as string;
+				const defaultVideoPath = mediaUrls[0]!;
 				const defaultVideoFile = Bun.file(defaultVideoPath);
 				const defaultVideoBuffer = Buffer.from(await defaultVideoFile.arrayBuffer());
 
@@ -1134,13 +1139,9 @@ async function markFailed(
 /**
  * Advance series state after a successful publish.
  */
-async function advanceSeriesState(
-	db: ReturnType<typeof createHubConnection>,
-	post: { id?: unknown; seriesId?: unknown },
-) {
-	const id = post.id as string | undefined;
-	const seriesId = post.seriesId as string | null | undefined;
-	if (!seriesId || !id) return;
+async function advanceSeriesState(db: ReturnType<typeof createHubConnection>, post: PostRow) {
+	const { id, seriesId } = post;
+	if (!seriesId) return;
 
 	try {
 		await recordEpisodePublished(db, seriesId);
@@ -1163,14 +1164,14 @@ async function advanceSeriesState(
  */
 async function updateBrandPreferenceIfCompany(
 	db: ReturnType<typeof createHubConnection>,
-	post: Record<string, unknown>,
+	post: PostRow,
 ) {
-	const metadata = (post.metadata ?? {}) as PostMetadata;
+	const metadata: PostMetadata = post.metadata ?? {};
 	const hubId = metadata.hubId;
 	if (!hubId) return; // Not a company post
 
 	try {
-		const platform = post.platform as string;
+		const platform = post.platform;
 		const postFormat = metadata.format ?? "text";
 		const postPillar = metadata.pillar ?? "general";
 
@@ -1194,8 +1195,8 @@ async function updateBrandPreferenceIfCompany(
 			logger.info("Brand preference model created", { hubId, platform });
 		} else {
 			// Update existing brand model with new format/pillar data
-			const topFormats = (existing.topFormats ?? []) as Array<{ format: string; avgScore: number }>;
-			const topPillars = (existing.topPillars ?? []) as Array<{ pillar: string; avgScore: number }>;
+			const topFormats = existing.topFormats ?? [];
+			const topPillars = existing.topPillars ?? [];
 
 			// Track format usage (score updated later by analytics)
 			const formatEntry = topFormats.find((f) => f.format === postFormat);
@@ -1227,7 +1228,7 @@ async function updateBrandPreferenceIfCompany(
 	} catch (error) {
 		// Brand model update failure should never roll back a successful publish
 		logger.error("Failed to update brand preference model (publish succeeded)", {
-			postId: post.id as string,
+			postId: post.id,
 			hubId,
 			error: error instanceof Error ? error.message : String(error),
 		});

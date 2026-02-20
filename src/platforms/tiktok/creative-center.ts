@@ -9,6 +9,8 @@
  * logs (never crashes).
  */
 
+import { z } from "zod/v4";
+
 const CREATIVE_CENTER_BASE = "https://ads.tiktok.com/business/creativecenter/api";
 
 export interface TrendingTopic {
@@ -50,15 +52,23 @@ export async function getTrendingTopics(options?: { country?: string }): Promise
 			return [];
 		}
 
-		const json = (await response.json()) as {
-			data?: {
-				list?: Array<{
-					hashtag_name?: string;
-					publish_cnt?: number;
-					trend?: number; // 1 = up, 2 = down, 0 = stable
-				}>;
-			};
-		};
+		const TrendingTopicsResponseSchema = z.object({
+			data: z
+				.object({
+					list: z
+						.array(
+							z.object({
+								hashtag_name: z.string().optional(),
+								publish_cnt: z.number().optional(),
+								trend: z.number().optional(),
+							}),
+						)
+						.optional(),
+				})
+				.optional(),
+		});
+
+		const json = TrendingTopicsResponseSchema.parse(await response.json());
 
 		const list = json.data?.list ?? [];
 		return list.map((item) => ({
@@ -104,18 +114,26 @@ export async function getTrendingVideos(
 			return [];
 		}
 
-		const json = (await response.json()) as {
-			data?: {
-				videos?: Array<{
-					item_id?: string;
-					title?: string;
-					author_name?: string;
-					vv_cnt?: number;
-					like_cnt?: number;
-					comment_cnt?: number;
-				}>;
-			};
-		};
+		const TrendingVideosResponseSchema = z.object({
+			data: z
+				.object({
+					videos: z
+						.array(
+							z.object({
+								item_id: z.string().optional(),
+								title: z.string().optional(),
+								author_name: z.string().optional(),
+								vv_cnt: z.number().optional(),
+								like_cnt: z.number().optional(),
+								comment_cnt: z.number().optional(),
+							}),
+						)
+						.optional(),
+				})
+				.optional(),
+		});
+
+		const json = TrendingVideosResponseSchema.parse(await response.json());
 
 		const videos = json.data?.videos ?? [];
 		return videos.map((item) => ({

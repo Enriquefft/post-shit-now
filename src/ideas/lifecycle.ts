@@ -1,34 +1,8 @@
 import { and, eq, gt, inArray, isNotNull, lt, not } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
-import { ideas, trends } from "../core/db/schema.ts";
-import type { Idea, IdeaStatus } from "./types.ts";
+import { type IdeaStatus, ideas, trends } from "../core/db/schema.ts";
+import type { Idea } from "./types.ts";
 import { STALENESS_DAYS, VALID_TRANSITIONS } from "./types.ts";
-
-// ─── Row to Idea Mapper ────────────────────────────────────────────────────
-
-function rowToIdea(row: typeof ideas.$inferSelect): Idea {
-	return {
-		id: row.id,
-		userId: row.userId,
-		hubId: row.hubId,
-		title: row.title,
-		notes: row.notes,
-		tags: row.tags,
-		status: row.status as IdeaStatus,
-		urgency: row.urgency as Idea["urgency"],
-		pillar: row.pillar,
-		platform: row.platform,
-		format: row.format,
-		claimedBy: row.claimedBy,
-		killReason: row.killReason,
-		expiresAt: row.expiresAt,
-		lastTouchedAt: row.lastTouchedAt,
-		sourceType: row.sourceType as Idea["sourceType"],
-		sourceId: row.sourceId,
-		createdAt: row.createdAt,
-		updatedAt: row.updatedAt,
-	};
-}
 
 // ─── Transition Idea ────────────────────────────────────────────────────────
 
@@ -42,7 +16,7 @@ export async function transitionIdea(
 	const existing = rows[0];
 	if (!existing) throw new Error(`Idea not found: ${ideaId}`);
 
-	const currentStatus = existing.status as IdeaStatus;
+	const currentStatus = existing.status;
 	const allowed = VALID_TRANSITIONS[currentStatus];
 	if (!allowed.includes(newStatus)) {
 		throw new Error(
@@ -78,7 +52,7 @@ export async function transitionIdea(
 	const row = updated[0];
 	if (!row) throw new Error("Failed to update idea");
 
-	return rowToIdea(row);
+	return row;
 }
 
 // ─── Auto-Promote Ideas ────────────────────────────────────────────────────
@@ -147,7 +121,9 @@ export async function getStaleIdeas(db: HubDb, userId: string): Promise<Idea[]> 
 	const now = new Date();
 	const staleIdeas: Idea[] = [];
 
-	for (const [status, days] of Object.entries(STALENESS_DAYS)) {
+	for (const status in STALENESS_DAYS) {
+		const ideaStatus = status as IdeaStatus;
+		const days = STALENESS_DAYS[ideaStatus];
 		if (days === undefined) continue;
 		const threshold = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
 
@@ -155,10 +131,14 @@ export async function getStaleIdeas(db: HubDb, userId: string): Promise<Idea[]> 
 			.select()
 			.from(ideas)
 			.where(
-				and(eq(ideas.userId, userId), eq(ideas.status, status), lt(ideas.lastTouchedAt, threshold)),
+				and(
+					eq(ideas.userId, userId),
+					eq(ideas.status, ideaStatus),
+					lt(ideas.lastTouchedAt, threshold),
+				),
 			);
 
-		staleIdeas.push(...rows.map(rowToIdea));
+		staleIdeas.push(...rows);
 	}
 
 	return staleIdeas;

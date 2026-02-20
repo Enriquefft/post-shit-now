@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import type { createHubConnection } from "../core/db/connection.ts";
 import type {
 	MessageResult,
@@ -8,6 +9,12 @@ import type {
 	WhatsAppProvider,
 } from "./types.ts";
 import { FATIGUE_LIMITS, NOTIFICATION_ROUTES as ROUTES } from "./types.ts";
+
+// ─── Raw SQL Result Schemas ─────────────────────────────────────────────────
+
+const CountRowSchema = z.object({ count: z.number() });
+const LastSentRowSchema = z.object({ last_sent: z.union([z.date(), z.string(), z.null()]) });
+const UserIdRowSchema = z.object({ user_id: z.string() });
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -132,7 +139,7 @@ export async function checkFatigueLimits(
 		  AND status = 'sent'
 		  AND sent_at > CURRENT_DATE
 	`);
-	const dailyCount = (dailyCountResult.rows[0] as { count: number }).count;
+	const dailyCount = CountRowSchema.parse(dailyCountResult.rows[0]).count;
 	if (dailyCount >= FATIGUE_LIMITS.maxPushPerDay) {
 		return { allowed: false, reason: "daily limit reached" };
 	}
@@ -144,7 +151,7 @@ export async function checkFatigueLimits(
 		  AND tier = 'push'
 		  AND status = 'sent'
 	`);
-	const lastSent = (cooldownResult.rows[0] as { last_sent: Date | null }).last_sent;
+	const lastSent = LastSentRowSchema.parse(cooldownResult.rows[0]).last_sent;
 	if (lastSent) {
 		const minutesSince = (Date.now() - new Date(lastSent).getTime()) / (1000 * 60);
 		if (minutesSince < FATIGUE_LIMITS.cooldownMinutes) {
@@ -159,7 +166,7 @@ export async function checkFatigueLimits(
 		  AND dedup_key = ${dedupKey}
 		  AND created_at > NOW() - INTERVAL '${sql.raw(String(FATIGUE_LIMITS.dedupWindowMinutes))} minutes'
 	`);
-	const dedupCount = (dedupResult.rows[0] as { count: number }).count;
+	const dedupCount = CountRowSchema.parse(dedupResult.rows[0]).count;
 	if (dedupCount > 0) {
 		return { allowed: false, reason: "duplicate" };
 	}
@@ -181,7 +188,7 @@ export function isQuietHours(preferences: NotificationPreference): boolean {
 		hour: "2-digit",
 		minute: "2-digit",
 		hour12: false,
-		timeZone: (preferences as NotificationPreference & { timezone?: string }).timezone ?? "UTC",
+		timeZone: preferences.timezone ?? "UTC",
 	});
 	const currentTime = formatter.format(now); // "HH:MM"
 
@@ -274,23 +281,29 @@ export async function routeCompanyNotification(
 				SELECT user_id FROM team_members
 				WHERE hub_id = ${hubId} AND role = 'admin' AND left_at IS NULL
 			`);
-			return (admins.rows as Array<{ user_id: string }>).map((r) => r.user_id);
+			return z
+				.array(UserIdRowSchema)
+				.parse(admins.rows)
+				.map((r) => r.user_id);
 		}
 
 		case "post.failed": {
 			// The post author only
-			const author = payload.authorId as string | undefined;
+			const author = typeof payload.authorId === "string" ? payload.authorId : undefined;
 			return author ? [author] : [];
 		}
 
 		case "post.viral": {
 			// The post author + all admins
-			const author = payload.authorId as string | undefined;
+			const author = typeof payload.authorId === "string" ? payload.authorId : undefined;
 			const admins = await db.execute(sql`
 				SELECT user_id FROM team_members
 				WHERE hub_id = ${hubId} AND role = 'admin' AND left_at IS NULL
 			`);
-			const adminIds = (admins.rows as Array<{ user_id: string }>).map((r) => r.user_id);
+			const adminIds = z
+				.array(UserIdRowSchema)
+				.parse(admins.rows)
+				.map((r) => r.user_id);
 			if (author && !adminIds.includes(author)) {
 				adminIds.push(author);
 			}
@@ -303,7 +316,10 @@ export async function routeCompanyNotification(
 				SELECT user_id FROM team_members
 				WHERE hub_id = ${hubId} AND left_at IS NULL
 			`);
-			return (members.rows as Array<{ user_id: string }>).map((r) => r.user_id);
+			return z
+				.array(UserIdRowSchema)
+				.parse(members.rows)
+				.map((r) => r.user_id);
 		}
 	}
 }
@@ -312,6 +328,9 @@ export async function routeCompanyNotification(
 
 function buildDedupKey(event: NotificationEvent): string {
 	const p = event.payload;
-	const key = (p.postId as string) ?? (p.key as string) ?? "";
+	const key =
+		(typeof p.postId === "string" ? p.postId : undefined) ??
+		(typeof p.key === "string" ? p.key : undefined) ??
+		"";
 	return `${event.type}:${key}`;
 }

@@ -1,4 +1,4 @@
-import type { ZodType } from "zod/v4";
+import { type ZodType, z } from "zod/v4";
 import {
 	MAX_DESCRIPTION_LENGTH,
 	MAX_TITLE_LENGTH,
@@ -69,21 +69,31 @@ export class TikTokClient {
 			// Try to extract log_id from error response
 			let logId: string | undefined;
 			try {
-				const errorJson = JSON.parse(bodyText) as { error?: { log_id?: string } };
+				const errorBodySchema = z.object({
+					error: z.object({ log_id: z.string().optional() }).optional(),
+				});
+				const errorJson = errorBodySchema.parse(JSON.parse(bodyText));
 				logId = errorJson.error?.log_id;
 			} catch {
-				// Not JSON, ignore
+				// Not JSON or doesn't match schema, ignore
 			}
 			throw new TikTokApiError(response.status, bodyText, rateLimit, logId);
 		}
 
-		const json = await response.json();
+		const json: unknown = await response.json();
 
 		// Check for API-level errors in the response body
-		const jsonObj = json as Record<string, unknown>;
-		const errorObj = jsonObj.error as
-			| { code?: string; message?: string; log_id?: string }
-			| undefined;
+		const apiErrorSchema = z.object({
+			error: z
+				.object({
+					code: z.string().optional(),
+					message: z.string().optional(),
+					log_id: z.string().optional(),
+				})
+				.optional(),
+		});
+		const parsed = apiErrorSchema.safeParse(json);
+		const errorObj = parsed.success ? parsed.data.error : undefined;
 		if (errorObj?.code && errorObj.code !== "ok") {
 			throw new TikTokApiError(
 				response.status,
@@ -93,6 +103,7 @@ export class TikTokClient {
 			);
 		}
 
+		// Intentional cast: callers without a schema accept responsibility for type safety
 		return schema ? schema.parse(json) : (json as T);
 	}
 

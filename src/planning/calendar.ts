@@ -44,7 +44,8 @@ async function loadStrategyConfig(
 
 			if (section === "pillars") {
 				if (trimmed.startsWith("- name:")) {
-					if (currentPillar.name) pillars.push(currentPillar as StrategyConfig["pillars"][number]);
+					if (currentPillar.name && currentPillar.weight !== undefined)
+						pillars.push({ name: currentPillar.name, weight: currentPillar.weight });
 					currentPillar = {
 						name: trimmed
 							.replace("- name:", "")
@@ -59,8 +60,12 @@ async function loadStrategyConfig(
 
 			if (section === "platforms") {
 				if (trimmed.startsWith("- name:")) {
-					if (currentPlatform.name)
-						platforms.push(currentPlatform as StrategyConfig["platforms"][number]);
+					if (currentPlatform.name && currentPlatform.frequency !== undefined)
+						platforms.push({
+							name: currentPlatform.name,
+							frequency: currentPlatform.frequency,
+							defaultLanguage: currentPlatform.defaultLanguage,
+						});
 					currentPlatform = {
 						name: trimmed
 							.replace("- name:", "")
@@ -99,9 +104,14 @@ async function loadStrategyConfig(
 		}
 
 		// Push last items
-		if (currentPillar.name) pillars.push(currentPillar as StrategyConfig["pillars"][number]);
-		if (currentPlatform.name)
-			platforms.push(currentPlatform as StrategyConfig["platforms"][number]);
+		if (currentPillar.name && currentPillar.weight !== undefined)
+			pillars.push({ name: currentPillar.name, weight: currentPillar.weight });
+		if (currentPlatform.name && currentPlatform.frequency !== undefined)
+			platforms.push({
+				name: currentPlatform.name,
+				frequency: currentPlatform.frequency,
+				defaultLanguage: currentPlatform.defaultLanguage,
+			});
 
 		return {
 			pillars: pillars.length > 0 ? pillars : [{ name: "general", weight: 1 }],

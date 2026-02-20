@@ -1,5 +1,6 @@
 import { logger, task } from "@trigger.dev/sdk";
 import { sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
 import { dispatchNotification, routeCompanyNotification } from "../notifications/dispatcher.ts";
 import { createWhatsAppProvider } from "../notifications/provider.ts";
@@ -22,25 +23,25 @@ interface DispatchPayload {
 	payload: Record<string, unknown>;
 }
 
-interface SessionRow {
-	phone: string;
-	provider: string;
-	session_state: string;
-	conversation_context: Record<string, unknown> | null;
-}
+const SessionRowSchema = z.object({
+	phone: z.string(),
+	provider: z.enum(["waha", "twilio"]),
+	session_state: z.string(),
+	conversation_context: z.record(z.string(), z.unknown()).nullable(),
+});
 
-interface PreferenceRow {
-	user_id: string;
-	provider: string;
-	push_enabled: number;
-	digest_enabled: number;
-	digest_frequency: string;
-	digest_time: string;
-	quiet_hours_start: string | null;
-	quiet_hours_end: string | null;
-	max_push_per_day: number;
-	timezone: string;
-}
+const PreferenceRowSchema = z.object({
+	user_id: z.string(),
+	provider: z.enum(["waha", "twilio"]),
+	push_enabled: z.number(),
+	digest_enabled: z.number(),
+	digest_frequency: z.enum(["daily", "twice_daily", "weekly"]),
+	digest_time: z.string(),
+	quiet_hours_start: z.string().nullable(),
+	quiet_hours_end: z.string().nullable(),
+	max_push_per_day: z.number(),
+	timezone: z.string(),
+});
 
 export const notificationDispatcherTask = task({
 	id: "notification-dispatcher",
@@ -79,7 +80,9 @@ export const notificationDispatcherTask = task({
 					LIMIT 1
 				`);
 
-				const session = sessionResult.rows[0] as SessionRow | undefined;
+				const session = sessionResult.rows[0]
+					? SessionRowSchema.parse(sessionResult.rows[0])
+					: undefined;
 				if (!session || session.session_state !== "active") {
 					logger.info("No active WhatsApp session — skipping", { userId: targetUserId });
 					result.skipped++;
@@ -95,14 +98,16 @@ export const notificationDispatcherTask = task({
 					LIMIT 1
 				`);
 
-				const prefRow = prefResult.rows[0] as PreferenceRow | undefined;
+				const prefRow = prefResult.rows[0]
+					? PreferenceRowSchema.parse(prefResult.rows[0])
+					: undefined;
 				const preferences: NotificationPreference = prefRow
 					? {
 							userId: prefRow.user_id,
-							provider: prefRow.provider as "waha" | "twilio",
+							provider: prefRow.provider,
 							pushEnabled: prefRow.push_enabled === 1,
 							digestEnabled: prefRow.digest_enabled === 1,
-							digestFrequency: prefRow.digest_frequency as "daily" | "twice_daily" | "weekly",
+							digestFrequency: prefRow.digest_frequency,
 							digestTime: prefRow.digest_time,
 							quietHoursStart: prefRow.quiet_hours_start ?? undefined,
 							quietHoursEnd: prefRow.quiet_hours_end ?? undefined,
@@ -110,7 +115,7 @@ export const notificationDispatcherTask = task({
 						}
 					: {
 							userId: targetUserId,
-							provider: (session.provider as "waha" | "twilio") ?? "waha",
+							provider: session.provider ?? "waha",
 							pushEnabled: true,
 							digestEnabled: true,
 							digestFrequency: "daily",

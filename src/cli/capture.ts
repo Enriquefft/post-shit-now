@@ -1,3 +1,4 @@
+import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
 import { loadHubEnv } from "../core/utils/env.ts";
 import {
@@ -9,7 +10,17 @@ import {
 } from "../ideas/bank.ts";
 import { captureIdea, parseInlineTags } from "../ideas/capture.ts";
 import { expireTimelyIdeas, getStaleIdeas } from "../ideas/lifecycle.ts";
-import type { IdeaStatus, Urgency } from "../ideas/types.ts";
+
+const urgencySchema = z.enum(["timely", "seasonal", "evergreen"]);
+const ideaStatusSchema = z.enum([
+	"spark",
+	"seed",
+	"ready",
+	"claimed",
+	"developed",
+	"used",
+	"killed",
+]);
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -38,7 +49,7 @@ export async function captureCommand(text: string) {
 		pillar: tags.pillar,
 		platform: tags.platform,
 		format: tags.format,
-		urgency: tags.urgency as Urgency | undefined,
+		urgency: tags.urgency ? urgencySchema.parse(tags.urgency) : undefined,
 		hub: tags.hub,
 	});
 	return idea;
@@ -53,8 +64,8 @@ export async function listCommand(opts: {
 }) {
 	const db = await getDb();
 	return listIdeas(db, "default", {
-		status: opts.status as IdeaStatus | undefined,
-		urgency: opts.urgency as Urgency | undefined,
+		status: opts.status ? ideaStatusSchema.parse(opts.status) : undefined,
+		urgency: opts.urgency ? urgencySchema.parse(opts.urgency) : undefined,
 		pillar: opts.pillar,
 		limit: opts.limit,
 		offset: opts.offset,
@@ -75,7 +86,7 @@ export async function searchCommand(
 ) {
 	const db = await getDb();
 	return searchIdeas(db, "default", query, {
-		status: opts?.status as IdeaStatus | undefined,
+		status: opts?.status ? ideaStatusSchema.parse(opts.status) : undefined,
 		limit: opts?.limit,
 	});
 }

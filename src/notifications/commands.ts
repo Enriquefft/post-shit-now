@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import type { createHubConnection } from "../core/db/connection.ts";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -31,8 +32,21 @@ export interface CommandResult {
 	updateState?: Partial<ConversationState>;
 }
 
+// ─── Raw SQL Result Schemas ─────────────────────────────────────────────────
+
+const HubIdRowSchema = z.object({ hub_id: z.string() });
+const PostViewRowSchema = z.object({
+	content: z.string(),
+	platform: z.string(),
+	scheduled_at: z.union([z.date(), z.string(), z.null()]),
+});
+const PendingPostRowSchema = z.object({
+	id: z.string(),
+	content: z.string(),
+	platform: z.string(),
+	scheduled_at: z.union([z.date(), z.string(), z.null()]),
+});
 // ─── Command Parser ────────────────────────────────────────────────────────
-// Parses incoming WhatsApp messages into structured commands.
 // Supports both button tap IDs and text input (numbered fallback).
 
 export function parseIncomingCommand(message: string, buttonId?: string): ParsedCommand | null {
@@ -187,9 +201,7 @@ export async function processCommand(
 				WHERE id = ${postId}::uuid
 				LIMIT 1
 			`);
-			const post = postResult.rows[0] as
-				| { content: string; platform: string; scheduled_at: Date | null }
-				| undefined;
+			const post = postResult.rows[0] ? PostViewRowSchema.parse(postResult.rows[0]) : undefined;
 			if (!post) {
 				return { response: "Post not found." };
 			}
@@ -274,7 +286,10 @@ async function listPendingApprovals(db: DrizzleClient, userId: string): Promise<
 		SELECT hub_id FROM team_members
 		WHERE user_id = ${userId} AND role = 'admin' AND left_at IS NULL
 	`);
-	const hubIds = (hubsResult.rows as Array<{ hub_id: string }>).map((r) => r.hub_id);
+	const hubIds = z
+		.array(HubIdRowSchema)
+		.parse(hubsResult.rows)
+		.map((r) => r.hub_id);
 
 	if (hubIds.length === 0) {
 		return { response: "No pending approvals. You are not an admin of any hub." };
@@ -291,12 +306,7 @@ async function listPendingApprovals(db: DrizzleClient, userId: string): Promise<
 		LIMIT 5
 	`);
 
-	const pending = pendingResult.rows as Array<{
-		id: string;
-		content: string;
-		platform: string;
-		scheduled_at: Date | null;
-	}>;
+	const pending = z.array(PendingPostRowSchema).parse(pendingResult.rows);
 
 	if (pending.length === 0) {
 		return { response: "No pending approvals." };

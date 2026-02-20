@@ -77,6 +77,7 @@ export interface NotificationPreference {
 	quietHoursStart?: string;
 	quietHoursEnd?: string;
 	maxPushPerDay: number;
+	timezone?: string;
 }
 
 // ─── Fatigue Limits ─────────────────────────────────────────────────────────

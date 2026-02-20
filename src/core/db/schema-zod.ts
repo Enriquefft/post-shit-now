@@ -98,9 +98,13 @@ export type NewTeamMember = z.infer<typeof teamMemberInsertSchema>;
 // ─── Re-exports ─────────────────────────────────────────────────────────────
 
 export type {
+	AdjustmentType,
 	HubRole,
+	IdeaSourceType,
+	IdeaStatus,
 	OAuthTokenMetadata,
 	Platform,
 	PostMetadata,
 	SeriesCadence,
+	Urgency,
 } from "./schema.ts";
