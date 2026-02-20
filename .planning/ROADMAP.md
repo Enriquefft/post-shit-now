@@ -2,7 +2,7 @@
 
 ## Overview
 
-Post Shit Now delivers a Claude Code-first social media growth system in 8 phases. Phase 1 lays infrastructure (hub architecture, DB, migrations). Phase 2 adds OAuth and the X posting pipeline. Phase 3 builds voice profiling and content generation — the core differentiator. Phase 4 adds analytics and the learning loop that makes content improve over time. Phase 5 brings intelligence gathering, idea management, weekly planning, content series, and bilingual support. Phase 6 extends to LinkedIn with multi-platform adaptation. Phase 7 adds Company Hubs, team coordination, approval workflows, and WhatsApp notifications. Phase 8 completes platform coverage with Instagram, TikTok, and the engagement engine.
+Post Shit Now delivers a Claude Code-first social media growth system in 14 phases. Phase 1 lays infrastructure (hub architecture, DB, migrations). Phase 2 adds OAuth and the X posting pipeline. Phase 3 builds voice profiling and content generation — the core differentiator. Phase 4 adds analytics and the learning loop that makes content improve over time. Phase 5 brings intelligence gathering, idea management, weekly planning, content series, and bilingual support. Phase 6 extends to LinkedIn with multi-platform adaptation. Phase 7 adds Company Hubs, team coordination, approval workflows, and WhatsApp notifications. Phase 8 completes platform coverage with Instagram, TikTok, and the engagement engine. Phase 13 adds academic content support for researchers. Phases 14a-c close v1.0 milestone gaps for full completion.
 
 ## Phases
 
@@ -211,7 +211,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14a → 14b → 14c
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -228,6 +228,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 11. Tech Debt Remediation | 6/6 | Complete   | 2026-02-20 |
 | 12. Solo Founder Experience | 3/3 | Complete   | 2026-02-20 |
 | 13. Academic Content Support | 1/1 | Complete   | 2026-02-20 |
+| 14a. Integration Fixes - Critical | 0/1 | Pending | — |
+| 14b. Integration Fixes - Remaining | 0/1 | Pending | — |
+| 14c. Milestone Documentation Closure | 0/1 | Pending | — |
 
 ### Phase 11: Tech Debt Remediation - CONFIG-04 + IMG/VID Provider Migration
 
@@ -282,4 +285,55 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 13-01-PLAN.md — Academic archetype: template definitions, format picker integration, hook patterns for research content
+- [x] 13-01-PLAN.md — Academic archetype: template definitions, format picker integration, hook patterns for research content
+
+### Phase 14a: Integration Wiring Fixes - Critical
+
+**Goal:** Notification dispatcher fires for all events, enabling push notifications for approvals, failures, and engagement.
+**Depends on:** Phase 13
+**Requirements:** NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08, TEAM-05, AUTH-07
+**Gap Closure:** Closes CRITICAL integration gap from v1.0 audit (notificationDispatcherTask never triggered)
+**Success Criteria** (what must be TRUE):
+  1. notificationDispatcherTask is triggered by approval workflow events (submit, approve, reject)
+  2. notificationDispatcherTask is triggered by publish-post failure events
+  3. notificationDispatcherTask is triggered by token refresher failure events
+  4. WhatsApp notifications arrive for push-tier opportunities (score 70+) from engagement monitor
+
+**Plans:** 1 plan
+
+Plans:
+- [ ] 14a-01-PLAN.md — Wire notification dispatcher into approval workflow, publish-post, token-refresher, and engagement monitor
+
+### Phase 14b: Integration Wiring Fixes - Remaining
+
+**Goal:** Idea bank surfaces ready ideas during content generation, and unified calendar shows all hubs during planning.
+**Depends on:** Phase 14a (notification system stable before other wiring)
+**Requirements:** POST-11, TEAM-07, TEAM-08
+**Gap Closure:** Closes HIGH/MEDIUM integration gaps from v1.0 audit
+**Success Criteria** (what must be TRUE):
+  1. checkIdeaBank() in generate.ts receives db and userId arguments from CLI
+  2. Ready ideas from bank surface as options during /psn:post topic selection
+  3. calendarCommand in plan.ts uses getUnifiedCalendar instead of getCalendarState
+  4. Company hub posts appear during weekly planning with slot claiming
+
+**Plans:** 1 plan
+
+Plans:
+- [ ] 14b-01-PLAN.md — Fix checkIdeaBank args, switch calendar to unified view, verify company hub integration
+
+### Phase 14c: Milestone Documentation Closure
+
+**Goal:** All v1.0 requirements have verification artifacts and REQUIREMENTS.md reflects actual completion status.
+**Depends on:** Phase 14b (integration fixes complete before final verification)
+**Gap Closure:** Closes 16 documentation gaps from v1.0 audit (10 Phase 1, 6 Phase 6)
+**Success Criteria** (what must be TRUE):
+  1. VERIFICATION.md exists for Phase 1 confirming all 10 requirements are satisfied
+  2. VERIFICATION.md exists for Phase 6 confirming all 6 requirements are satisfied
+  3. Phase 6 SUMMARY files have requirements-completed frontmatter
+  4. All 16 requirement checkboxes in REQUIREMENTS.md are checked with status "Complete"
+  5. CONFIG-04: search providers read API keys from api_keys DB table (not just process.env)
+
+**Plans:** 1 plan
+
+Plans:
+- [ ] 14c-01-PLAN.md — Create verification artifacts, update REQUIREMENTS.md, add Phase 6 SUMMARY frontmatter
