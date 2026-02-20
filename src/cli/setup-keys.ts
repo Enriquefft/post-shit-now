@@ -1,8 +1,8 @@
 import { join } from "node:path";
+import { listKeys, setApiKey } from "../core/db/api-keys";
+import { createHubConnection } from "../core/db/connection.ts";
 import type { SetupResult } from "../core/types/index.ts";
-import { createHubConnection, getHubDb, type HubDb } from "../core/db/connection.ts";
-import { parseEnvFile, loadHubEnv } from "../core/utils/env.ts";
-import { getApiKey, setApiKey, listKeys } from "../core/db/api-keys";
+import { loadHubEnv, parseEnvFile } from "../core/utils/env.ts";
 
 const REQUIRED_KEYS_PHASE1 = [
 	{ name: "NEON_API_KEY", source: "Neon Console -> Settings -> API Keys -> Generate new key" },
@@ -15,7 +15,11 @@ const REQUIRED_KEYS_PHASE1 = [
 // ─── Provider Key Definitions ────────────────────────────────────────────────
 
 const PROVIDER_KEYS = [
-	{ name: "perplexity", service: "Perplexity AI", source: "https://www.perplexity.ai/settings/api" },
+	{
+		name: "perplexity",
+		service: "Perplexity AI",
+		source: "https://www.perplexity.ai/settings/api",
+	},
 	{ name: "brave", service: "Brave Search", source: "https://api.search.brave.com" },
 	{ name: "tavily", service: "Tavily", source: "https://tavily.com/api" },
 	{ name: "exa", service: "Exa AI", source: "https://exa.ai/api" },
@@ -113,7 +117,9 @@ export async function writeKey(
  * Check which provider keys are configured in the database.
  * Returns need_input status for missing keys so Claude can prompt user.
  */
-export async function setupProviderKeys(configDir = "config"): Promise<SetupResult | SetupResult[]> {
+export async function setupProviderKeys(
+	configDir = "config",
+): Promise<SetupResult | SetupResult[]> {
 	const hubEnv = await loadHubEnv(configDir);
 	if (!hubEnv.success) {
 		return { step: "keys", status: "error", message: hubEnv.error };

@@ -1,4 +1,3 @@
-import type { LinkedInClient } from "./client.ts";
 import {
 	LinkedInApiError,
 	LinkedInDocumentUploadResponseSchema,
@@ -223,18 +222,12 @@ export async function waitForMediaReady(
 		}
 
 		if (status === "PROCESSING_FAILED" || status === "UPLOAD_FAILED") {
-			throw new LinkedInApiError(
-				422,
-				`Media processing failed for ${urn}: status=${status}`,
-			);
+			throw new LinkedInApiError(422, `Media processing failed for ${urn}: status=${status}`);
 		}
 
 		// Wait before next poll
 		await new Promise((resolve) => setTimeout(resolve, intervalMs));
 	}
 
-	throw new LinkedInApiError(
-		408,
-		`Media ${urn} did not become AVAILABLE within ${maxWaitMs}ms`,
-	);
+	throw new LinkedInApiError(408, `Media ${urn} did not become AVAILABLE within ${maxWaitMs}ms`);
 }

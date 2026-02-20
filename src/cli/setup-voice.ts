@@ -1,14 +1,10 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { and, count, eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import type { SetupResult } from "../core/types/index.ts";
 import { oauthTokens, voiceProfiles } from "../core/db/schema";
-import {
-	createEntity,
-	listEntities,
-	type EntitySummary,
-} from "../voice/entity-profiles";
+import type { SetupResult } from "../core/types/index.ts";
+import { createEntity, type EntitySummary, listEntities } from "../voice/entity-profiles";
 import type { MaturityLevel } from "../voice/types";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -133,10 +129,8 @@ export async function getSetupStatus(
  * Handle /psn:setup voice subcommand.
  * Returns interview state for Claude to render.
  */
-export async function setupVoice(
-	options: SetupVoiceOptions,
-): Promise<SetupResult> {
-	const { userId, entitySlug, db, configDir } = options;
+export async function setupVoice(options: SetupVoiceOptions): Promise<SetupResult> {
+	const { userId, entitySlug, db } = options;
 
 	// If entitySlug provided: create/update entity profile
 	if (entitySlug) {
@@ -199,13 +193,7 @@ export async function createEntityWithInterview(
 	const { userId, displayName, description, maturityLevel, db } = options;
 
 	try {
-		const slug = await createEntity(
-			db,
-			userId,
-			displayName,
-			description,
-			maturityLevel,
-		);
+		const slug = await createEntity(db, userId, displayName, description, maturityLevel);
 
 		return {
 			step: "entity",
@@ -215,8 +203,7 @@ export async function createEntityWithInterview(
 				action: "start-interview",
 				entitySlug: slug,
 				entityDisplayName: displayName,
-				instructions:
-					"Entity created. Now run voice interview to complete profile setup.",
+				instructions: "Entity created. Now run voice interview to complete profile setup.",
 			},
 		};
 	} catch (err) {

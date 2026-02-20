@@ -47,10 +47,7 @@ interface VoiceContext {
 /**
  * Extract voice context from profile, adapting to target platform.
  */
-function extractVoiceContext(
-	voiceProfile: VoiceProfile,
-	platform: string,
-): VoiceContext {
+function extractVoiceContext(voiceProfile: VoiceProfile, platform: string): VoiceContext {
 	const platformPersona = voiceProfile.platforms[platform as keyof typeof voiceProfile.platforms];
 	const primaryLang = voiceProfile.languages.en ?? voiceProfile.languages.es;
 
@@ -216,7 +213,9 @@ function buildReplyContext(params: {
 		`Thread tone: ${threadTone}`,
 		`Voice: formality ${adaptedFormality}/10, humor ${voice.humor}/10, tone "${voice.tone}"`,
 		`Pillars: ${voice.pillars.join(", ")}`,
-		voice.vocabulary.length > 0 ? `Vocabulary hints: ${voice.vocabulary.slice(0, 5).join(", ")}` : "",
+		voice.vocabulary.length > 0
+			? `Vocabulary hints: ${voice.vocabulary.slice(0, 5).join(", ")}`
+			: "",
 		voice.avoid.length > 0 ? `AVOID: ${voice.avoid.join(", ")}` : "",
 	]
 		.filter(Boolean)

@@ -1,4 +1,4 @@
-import { LinkedIn, generateState } from "arctic";
+import { generateState, LinkedIn } from "arctic";
 import type { LinkedInOAuthConfig } from "./types.ts";
 
 /**

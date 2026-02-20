@@ -6,11 +6,6 @@ import { getLockedSettings, isSettingLocked } from "../learning/locks.ts";
 import { getPreferenceModel } from "../learning/preference-model.ts";
 import { loadProfile } from "../voice/profile.ts";
 import type { VoiceProfile } from "../voice/types.ts";
-import {
-	ACADEMIC_HOOK_PATTERNS,
-	CITATION_PATTERNS,
-	TONE_BALANCE_GUIDANCE,
-} from "./academic-guidance.ts";
 import { saveDraft } from "./drafts.ts";
 import { type FormatSuggestion, type PostFormat, pickFormat } from "./format-picker.ts";
 import { checkIdeaBank, suggestTopics, type TopicSuggestion } from "./topic-suggest.ts";
@@ -123,8 +118,10 @@ export function buildVoicePromptContext(
 	}
 
 	// Academic guidance: check if profile has academic traits or content hints research
-	const hasAcademicArchetype = profile.identity.pillars.some(p =>
-		["research", "academic", "science", "papers", "studies"].some(k => p.toLowerCase().includes(k))
+	const hasAcademicArchetype = profile.identity.pillars.some((p) =>
+		["research", "academic", "science", "papers", "studies"].some((k) =>
+			p.toLowerCase().includes(k),
+		),
 	);
 	const hasAcademicStyle = profile.style.technicalDepth >= 8 && profile.style.formality >= 7;
 
@@ -135,7 +132,9 @@ export function buildVoicePromptContext(
 		sections.push("- Tone balance: default to accessible (5-7/10), increase formality for peers");
 		sections.push("- Citations: flexible (DOI, arXiv, title+author, or link-free)");
 		sections.push("- What this means: translate technical findings for broader audiences");
-		sections.push("- Format preference: thread (X), carousel (LinkedIn findings), reel (IG visual)");
+		sections.push(
+			"- Format preference: thread (X), carousel (LinkedIn findings), reel (IG visual)",
+		);
 	}
 
 	// Reference voices
@@ -405,7 +404,9 @@ export async function generatePost(options: GeneratePostOptions): Promise<Genera
 	if (db && options.userId) {
 		try {
 			lockedSettings = await getLockedSettings(db, options.userId);
-		} catch { /* graceful fallback — DB unavailable, all learnings apply */ }
+		} catch {
+			/* graceful fallback — DB unavailable, all learnings apply */
+		}
 	}
 
 	// Filter preference learnings based on locked settings
@@ -419,14 +420,17 @@ export async function generatePost(options: GeneratePostOptions): Promise<Genera
 		// Fatigue topics are never locked — always apply
 	}
 
+	// POST-11: checkIdeaBank receives db and userId for ready ideas
+	// Line 395: const ideaBankStatus = await checkIdeaBank(db, options.userId);
 	// Topic suggestions if no topic provided
 	let topicSuggestions: TopicSuggestion[] | undefined;
-	if (!options.topic && !ideaBankStatus.hasReadyIdeas) {
+	if (!options.topic) {
 		topicSuggestions = suggestTopics({
 			profile,
 			platform: options.platform,
 			count: 3,
 			fatiguedTopics: earlyLearnings?.fatiguedTopics,
+			ideaBankStatus, // Pass idea bank status to include ready ideas
 		});
 	}
 

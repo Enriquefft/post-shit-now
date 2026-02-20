@@ -264,12 +264,11 @@ export const preferenceModel = pgTable(
 			jsonb("locked_settings").$type<Array<{ field: string; value: unknown; lockedAt: string }>>(),
 
 		// Killed idea feedback (rejection patterns from idea bank)
-		killedIdeaPatterns:
-			jsonb("killed_idea_patterns").$type<{
-				rejectedPillars: Record<string, number>;
-				commonReasons: string[];
-				recentKills: number;
-			}>(),
+		killedIdeaPatterns: jsonb("killed_idea_patterns").$type<{
+			rejectedPillars: Record<string, number>;
+			commonReasons: string[];
+			recentKills: number;
+		}>(),
 
 		// Follower tracking (weekly/monthly trend)
 		followerHistory: jsonb("follower_history").$type<Array<{ count: number; date: string }>>(),
@@ -336,17 +335,11 @@ export const ideas = pgTable(
 		claimedBy: text("claimed_by"),
 		killReason: text("kill_reason"),
 		expiresAt: timestamp("expires_at", { withTimezone: true }),
-		lastTouchedAt: timestamp("last_touched_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		lastTouchedAt: timestamp("last_touched_at", { withTimezone: true }).defaultNow().notNull(),
 		sourceType: text("source_type"), // trend | capture | plan | remix | recycle
 		sourceId: text("source_id"),
-		createdAt: timestamp("created_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
-		updatedAt: timestamp("updated_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
 		pgPolicy("ideas_isolation", {
@@ -388,12 +381,8 @@ export const series = pgTable(
 		status: text("status").notNull().default("active"), // active | paused | retired
 		lastPublishedAt: timestamp("last_published_at", { withTimezone: true }),
 		pillar: text("pillar"),
-		createdAt: timestamp("created_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
-		updatedAt: timestamp("updated_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
 		pgPolicy("series_isolation", {
@@ -420,21 +409,13 @@ export const trends = pgTable(
 		pillarRelevance: jsonb("pillar_relevance").$type<Record<string, number>>(),
 		overallScore: integer("overall_score").notNull().default(0),
 		suggestedAngles: jsonb("suggested_angles").$type<string[]>(),
-		detectedAt: timestamp("detected_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		detectedAt: timestamp("detected_at", { withTimezone: true }).defaultNow().notNull(),
 		expiresAt: timestamp("expires_at", { withTimezone: true }),
 		usedInIdeaId: text("used_in_idea_id"),
-		createdAt: timestamp("created_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
-		uniqueIndex("trends_user_title_source_idx").on(
-			table.userId,
-			table.title,
-			table.source,
-		),
+		uniqueIndex("trends_user_title_source_idx").on(table.userId, table.title, table.source),
 		pgPolicy("trends_isolation", {
 			as: "permissive",
 			to: hubUser,
@@ -471,12 +452,8 @@ export const weeklyPlans = pgTable(
 		slots: jsonb("slots").$type<PlanSlot[]>(),
 		totalSlots: integer("total_slots").notNull().default(0),
 		completedSlots: integer("completed_slots").notNull().default(0),
-		createdAt: timestamp("created_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
-		updatedAt: timestamp("updated_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
 		pgPolicy("weekly_plans_isolation", {
@@ -501,9 +478,7 @@ export const monitoredAccounts = pgTable(
 		accountName: text("account_name"),
 		lastCheckedAt: timestamp("last_checked_at", { withTimezone: true }),
 		lastPostCount: integer("last_post_count"),
-		createdAt: timestamp("created_at", { withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
 		pgPolicy("monitored_accounts_isolation", {

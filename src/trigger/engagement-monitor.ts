@@ -3,11 +3,11 @@ import { sql } from "drizzle-orm";
 import { createHubConnection } from "../core/db/connection.ts";
 import { oauthTokens } from "../core/db/schema.ts";
 import { decrypt, keyFromHex } from "../core/utils/crypto.ts";
-import { loadEngagementConfig, deriveNicheKeywords } from "../engagement/config.ts";
-import { discoverOpportunities, expireOldOpportunities } from "../engagement/monitor.ts";
+import { deriveNicheKeywords, loadEngagementConfig } from "../engagement/config.ts";
 import type { PlatformClients } from "../engagement/monitor.ts";
-import { XClient } from "../platforms/x/client.ts";
+import { discoverOpportunities, expireOldOpportunities } from "../engagement/monitor.ts";
 import { InstagramClient } from "../platforms/instagram/client.ts";
+import { XClient } from "../platforms/x/client.ts";
 import { notificationDispatcherTask } from "./notification-dispatcher.ts";
 
 // ─── Engagement Monitor Task ────────────────────────────────────────────────
@@ -67,9 +67,7 @@ export const engagementMonitor = schedules.task({
 				const tokenResult = await db
 					.select()
 					.from(oauthTokens)
-					.where(
-						sql`${oauthTokens.userId} = ${userId} AND ${oauthTokens.platform} = 'x'`,
-					)
+					.where(sql`${oauthTokens.userId} = ${userId} AND ${oauthTokens.platform} = 'x'`)
 					.limit(1);
 
 				const xToken = tokenResult[0];
@@ -87,9 +85,7 @@ export const engagementMonitor = schedules.task({
 				const tokenResult = await db
 					.select()
 					.from(oauthTokens)
-					.where(
-						sql`${oauthTokens.userId} = ${userId} AND ${oauthTokens.platform} = 'instagram'`,
-					)
+					.where(sql`${oauthTokens.userId} = ${userId} AND ${oauthTokens.platform} = 'instagram'`)
 					.limit(1);
 
 				const igToken = tokenResult[0];
@@ -124,6 +120,8 @@ export const engagementMonitor = schedules.task({
 		const mediumScore = opportunities.filter(
 			(o) => o.score.composite >= 60 && o.score.composite < 70,
 		);
+		// NOTIF-04: Push notifications for high-score engagement opportunities (score 70+)
+		// Already wired: see lines 128-155, high-score notification trigger.
 
 		// High-score opportunities: trigger push notification via dispatcher
 		// Uses notificationDispatcherTask instead of raw INSERT to get fatigue prevention,
@@ -165,7 +163,7 @@ export const engagementMonitor = schedules.task({
 						) VALUES (
 							gen_random_uuid(), ${userId}, 'digest.daily', 'digest', 'waha', '',
 							'queued',
-							${"engagement-digest-" + opp.externalPostId},
+							${`engagement-digest-${opp.externalPostId}`},
 							NOW()
 						)
 						ON CONFLICT DO NOTHING

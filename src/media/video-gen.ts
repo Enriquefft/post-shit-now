@@ -1,5 +1,5 @@
-import type { Platform } from "../core/types/index.ts";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { Platform } from "../core/types/index.ts";
 import { PLATFORM_VIDEO_SPECS } from "./platform-specs.ts";
 import { klingProvider } from "./providers/kling.ts";
 import { pikaProvider } from "./providers/pika.ts";
@@ -180,7 +180,11 @@ export interface GenerateVideoResult {
 	validation: VideoValidation;
 }
 
-export async function generateVideo(options: GenerateVideoOptions, db: PostgresJsDatabase, hubId: string): Promise<GenerateVideoResult> {
+export async function generateVideo(
+	options: GenerateVideoOptions,
+	db: PostgresJsDatabase,
+	hubId: string,
+): Promise<GenerateVideoResult> {
 	const spec = PLATFORM_VIDEO_SPECS[options.platform];
 	const { provider, reason, suggestion } = selectVideoProvider(
 		options.contentHints ?? [],
@@ -195,14 +199,18 @@ export async function generateVideo(options: GenerateVideoOptions, db: PostgresJ
 	const aspectRatio =
 		options.mode === "text-to-video" ? getDefaultAspectRatio(options.platform) : undefined;
 
-	const video = await provider.generate({
-		prompt: options.prompt,
-		mode: options.mode,
-		sourceImage: options.sourceImage,
-		duration,
-		aspectRatio,
-		withAudio: options.withAudio,
-	}, db, hubId);
+	const video = await provider.generate(
+		{
+			prompt: options.prompt,
+			mode: options.mode,
+			sourceImage: options.sourceImage,
+			duration,
+			aspectRatio,
+			withAudio: options.withAudio,
+		},
+		db,
+		hubId,
+	);
 
 	const validation = validateVideoForPlatform(video, options.platform);
 

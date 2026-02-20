@@ -5,10 +5,7 @@ import { oauthTokens } from "../core/db/schema.ts";
 import type { SetupResult } from "../core/types/index.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
-import {
-	exchangeInstagramCode,
-	generateInstagramAuthUrl,
-} from "../platforms/instagram/oauth.ts";
+import { exchangeInstagramCode, generateInstagramAuthUrl } from "../platforms/instagram/oauth.ts";
 
 const INSTAGRAM_CALLBACK_URL = "https://example.com/callback";
 

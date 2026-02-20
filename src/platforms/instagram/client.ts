@@ -2,18 +2,18 @@ import type { ZodType } from "zod/v4";
 import {
 	GRAPH_BASE_URL,
 	InstagramApiError,
-	InstagramCommentSchema,
-	InstagramHashtagSearchSchema,
-	InstagramInsightsSchema,
-	InstagramMediaListSchema,
-	InstagramProfileSchema,
-	type InstagramProfile,
-	type InstagramRateLimitInfo,
-	InstagramRateLimitError,
-	type InstagramInsights,
-	type InstagramMediaList,
-	type InstagramHashtagSearch,
 	type InstagramComment,
+	InstagramCommentSchema,
+	type InstagramHashtagSearch,
+	InstagramHashtagSearchSchema,
+	type InstagramInsights,
+	InstagramInsightsSchema,
+	type InstagramMediaList,
+	InstagramMediaListSchema,
+	type InstagramProfile,
+	InstagramProfileSchema,
+	InstagramRateLimitError,
+	type InstagramRateLimitInfo,
 	MAX_REQUESTS_PER_HOUR,
 } from "./types.ts";
 
@@ -40,17 +40,11 @@ export class InstagramClient {
 	 * Core request method for Instagram Graph API endpoints.
 	 * Handles auth, rate limit tracking, error mapping, and Zod validation.
 	 */
-	async request<T>(
-		endpoint: string,
-		options: RequestInit = {},
-		schema?: ZodType<T>,
-	): Promise<T> {
+	async request<T>(endpoint: string, options: RequestInit = {}, schema?: ZodType<T>): Promise<T> {
 		// Track rate limiting (200 requests per hour)
 		this.trackRequest();
 
-		const url = endpoint.startsWith("http")
-			? endpoint
-			: `${GRAPH_BASE_URL}${endpoint}`;
+		const url = endpoint.startsWith("http") ? endpoint : `${GRAPH_BASE_URL}${endpoint}`;
 
 		// Add access_token to URL params
 		const urlObj = new URL(url);
@@ -75,11 +69,7 @@ export class InstagramClient {
 	/**
 	 * POST request helper for container creation and publishing.
 	 */
-	async post<T>(
-		endpoint: string,
-		params: Record<string, string>,
-		schema?: ZodType<T>,
-	): Promise<T> {
+	async post<T>(endpoint: string, params: Record<string, string>, schema?: ZodType<T>): Promise<T> {
 		const url = `${GRAPH_BASE_URL}${endpoint}`;
 		const urlObj = new URL(url);
 		urlObj.searchParams.set("access_token", this.accessToken);
@@ -233,11 +223,7 @@ export class InstagramClient {
 	 * POST /{mediaId}/comments?message={message}
 	 */
 	async postComment(mediaId: string, message: string): Promise<InstagramComment> {
-		return this.post(
-			`/${mediaId}/comments`,
-			{ message },
-			InstagramCommentSchema,
-		);
+		return this.post(`/${mediaId}/comments`, { message }, InstagramCommentSchema);
 	}
 
 	// ─── Rate Limit Info ──────────────────────────────────────────────────

@@ -1,24 +1,24 @@
 import type { ZodType } from "zod/v4";
 import {
+	MAX_DESCRIPTION_LENGTH,
+	MAX_TITLE_LENGTH,
+	SELF_ONLY,
 	TIKTOK_BASE_URL,
 	TikTokApiError,
-	TikTokCommentSchema,
-	TikTokPublishSchema,
-	TikTokPublishStatusSchema,
-	TikTokRateLimitError,
-	TikTokUserInfoSchema,
-	TikTokVideoListSchema,
-	SELF_ONLY,
-	MAX_TITLE_LENGTH,
-	MAX_DESCRIPTION_LENGTH,
 	type TikTokAuditStatus,
 	type TikTokCommentResponse,
+	TikTokCommentSchema,
 	type TikTokPrivacyLevel,
 	type TikTokPublishResponse,
+	TikTokPublishSchema,
 	type TikTokPublishStatusResponse,
+	TikTokPublishStatusSchema,
+	TikTokRateLimitError,
 	type TikTokRateLimitInfo,
 	type TikTokUserInfoResponse,
+	TikTokUserInfoSchema,
 	type TikTokVideoListResponse,
+	TikTokVideoListSchema,
 } from "./types.ts";
 
 /**
@@ -139,10 +139,7 @@ export class TikTokClient {
 	 * Get the authenticated user's video list with metrics.
 	 * Supports cursor-based pagination.
 	 */
-	async getVideoList(
-		cursor?: number,
-		maxCount = 20,
-	): Promise<TikTokVideoListResponse> {
+	async getVideoList(cursor?: number, maxCount = 20): Promise<TikTokVideoListResponse> {
 		const body: Record<string, unknown> = { max_count: maxCount };
 		if (cursor !== undefined) {
 			body.cursor = cursor;

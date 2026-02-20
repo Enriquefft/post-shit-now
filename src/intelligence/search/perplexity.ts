@@ -1,6 +1,6 @@
-import type { SearchResult } from "../types.ts";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { getApiKey } from "../../core/db/api-keys";
+import type { SearchResult } from "../types.ts";
 
 /**
  * Search via Perplexity AI's sonar model.
@@ -17,32 +17,26 @@ export async function searchPerplexity(
 		throw new Error("API key lookup returned empty value");
 	}
 
-	const response = await fetch(
-		"https://api.perplexity.ai/chat/completions",
-		{
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${apiKey}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				model: "sonar",
-				messages: [
-					{
-						role: "system",
-						content:
-							"You are a research assistant. Provide factual search results with source URLs.",
-					},
-					{ role: "user", content: query },
-				],
-			}),
+	const response = await fetch("https://api.perplexity.ai/chat/completions", {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${apiKey}`,
+			"Content-Type": "application/json",
 		},
-	);
+		body: JSON.stringify({
+			model: "sonar",
+			messages: [
+				{
+					role: "system",
+					content: "You are a research assistant. Provide factual search results with source URLs.",
+				},
+				{ role: "user", content: query },
+			],
+		}),
+	});
 
 	if (!response.ok) {
-		throw new Error(
-			`Perplexity API error: ${response.status} ${response.statusText}`,
-		);
+		throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
 	}
 
 	const json = (await response.json()) as {

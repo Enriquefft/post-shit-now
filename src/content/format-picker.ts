@@ -24,7 +24,10 @@ export interface FormatSuggestion {
 
 export const FORMAT_CONSTRAINTS: Record<PostFormat, { maxChars?: number; description: string }> = {
 	"short-post": { maxChars: 280, description: "Single short text post" },
-	"long-post": { maxChars: 3000, description: "Long-form LinkedIn text post (optimal 1000-1300 chars)" },
+	"long-post": {
+		maxChars: 3000,
+		description: "Long-form LinkedIn text post (optimal 1000-1300 chars)",
+	},
 	thread: { description: "Multi-part thread (X) or long-form post (LinkedIn)" },
 	carousel: { description: "Multi-slide visual content (LinkedIn document post, Instagram)" },
 	"image-post": { description: "Text post with accompanying image" },
@@ -40,7 +43,16 @@ export const FORMAT_CONSTRAINTS: Record<PostFormat, { maxChars?: number; descrip
 /** Which formats are supported on each platform */
 export const PLATFORM_FORMAT_SUPPORT: Record<Platform, PostFormat[]> = {
 	x: ["short-post", "thread", "image-post", "video-post", "quote-image"],
-	linkedin: ["short-post", "long-post", "carousel", "image-post", "linkedin-article", "video-post", "quote-image", "infographic"],
+	linkedin: [
+		"short-post",
+		"long-post",
+		"carousel",
+		"image-post",
+		"linkedin-article",
+		"video-post",
+		"quote-image",
+		"infographic",
+	],
 	instagram: ["image-post", "carousel", "reel-script", "video-post", "quote-image"],
 	tiktok: ["video-post", "reel-script"],
 };
@@ -72,8 +84,17 @@ const HOWTO_KEYWORDS = ["how to", "tutorial", "guide", "steps", "tips", "tricks"
 const QUOTE_KEYWORDS = ["quote", "said", "wisdom", "inspiration", "words"];
 const TREND_KEYWORDS = ["trend", "hot take", "controversial", "unpopular opinion", "debate"];
 const ACADEMIC_KEYWORDS = [
-	"paper", "research", "study", "findings", "published", "accepted",
-	"journal", "conference", "academic", "publication", "results",
+	"paper",
+	"research",
+	"study",
+	"findings",
+	"published",
+	"accepted",
+	"journal",
+	"conference",
+	"academic",
+	"publication",
+	"results",
 ];
 
 function hasKeywords(text: string, keywords: string[]): boolean {
@@ -144,7 +165,8 @@ function pickFormatX(
 		return {
 			recommended: "thread",
 			alternatives: [{ format: "short-post", reason: "Condense into single tweet" }],
-			reasoning: "Academic content works well as threads — break down research into digestible chunks (problem → methods → findings → implications)",
+			reasoning:
+				"Academic content works well as threads — break down research into digestible chunks (problem → methods → findings → implications)",
 		};
 	}
 
@@ -174,7 +196,17 @@ function pickFormatX(
 	};
 }
 
-const LINKEDIN_LIST_KEYWORDS = ["list", "steps", "framework", "comparison", "how to", "tips", "guide", "walkthrough", "ranking"];
+const LINKEDIN_LIST_KEYWORDS = [
+	"list",
+	"steps",
+	"framework",
+	"comparison",
+	"how to",
+	"tips",
+	"guide",
+	"walkthrough",
+	"ranking",
+];
 const LINKEDIN_EXTERNAL_KEYWORDS = ["article", "blog", "link", "resource", "read", "check out"];
 
 function pickFormatLinkedIn(
@@ -198,7 +230,8 @@ function pickFormatLinkedIn(
 				{ format: "long-post", reason: "Long-form text version (1000-1300 chars)" },
 				{ format: "infographic", reason: "Single-image data visualization" },
 			],
-			reasoning: "Research findings and data visualization work best as LinkedIn carousels (11.2x impressions)",
+			reasoning:
+				"Research findings and data visualization work best as LinkedIn carousels (11.2x impressions)",
 		};
 	}
 
@@ -210,7 +243,8 @@ function pickFormatLinkedIn(
 				{ format: "long-post", reason: "Long-form text version (1000-1300 chars)" },
 				{ format: "infographic", reason: "Single-image data visualization" },
 			],
-			reasoning: "Carousels dominate LinkedIn with 11.2x impressions vs text — auto-suggested for list/step/framework content",
+			reasoning:
+				"Carousels dominate LinkedIn with 11.2x impressions vs text — auto-suggested for list/step/framework content",
 		};
 	}
 
@@ -222,7 +256,8 @@ function pickFormatLinkedIn(
 				{ format: "carousel", reason: "Visual storytelling carousel" },
 				{ format: "image-post", reason: "Story with a key image" },
 			],
-			reasoning: "Personal stories perform well as long-form LinkedIn text posts (1000-1300 chars optimal)",
+			reasoning:
+				"Personal stories perform well as long-form LinkedIn text posts (1000-1300 chars optimal)",
 		};
 	}
 
@@ -276,14 +311,38 @@ function pickFormatLinkedIn(
 // ─── Instagram Format Keywords ───────────────────────────────────────────────
 
 const IG_REEL_KEYWORDS = [
-	"tutorial", "how to", "behind the scenes", "behind-the-scenes", "day in the life",
-	"trending", "challenge", "reaction", "transformation", "before and after",
-	"storytelling", "vlog", "grwm", "routine", "process",
+	"tutorial",
+	"how to",
+	"behind the scenes",
+	"behind-the-scenes",
+	"day in the life",
+	"trending",
+	"challenge",
+	"reaction",
+	"transformation",
+	"before and after",
+	"storytelling",
+	"vlog",
+	"grwm",
+	"routine",
+	"process",
 ];
 const IG_CAROUSEL_KEYWORDS = [
-	"list", "steps", "framework", "comparison", "educational", "tips",
-	"guide", "ranking", "myths", "mistakes", "lessons", "facts",
-	"swipe", "slide", "part 1",
+	"list",
+	"steps",
+	"framework",
+	"comparison",
+	"educational",
+	"tips",
+	"guide",
+	"ranking",
+	"myths",
+	"mistakes",
+	"lessons",
+	"facts",
+	"swipe",
+	"slide",
+	"part 1",
 ];
 const IG_QUOTE_KEYWORDS = ["quote", "motivation", "inspiration", "wisdom", "mindset"];
 
@@ -320,7 +379,8 @@ function pickFormatInstagram(
 				{ format: "carousel", reason: "Step-by-step visual alternative" },
 				{ format: "image-post", reason: "Static post version" },
 			],
-			reasoning: "Reels dominate Instagram reach (30.81%) — best for tutorials, trends, and storytelling",
+			reasoning:
+				"Reels dominate Instagram reach (30.81%) — best for tutorials, trends, and storytelling",
 		};
 	}
 
@@ -332,7 +392,8 @@ function pickFormatInstagram(
 				{ format: "reel-script", reason: "Video walkthrough for higher reach" },
 				{ format: "image-post", reason: "Single summary image" },
 			],
-			reasoning: "Carousel posts drive saves and shares — ideal for educational/list content on Instagram",
+			reasoning:
+				"Carousel posts drive saves and shares — ideal for educational/list content on Instagram",
 		};
 	}
 
@@ -356,7 +417,8 @@ function pickFormatInstagram(
 				{ format: "carousel", reason: "Story as visual slides" },
 				{ format: "image-post", reason: "Key moment as single image" },
 			],
-			reasoning: "Story content performs best as Reels on Instagram — biasing toward video for reach",
+			reasoning:
+				"Story content performs best as Reels on Instagram — biasing toward video for reach",
 		};
 	}
 
@@ -367,15 +429,21 @@ function pickFormatInstagram(
 			{ format: "image-post", reason: "Static visual for simpler content" },
 			{ format: "carousel", reason: "Multi-slide for deeper content" },
 		],
-		reasoning: "Default to Reels on Instagram for maximum reach (30.81% reach rate, 55% views from non-followers)",
+		reasoning:
+			"Default to Reels on Instagram for maximum reach (30.81% reach rate, 55% views from non-followers)",
 	};
 }
 
 // ─── TikTok Format Keywords ─────────────────────────────────────────────────
 
 const TT_PHOTO_KEYWORDS = [
-	"gallery", "photo dump", "outfit", "aesthetic", "collection",
-	"before and after photos", "screenshot",
+	"gallery",
+	"photo dump",
+	"outfit",
+	"aesthetic",
+	"collection",
+	"before and after photos",
+	"screenshot",
 ];
 
 function pickFormatTikTok(type: string, prefFormat?: PostFormat): FormatSuggestion {

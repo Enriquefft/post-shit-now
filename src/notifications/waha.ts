@@ -80,8 +80,7 @@ export class WahaProvider implements WhatsAppProvider {
 
 			// Fallback for WAHA Core (no button support)
 			if (res.status >= 400 && res.status < 500) {
-				const fallbackBody =
-					`${body}\n\n${buttons.map((b, i) => `${i + 1}. ${b.body}`).join("\n")}\n\nReply with a number to choose.`;
+				const fallbackBody = `${body}\n\n${buttons.map((b, i) => `${i + 1}. ${b.body}`).join("\n")}\n\nReply with a number to choose.`;
 				return this.sendText(to, fallbackBody);
 			}
 
@@ -121,8 +120,7 @@ export class WahaProvider implements WhatsAppProvider {
 			// Fallback for WAHA Core (no list support)
 			if (res.status >= 400 && res.status < 500) {
 				const items = sections.flatMap((s) => s.rows);
-				const fallbackBody =
-					`${body}\n\n${items.map((r, i) => `${i + 1}. ${r.title}${r.description ? ` - ${r.description}` : ""}`).join("\n")}\n\nReply with a number to choose.`;
+				const fallbackBody = `${body}\n\n${items.map((r, i) => `${i + 1}. ${r.title}${r.description ? ` - ${r.description}` : ""}`).join("\n")}\n\nReply with a number to choose.`;
 				return this.sendText(to, fallbackBody);
 			}
 

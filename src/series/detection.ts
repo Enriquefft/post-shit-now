@@ -1,4 +1,4 @@
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, eq, gte } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
 import { postMetrics } from "../core/db/schema.ts";
 
@@ -19,10 +19,7 @@ export interface SeriesCandidate {
  * Feeds SERIES-06: "System suggests formalizing as series when it detects
  * recurring post patterns."
  */
-export async function detectSeriesPatterns(
-	db: HubDb,
-	userId: string,
-): Promise<SeriesCandidate[]> {
+export async function detectSeriesPatterns(db: HubDb, userId: string): Promise<SeriesCandidate[]> {
 	const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
 	// Get metrics for last 30 days with pillar and format
@@ -33,18 +30,10 @@ export async function detectSeriesPatterns(
 			postTopic: postMetrics.postTopic,
 		})
 		.from(postMetrics)
-		.where(
-			and(
-				eq(postMetrics.userId, userId),
-				gte(postMetrics.createdAt, thirtyDaysAgo),
-			),
-		);
+		.where(and(eq(postMetrics.userId, userId), gte(postMetrics.createdAt, thirtyDaysAgo)));
 
 	// Group by (pillar, format) combination
-	const combos = new Map<
-		string,
-		{ pillar: string; format: string; topics: string[] }
-	>();
+	const combos = new Map<string, { pillar: string; format: string; topics: string[] }>();
 
 	for (const row of rows) {
 		if (!row.postPillar || !row.postFormat) continue;

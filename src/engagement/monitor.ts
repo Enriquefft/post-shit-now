@@ -1,8 +1,9 @@
 import { sql } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
-import type { XClient } from "../platforms/x/client.ts";
 import type { InstagramClient } from "../platforms/instagram/client.ts";
 import { getTrendingTopics, getTrendingVideos } from "../platforms/tiktok/creative-center.ts";
+import type { XClient } from "../platforms/x/client.ts";
+import { isBlocked, isPlatformMonitoringEnabled } from "./config.ts";
 import {
 	buildOpportunityScore,
 	computePotentialScore,
@@ -12,7 +13,6 @@ import {
 	suggestEngagementType,
 	toBasisPoints,
 } from "./scoring.ts";
-import { isBlocked, isPlatformMonitoringEnabled } from "./config.ts";
 import type { EngagementConfig, EngagementOpportunity } from "./types.ts";
 
 // ─── Platform Client Types ──────────────────────────────────────────────────
@@ -66,16 +66,18 @@ export async function discoverOpportunities(params: {
 	}> = [];
 
 	if (isPlatformMonitoringEnabled(config, "x") && platformClients.x) {
+		const xClient = platformClients.x;
 		platforms.push({
 			name: "x",
-			search: () => searchXTrending(platformClients.x!, nicheKeywords),
+			search: () => searchXTrending(xClient, nicheKeywords),
 		});
 	}
 
 	if (isPlatformMonitoringEnabled(config, "instagram") && platformClients.instagram) {
+		const instagramClient = platformClients.instagram;
 		platforms.push({
 			name: "instagram",
-			search: () => searchInstagramTrending(platformClients.instagram!, nicheKeywords),
+			search: () => searchInstagramTrending(instagramClient, nicheKeywords),
 		});
 	}
 
@@ -109,19 +111,13 @@ export async function discoverOpportunities(params: {
 				// Score the opportunity
 				const relevance = computeRelevanceScore(opp.postSnippet, nicheKeywords);
 				const recency = opp.postedAt ? computeRecencyScore(opp.postedAt) : 50;
-				const reach = opp.authorFollowerCount
-					? computeReachScore(opp.authorFollowerCount)
-					: 40;
+				const reach = opp.authorFollowerCount ? computeReachScore(opp.authorFollowerCount) : 40;
 				const potential = opp.postedAt
 					? computePotentialScore({ ...opp.metrics, postedAt: opp.postedAt })
 					: 30;
 
 				const score = buildOpportunityScore({ relevance, recency, reach, potential });
-				const suggestedType = suggestEngagementType(
-					opp.platform,
-					score.composite,
-					opp.postSnippet,
-				);
+				const suggestedType = suggestEngagementType(opp.platform, score.composite, opp.postSnippet);
 
 				const opportunity: EngagementOpportunity = {
 					userId,
@@ -249,9 +245,7 @@ export async function searchXTrending(
 				authorHandle: user?.username ?? "unknown",
 				authorFollowerCount: user?.followers,
 				postSnippet: tweet.text.slice(0, 500),
-				postUrl: user?.username
-					? `https://x.com/${user.username}/status/${tweet.id}`
-					: undefined,
+				postUrl: user?.username ? `https://x.com/${user.username}/status/${tweet.id}` : undefined,
 				postedAt: tweet.createdAt ? new Date(tweet.createdAt) : undefined,
 				metrics: {
 					likes: tweet.publicMetrics?.likeCount ?? 0,
@@ -331,9 +325,7 @@ export async function searchInstagramTrending(
  * Use Creative Center (free tier) to find trending content matching keywords.
  * Graceful degradation if scraping fails.
  */
-export async function searchTikTokTrending(
-	keywords: string[],
-): Promise<RawOpportunity[]> {
+export async function searchTikTokTrending(keywords: string[]): Promise<RawOpportunity[]> {
 	const opportunities: RawOpportunity[] = [];
 
 	try {
@@ -393,9 +385,7 @@ export async function searchTikTokTrending(
  * Engagement on LinkedIn is manual-only discovery.
  * Returns empty array with info log.
  */
-export async function searchLinkedInTrending(
-	_keywords: string[],
-): Promise<RawOpportunity[]> {
+export async function searchLinkedInTrending(_keywords: string[]): Promise<RawOpportunity[]> {
 	console.info(
 		"[Engagement Monitor] LinkedIn has no content discovery API -- engagement is manual-only discovery",
 	);
@@ -407,10 +397,7 @@ export async function searchLinkedInTrending(
 /**
  * Expire opportunities older than 48 hours that are still pending.
  */
-export async function expireOldOpportunities(
-	db: HubDb,
-	userId: string,
-): Promise<number> {
+export async function expireOldOpportunities(db: HubDb, userId: string): Promise<number> {
 	const result = await db.execute(sql`
 		UPDATE engagement_opportunities
 		SET status = 'expired'

@@ -61,19 +61,18 @@ export async function listCommand(opts: {
 	});
 }
 
-export async function readyCommand(opts?: {
-	pillar?: string;
-	platform?: string;
-	limit?: number;
-}) {
+export async function readyCommand(opts?: { pillar?: string; platform?: string; limit?: number }) {
 	const db = await getDb();
 	return getReadyIdeas(db, "default", opts);
 }
 
-export async function searchCommand(query: string, opts?: {
-	status?: string;
-	limit?: number;
-}) {
+export async function searchCommand(
+	query: string,
+	opts?: {
+		status?: string;
+		limit?: number;
+	},
+) {
 	const db = await getDb();
 	return searchIdeas(db, "default", query, {
 		status: opts?.status as IdeaStatus | undefined,
@@ -113,7 +112,9 @@ if (import.meta.main) {
 			case "capture": {
 				const text = args.slice(1).join(" ");
 				if (!text) {
-					console.log(JSON.stringify({ error: "Missing idea text. Usage: capture \"your idea #pillar:ai\"" }));
+					console.log(
+						JSON.stringify({ error: 'Missing idea text. Usage: capture "your idea #pillar:ai"' }),
+					);
 					process.exit(1);
 				}
 				const result = await captureCommand(text);
@@ -146,7 +147,7 @@ if (import.meta.main) {
 			case "search": {
 				const query = args[1];
 				if (!query) {
-					console.log(JSON.stringify({ error: "Missing search query. Usage: search \"query\"" }));
+					console.log(JSON.stringify({ error: 'Missing search query. Usage: search "query"' }));
 					process.exit(1);
 				}
 				const result = await searchCommand(query, {
@@ -186,7 +187,8 @@ if (import.meta.main) {
 				console.log(
 					JSON.stringify({
 						error: `Unknown command: ${command}`,
-						usage: "capture <text> | list | ready | search <query> | stats | stale | expire | killed",
+						usage:
+							"capture <text> | list | ready | search <query> | stats | stale | expire | killed",
 					}),
 				);
 				process.exit(1);

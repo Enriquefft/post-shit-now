@@ -169,7 +169,12 @@ export class TikTokApiError extends Error {
 	public readonly rateLimit?: TikTokRateLimitInfo;
 	public readonly logId?: string;
 
-	constructor(statusCode: number, message: string, rateLimit?: TikTokRateLimitInfo, logId?: string) {
+	constructor(
+		statusCode: number,
+		message: string,
+		rateLimit?: TikTokRateLimitInfo,
+		logId?: string,
+	) {
 		super(message);
 		this.name = "TikTokApiError";
 		this.statusCode = statusCode;

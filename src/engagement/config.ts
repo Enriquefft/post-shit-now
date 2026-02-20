@@ -1,5 +1,5 @@
-import { sql } from "drizzle-orm";
 import { readFile } from "node:fs/promises";
+import { sql } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
 import {
 	type CooldownResult,
@@ -14,10 +14,7 @@ import {
 /**
  * Load engagement config from DB, return defaults if no row exists.
  */
-export async function loadEngagementConfig(
-	db: HubDb,
-	userId: string,
-): Promise<EngagementConfig> {
+export async function loadEngagementConfig(db: HubDb, userId: string): Promise<EngagementConfig> {
 	const result = await db.execute(sql`
 		SELECT user_id, niche_keywords, platform_toggles, daily_caps, cooldown_minutes, blocklist
 		FROM engagement_config
@@ -43,8 +40,9 @@ export async function loadEngagementConfig(
 		nicheKeywords: (row.niche_keywords as string[] | null) ?? [],
 		platformToggles: (row.platform_toggles as Record<string, boolean> | null) ?? {},
 		dailyCaps: (row.daily_caps as Record<string, number> | null) ?? { ...DEFAULT_DAILY_CAPS },
-		cooldownMinutes:
-			(row.cooldown_minutes as Record<string, number> | null) ?? { ...DEFAULT_COOLDOWN_MINUTES },
+		cooldownMinutes: (row.cooldown_minutes as Record<string, number> | null) ?? {
+			...DEFAULT_COOLDOWN_MINUTES,
+		},
 		blocklist: (row.blocklist as string[] | null) ?? [],
 	};
 }
@@ -62,9 +60,7 @@ export async function saveEngagementConfig(
 	const nicheKeywords = config.nicheKeywords ? JSON.stringify(config.nicheKeywords) : null;
 	const platformToggles = config.platformToggles ? JSON.stringify(config.platformToggles) : null;
 	const dailyCaps = config.dailyCaps ? JSON.stringify(config.dailyCaps) : null;
-	const cooldownMinutes = config.cooldownMinutes
-		? JSON.stringify(config.cooldownMinutes)
-		: null;
+	const cooldownMinutes = config.cooldownMinutes ? JSON.stringify(config.cooldownMinutes) : null;
 	const blocklist = config.blocklist ? JSON.stringify(config.blocklist) : null;
 
 	await db.execute(sql`
@@ -120,7 +116,12 @@ export async function deriveNicheKeywords(
 				// Also look for topics/keywords within pillars
 				const topicMatch = trimmed.match(/^-\s*(?:topic|keyword):\s*(.+)/);
 				if (topicMatch?.[1]) {
-					keywords.push(topicMatch[1].trim().replace(/^["']|["']$/g, "").toLowerCase());
+					keywords.push(
+						topicMatch[1]
+							.trim()
+							.replace(/^["']|["']$/g, "")
+							.toLowerCase(),
+					);
 					continue;
 				}
 
@@ -252,9 +253,6 @@ export async function recordEngagement(
 /**
  * Check if monitoring is enabled for a platform. Default true if not set.
  */
-export function isPlatformMonitoringEnabled(
-	config: EngagementConfig,
-	platform: string,
-): boolean {
+export function isPlatformMonitoringEnabled(config: EngagementConfig, platform: string): boolean {
 	return config.platformToggles[platform] ?? true;
 }

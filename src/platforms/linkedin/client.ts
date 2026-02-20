@@ -5,8 +5,8 @@ import {
 	LinkedInPostAnalyticsResponseSchema,
 	type LinkedInPostsListResponse,
 	LinkedInPostsListResponseSchema,
-	type LinkedInRateLimitInfo,
 	LinkedInRateLimitError,
+	type LinkedInRateLimitInfo,
 	type LinkedInUserInfo,
 	LinkedInUserInfoSchema,
 } from "./types.ts";
@@ -376,9 +376,10 @@ export class LinkedInClient {
 	/**
 	 * Get aggregated analytics for all of the authenticated user's posts.
 	 */
-	async getAggregatedAnalytics(
-		dateRange?: { start: string; end: string },
-	): Promise<LinkedInPostAnalyticsResponse> {
+	async getAggregatedAnalytics(dateRange?: {
+		start: string;
+		end: string;
+	}): Promise<LinkedInPostAnalyticsResponse> {
 		const params = new URLSearchParams({
 			q: "analytics",
 		});

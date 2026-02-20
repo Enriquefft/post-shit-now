@@ -1,12 +1,12 @@
 import { logger, schedules } from "@trigger.dev/sdk";
 import { sql } from "drizzle-orm";
+import type { CollectionSummary } from "../analytics/collector.ts";
 import {
 	collectAnalytics,
 	collectInstagramAnalytics,
 	collectLinkedInAnalytics,
 	collectTikTokAnalytics,
 } from "../analytics/collector.ts";
-import type { CollectionSummary } from "../analytics/collector.ts";
 import { createHubConnection } from "../core/db/connection.ts";
 import { oauthTokens } from "../core/db/schema.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
@@ -18,15 +18,9 @@ import {
 	refreshAccessToken as refreshLinkedInToken,
 } from "../platforms/linkedin/oauth.ts";
 import { TikTokClient } from "../platforms/tiktok/client.ts";
-import {
-	createTikTokOAuthClient,
-	refreshTikTokToken,
-} from "../platforms/tiktok/oauth.ts";
+import { createTikTokOAuthClient, refreshTikTokToken } from "../platforms/tiktok/oauth.ts";
 import { XClient } from "../platforms/x/client.ts";
-import {
-	createXOAuthClient,
-	refreshAccessToken as refreshXToken,
-} from "../platforms/x/oauth.ts";
+import { createXOAuthClient, refreshAccessToken as refreshXToken } from "../platforms/x/oauth.ts";
 
 /**
  * Daily analytics collector.
@@ -79,7 +73,10 @@ export const analyticsCollector = schedules.task({
 			}
 		} catch (error) {
 			const reason = error instanceof Error ? error.message : String(error);
-			logger.error("LinkedIn analytics collection failed (X collection unaffected)", { userId, reason });
+			logger.error("LinkedIn analytics collection failed (X collection unaffected)", {
+				userId,
+				reason,
+			});
 			results.linkedin = { error: reason };
 		}
 
@@ -92,7 +89,10 @@ export const analyticsCollector = schedules.task({
 			}
 		} catch (error) {
 			const reason = error instanceof Error ? error.message : String(error);
-			logger.error("Instagram analytics collection failed (other platforms unaffected)", { userId, reason });
+			logger.error("Instagram analytics collection failed (other platforms unaffected)", {
+				userId,
+				reason,
+			});
 			results.instagram = { error: reason };
 		}
 
@@ -105,7 +105,10 @@ export const analyticsCollector = schedules.task({
 			}
 		} catch (error) {
 			const reason = error instanceof Error ? error.message : String(error);
-			logger.error("TikTok analytics collection failed (other platforms unaffected)", { userId, reason });
+			logger.error("TikTok analytics collection failed (other platforms unaffected)", {
+				userId,
+				reason,
+			});
 			results.tiktok = { error: reason };
 		}
 

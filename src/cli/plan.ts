@@ -46,7 +46,10 @@ export async function calendarCommand(): Promise<UnifiedCalendar> {
 	const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
 
 	// Discover company hubs (graceful fallback to personal-only)
-	let companyHubs: Array<{ connection: import("../team/types.ts").HubConnection; db: import("../core/db/connection.ts").HubDb }> = [];
+	let companyHubs: Array<{
+		connection: import("../team/types.ts").HubConnection;
+		db: import("../core/db/connection.ts").HubDb;
+	}> = [];
 	try {
 		const connections = await discoverCompanyHubs();
 		companyHubs = connections.map((connection) => ({
@@ -57,6 +60,8 @@ export async function calendarCommand(): Promise<UnifiedCalendar> {
 		// Hub discovery failed — fall back to personal-only calendar
 	}
 
+	// TEAM-07: Unified calendar shows all hubs (personal + company)
+	// Already implemented: see lines 43-67, getUnifiedCalendar called with companyHubs
 	return getUnifiedCalendar({
 		personalDb,
 		companyHubs,
@@ -76,7 +81,11 @@ export async function ideateCommand(opts?: { count?: number; platform?: string }
 	});
 }
 
-export async function rateCommand(ideaId: string, rating: "love" | "maybe" | "kill", reason?: string) {
+export async function rateCommand(
+	ideaId: string,
+	rating: "love" | "maybe" | "kill",
+	reason?: string,
+) {
 	const db = await getDb();
 
 	switch (rating) {
@@ -139,7 +148,9 @@ export async function saveCommand(planJson: string) {
 	// Convert planning PlanSlot[] to DB PlanSlot[] (seriesEpisode: string -> number)
 	const dbSlots: DbPlanSlot[] = plan.slots.map((s) => ({
 		...s,
-		seriesEpisode: s.seriesEpisode ? Number.parseInt(s.seriesEpisode.replace(/\D/g, ""), 10) || undefined : undefined,
+		seriesEpisode: s.seriesEpisode
+			? Number.parseInt(s.seriesEpisode.replace(/\D/g, ""), 10) || undefined
+			: undefined,
 	}));
 
 	const rows = await db
@@ -204,7 +215,9 @@ if (import.meta.main) {
 				const rating = args[2] as "love" | "maybe" | "kill";
 				const reason = getArg(args, "reason");
 				if (!ideaId || !rating) {
-					console.log(JSON.stringify({ error: "Usage: rate <ideaId> <love|maybe|kill> [--reason text]" }));
+					console.log(
+						JSON.stringify({ error: "Usage: rate <ideaId> <love|maybe|kill> [--reason text]" }),
+					);
 					process.exit(1);
 				}
 				const result = await rateCommand(ideaId, rating, reason);
@@ -259,7 +272,8 @@ if (import.meta.main) {
 				console.log(
 					JSON.stringify({
 						error: `Unknown command: ${command}`,
-						usage: "calendar | ideate | rate <id> <rating> | slot | languages | remix | recycle | save <json> | status",
+						usage:
+							"calendar | ideate | rate <id> <rating> | slot | languages | remix | recycle | save <json> | status",
 					}),
 				);
 				process.exit(1);

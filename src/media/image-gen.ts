@@ -1,5 +1,5 @@
-import type { Platform } from "../core/types/index.ts";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { Platform } from "../core/types/index.ts";
 import { type ProcessedImage, processImageForPlatform } from "./processor.ts";
 import { fluxProvider } from "./providers/flux.ts";
 import { gptImageProvider } from "./providers/gpt-image.ts";
@@ -10,7 +10,12 @@ import { ideogramProvider } from "./providers/ideogram.ts";
 export interface ImageProvider {
 	name: string;
 	strengths: string[];
-	generate(prompt: string, options: ImageGenOptions, db: PostgresJsDatabase, hubId: string): Promise<GeneratedImage>;
+	generate(
+		prompt: string,
+		options: ImageGenOptions,
+		db: PostgresJsDatabase,
+		hubId: string,
+	): Promise<GeneratedImage>;
 }
 
 export interface ImageGenOptions {
@@ -152,11 +157,16 @@ export async function generateImage(
 		throw new Error("db and hubId are required for image generation");
 	}
 
-	const generated = await provider.generate(prompt, {
-		aspectRatio: options.aspectRatio,
-		style: options.style,
-		negativePrompt: options.negativePrompt,
-	}, options.db, options.hubId);
+	const generated = await provider.generate(
+		prompt,
+		{
+			aspectRatio: options.aspectRatio,
+			style: options.style,
+			negativePrompt: options.negativePrompt,
+		},
+		options.db,
+		options.hubId,
+	);
 
 	// Process for platform compliance (resize, format, compress)
 	const processed = await processImageForPlatform(generated.buffer, options.platform, {

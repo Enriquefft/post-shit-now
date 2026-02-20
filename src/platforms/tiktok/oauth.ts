@@ -1,4 +1,4 @@
-import { TikTok, generateCodeVerifier, generateState } from "arctic";
+import { generateCodeVerifier, generateState, TikTok } from "arctic";
 import type { TikTokOAuthConfig } from "./types.ts";
 
 /**

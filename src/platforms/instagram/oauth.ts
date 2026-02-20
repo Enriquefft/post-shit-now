@@ -1,9 +1,4 @@
-import {
-	IG_AUTH_BASE,
-	GRAPH_BASE_URL,
-	InstagramApiError,
-	InstagramTokenSchema,
-} from "./types.ts";
+import { GRAPH_BASE_URL, IG_AUTH_BASE, InstagramApiError, InstagramTokenSchema } from "./types.ts";
 
 /**
  * Instagram Platform API OAuth - Direct Login flow.
@@ -90,9 +85,7 @@ export async function exchangeInstagramCode(config: {
 		access_token: shortToken.access_token,
 	});
 
-	const longResponse = await fetch(
-		`${GRAPH_BASE_URL}/access_token?${exchangeParams.toString()}`,
-	);
+	const longResponse = await fetch(`${GRAPH_BASE_URL}/access_token?${exchangeParams.toString()}`);
 
 	if (!longResponse.ok) {
 		const bodyText = await longResponse.text();
@@ -130,16 +123,11 @@ export async function refreshInstagramToken(accessToken: string): Promise<{
 		access_token: accessToken,
 	});
 
-	const response = await fetch(
-		`${GRAPH_BASE_URL}/refresh_access_token?${params.toString()}`,
-	);
+	const response = await fetch(`${GRAPH_BASE_URL}/refresh_access_token?${params.toString()}`);
 
 	if (!response.ok) {
 		const bodyText = await response.text();
-		throw new InstagramApiError(
-			response.status,
-			`Instagram token refresh failed: ${bodyText}`,
-		);
+		throw new InstagramApiError(response.status, `Instagram token refresh failed: ${bodyText}`);
 	}
 
 	const json = await response.json();

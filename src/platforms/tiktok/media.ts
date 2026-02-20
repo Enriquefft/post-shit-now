@@ -1,5 +1,11 @@
 import type { TikTokClient } from "./client.ts";
-import { TikTokApiError, TikTokUploadExpiredError, MIN_CHUNK_SIZE, MAX_CHUNK_SIZE, MAX_PHOTOS_PER_POST } from "./types.ts";
+import {
+	MAX_CHUNK_SIZE,
+	MAX_PHOTOS_PER_POST,
+	MIN_CHUNK_SIZE,
+	TikTokApiError,
+	TikTokUploadExpiredError,
+} from "./types.ts";
 
 const DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024; // 10MB default
 const STATUS_POLL_INTERVAL_MS = 5_000; // 5 seconds
@@ -183,6 +189,6 @@ export async function checkPublishStatus(
 	// Timed out
 	throw new TikTokApiError(
 		408,
-		`Publish status for ${publishId} did not complete within ${maxAttempts * STATUS_POLL_INTERVAL_MS / 1000} seconds`,
+		`Publish status for ${publishId} did not complete within ${(maxAttempts * STATUS_POLL_INTERVAL_MS) / 1000} seconds`,
 	);
 }

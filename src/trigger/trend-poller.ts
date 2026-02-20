@@ -1,18 +1,16 @@
+import { readFile } from "node:fs/promises";
 import { logger, schedules } from "@trigger.dev/sdk";
 import { sql } from "drizzle-orm";
-import { collectBreakingNews } from "../intelligence/collector.ts";
-import { scoreTrends } from "../intelligence/scoring.ts";
 import { createHubConnection } from "../core/db/connection.ts";
 import { oauthTokens } from "../core/db/schema.ts";
 import { decrypt, keyFromHex } from "../core/utils/crypto.ts";
+import { collectBreakingNews } from "../intelligence/collector.ts";
+import { scoreTrends } from "../intelligence/scoring.ts";
 import type { Pillar } from "../intelligence/types.ts";
-import { readFile } from "node:fs/promises";
 
 // ─── Pillar Loader (lightweight, same as trend-collector) ────────────────────
 
-async function loadPillars(
-	strategyPath = "content/strategy.yaml",
-): Promise<Pillar[]> {
+async function loadPillars(strategyPath = "content/strategy.yaml"): Promise<Pillar[]> {
 	try {
 		const raw = await readFile(strategyPath, "utf-8");
 		const pillars: Pillar[] = [];
@@ -48,11 +46,7 @@ async function loadPillars(
 					continue;
 				}
 
-				if (
-					trimmed !== "" &&
-					!trimmed.startsWith("-") &&
-					!trimmed.startsWith("weight:")
-				) {
+				if (trimmed !== "" && !trimmed.startsWith("-") && !trimmed.startsWith("weight:")) {
 					break;
 				}
 			}
@@ -106,9 +100,7 @@ export const trendPoller = schedules.task({
 				const [token] = await db
 					.select()
 					.from(oauthTokens)
-					.where(
-						sql`${oauthTokens.userId} = ${userId} AND ${oauthTokens.platform} = 'x'`,
-					)
+					.where(sql`${oauthTokens.userId} = ${userId} AND ${oauthTokens.platform} = 'x'`)
 					.limit(1);
 
 				if (token) {

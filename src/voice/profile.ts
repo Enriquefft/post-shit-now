@@ -1,8 +1,8 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
-import { parse, stringify } from "yaml";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { parse, stringify } from "yaml";
 import type { Platform } from "../core/types/index.ts";
-import { loadProfileByEntity, type EntitySummary } from "./entity-profiles.ts";
+import { loadProfileByEntity } from "./entity-profiles.ts";
 import {
 	type StrategyConfig,
 	strategyConfigSchema,
@@ -32,7 +32,7 @@ export async function loadProfile(
 ): Promise<VoiceProfile> {
 	// Handle legacy string overload
 	const options: LoadProfileOptions =
-		typeof optionsOrPath === "string" ? { profilePath: optionsOrPath } : optionsOrPath ?? {};
+		typeof optionsOrPath === "string" ? { profilePath: optionsOrPath } : (optionsOrPath ?? {});
 
 	// If db and userId and entitySlug provided, try loading from DB
 	if (options.db && options.userId && options.entitySlug) {

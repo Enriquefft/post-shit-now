@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
 import { ideas } from "../core/db/schema.ts";
 import type { CaptureInput, Idea, Urgency } from "./types.ts";
@@ -74,12 +73,9 @@ export function inferUrgency(text: string): Urgency {
 
 // ─── Capture Idea ───────────────────────────────────────────────────────────
 
-export async function captureIdea(
-	db: HubDb,
-	userId: string,
-	input: CaptureInput,
-): Promise<Idea> {
-	const urgency = input.urgency ?? input.tags?.urgency as Urgency | undefined ?? inferUrgency(input.text);
+export async function captureIdea(db: HubDb, userId: string, input: CaptureInput): Promise<Idea> {
+	const urgency =
+		input.urgency ?? (input.tags?.urgency as Urgency | undefined) ?? inferUrgency(input.text);
 
 	// Calculate expiry for timely/seasonal ideas
 	let expiresAt: Date | null = null;

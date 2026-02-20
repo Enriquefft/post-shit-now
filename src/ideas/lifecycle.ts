@@ -1,4 +1,4 @@
-import { and, eq, gt, isNotNull, lt, not, inArray, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, isNotNull, lt, not } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
 import { ideas, trends } from "../core/db/schema.ts";
 import type { Idea, IdeaStatus } from "./types.ts";
@@ -73,11 +73,7 @@ export async function transitionIdea(
 		updates.claimedBy = null;
 	}
 
-	const updated = await db
-		.update(ideas)
-		.set(updates)
-		.where(eq(ideas.id, ideaId))
-		.returning();
+	const updated = await db.update(ideas).set(updates).where(eq(ideas.id, ideaId)).returning();
 
 	const row = updated[0];
 	if (!row) throw new Error("Failed to update idea");
@@ -87,10 +83,7 @@ export async function transitionIdea(
 
 // ─── Auto-Promote Ideas ────────────────────────────────────────────────────
 
-export async function autoPromoteIdeas(
-	db: HubDb,
-	userId: string,
-): Promise<{ promoted: number }> {
+export async function autoPromoteIdeas(db: HubDb, userId: string): Promise<{ promoted: number }> {
 	let promoted = 0;
 
 	// 1. Promote sparks that match high-scoring trends (overallScore > 50)
@@ -109,8 +102,8 @@ export async function autoPromoteIdeas(
 
 		for (const spark of sparks) {
 			const sparkWords = spark.title.toLowerCase().split(/\s+/);
-			const matches = sparkWords.some((word) =>
-				word.length > 3 && trendTitles.some((title) => title.includes(word)),
+			const matches = sparkWords.some(
+				(word) => word.length > 3 && trendTitles.some((title) => title.includes(word)),
 			);
 
 			if (matches) {
@@ -131,13 +124,7 @@ export async function autoPromoteIdeas(
 	const seedsWithNotes = await db
 		.select()
 		.from(ideas)
-		.where(
-			and(
-				eq(ideas.userId, userId),
-				eq(ideas.status, "seed"),
-				isNotNull(ideas.notes),
-			),
-		);
+		.where(and(eq(ideas.userId, userId), eq(ideas.status, "seed"), isNotNull(ideas.notes)));
 
 	for (const seed of seedsWithNotes) {
 		await db
@@ -168,11 +155,7 @@ export async function getStaleIdeas(db: HubDb, userId: string): Promise<Idea[]> 
 			.select()
 			.from(ideas)
 			.where(
-				and(
-					eq(ideas.userId, userId),
-					eq(ideas.status, status),
-					lt(ideas.lastTouchedAt, threshold),
-				),
+				and(eq(ideas.userId, userId), eq(ideas.status, status), lt(ideas.lastTouchedAt, threshold)),
 			);
 
 		staleIdeas.push(...rows.map(rowToIdea));
@@ -183,10 +166,7 @@ export async function getStaleIdeas(db: HubDb, userId: string): Promise<Idea[]> 
 
 // ─── Expire Timely Ideas ────────────────────────────────────────────────────
 
-export async function expireTimelyIdeas(
-	db: HubDb,
-	userId: string,
-): Promise<{ expired: number }> {
+export async function expireTimelyIdeas(db: HubDb, userId: string): Promise<{ expired: number }> {
 	const now = new Date();
 	const terminalStatuses: IdeaStatus[] = ["used", "killed"];
 

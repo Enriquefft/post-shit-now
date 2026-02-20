@@ -97,10 +97,7 @@ export async function getIdeasByStatus(
 
 // ─── Get Idea Stats ─────────────────────────────────────────────────────────
 
-export async function getIdeaStats(
-	db: HubDb,
-	userId: string,
-): Promise<Record<IdeaStatus, number>> {
+export async function getIdeaStats(db: HubDb, userId: string): Promise<Record<IdeaStatus, number>> {
 	const rows = await db
 		.select({
 			status: ideas.status,
@@ -162,20 +159,12 @@ export async function listIdeas(
 
 // ─── Get Killed Ideas Since ─────────────────────────────────────────────────
 
-export async function getKilledIdeasSince(
-	db: HubDb,
-	userId: string,
-	since: Date,
-): Promise<Idea[]> {
+export async function getKilledIdeasSince(db: HubDb, userId: string, since: Date): Promise<Idea[]> {
 	const rows = await db
 		.select()
 		.from(ideas)
 		.where(
-			and(
-				eq(ideas.userId, userId),
-				eq(ideas.status, "killed"),
-				gt(ideas.lastTouchedAt, since),
-			),
+			and(eq(ideas.userId, userId), eq(ideas.status, "killed"), gt(ideas.lastTouchedAt, since)),
 		)
 		.orderBy(desc(ideas.lastTouchedAt));
 

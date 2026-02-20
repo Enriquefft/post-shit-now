@@ -1,15 +1,14 @@
 import { and, desc, eq, gt, gte } from "drizzle-orm";
 import { isTopicFatigued } from "../analytics/fatigue.ts";
+import type { PostFormat } from "../content/format-picker.ts";
+import { suggestTopics } from "../content/topic-suggest.ts";
 import type { HubDb } from "../core/db/connection.ts";
 import { trends } from "../core/db/schema.ts";
-import { suggestTopics, type TopicSuggestion } from "../content/topic-suggest.ts";
-import type { PostFormat } from "../content/format-picker.ts";
 import { getReadyIdeas } from "../ideas/bank.ts";
 import { searchAll } from "../intelligence/search/index.ts";
 import { getPreferenceModel } from "../learning/preference-model.ts";
 import { loadProfile } from "../voice/profile.ts";
-import type { MaturityLevel } from "../voice/types.ts";
-import type { VoiceProfile } from "../voice/types.ts";
+import type { MaturityLevel, VoiceProfile } from "../voice/types.ts";
 import type { PlanIdea, PlanIdeaSource } from "./types.ts";
 
 // ─── Maturity Adaptations ─────────────────────────────────────────────────────
@@ -18,12 +17,15 @@ import type { PlanIdea, PlanIdeaSource } from "./types.ts";
  * Defines how planning adapts based on user's social media experience level.
  * Never-posted users get full hand-holding; very active users get autonomous mode.
  */
-export const MATURITY_ADAPTATIONS: Record<MaturityLevel, {
-	explainBeforeAsking: boolean;
-	suggestedIdeasCount: number;
-	showSamplePosts: boolean;
-	handHoldingLevel: "full" | "moderate" | "minimal" | "none";
-}> = {
+export const MATURITY_ADAPTATIONS: Record<
+	MaturityLevel,
+	{
+		explainBeforeAsking: boolean;
+		suggestedIdeasCount: number;
+		showSamplePosts: boolean;
+		handHoldingLevel: "full" | "moderate" | "minimal" | "none";
+	}
+> = {
 	never_posted: {
 		explainBeforeAsking: true,
 		suggestedIdeasCount: 2,
@@ -54,7 +56,9 @@ export const MATURITY_ADAPTATIONS: Record<MaturityLevel, {
  * Get maturity adaptation settings for a given level.
  * Defaults to "consistent" behavior if no level provided.
  */
-export function getMaturityAdaptation(level: MaturityLevel | undefined): typeof MATURITY_ADAPTATIONS.never_posted {
+export function getMaturityAdaptation(
+	level: MaturityLevel | undefined,
+): typeof MATURITY_ADAPTATIONS.never_posted {
 	return MATURITY_ADAPTATIONS[level ?? "consistent"];
 }
 
@@ -74,11 +78,12 @@ export async function generateSamplePost(options: {
 
 	// Get tone hints from profile
 	const platformPersona = profile.platforms[platform as keyof typeof profile.platforms];
-	const tone = platformPersona?.tone ?? "professional";
+	const _tone = platformPersona?.tone ?? "professional";
 	const formality = profile.style.formality;
 
 	// Build a sample post template based on voice characteristics
-	const formalityPrefix = formality >= 7 ? "I've been thinking about" : formality <= 3 ? "Hot take:" : "Thoughts on";
+	const formalityPrefix =
+		formality >= 7 ? "I've been thinking about" : formality <= 3 ? "Hot take:" : "Thoughts on";
 
 	// Generate sample - this is a template; Claude will generate actual content
 	const sample = `${formalityPrefix} ${topic}.\n\n[This is a sample of how your post might start. The actual content would match your voice more precisely after calibration.]`;
@@ -141,7 +146,11 @@ export async function generatePlanIdeas(
 	try {
 		const model = await getPreferenceModel(db, userId);
 		if (model) {
-			const ft = model.fatiguedTopics as Array<{ topic: string; cooldownUntil: string; lastScores: number[] }> | null;
+			const ft = model.fatiguedTopics as Array<{
+				topic: string;
+				cooldownUntil: string;
+				lastScores: number[];
+			}> | null;
 			fatiguedTopics = ft?.filter((t) => isTopicFatigued(t.topic, ft)) ?? [];
 
 			const tf = model.topFormats as Array<{ format: string; avgScore: number }> | null;

@@ -1,4 +1,10 @@
 // Re-export metric types from X platform types for use by analytics modules
+
+// Re-export LinkedIn metric types
+export type {
+	LinkedInAnalyticsElement,
+	LinkedInPostAnalyticsResponse,
+} from "../platforms/linkedin/types.ts";
 export {
 	type TweetNonPublicMetrics,
 	TweetNonPublicMetricsSchema,
@@ -13,12 +19,6 @@ export {
 	type UserPublicMetrics,
 	UserPublicMetricsSchema,
 } from "../platforms/x/types.ts";
-
-// Re-export LinkedIn metric types
-export type {
-	LinkedInAnalyticsElement,
-	LinkedInPostAnalyticsResponse,
-} from "../platforms/linkedin/types.ts";
 
 // ─── LinkedIn Metrics ────────────────────────────────────────────────────────
 

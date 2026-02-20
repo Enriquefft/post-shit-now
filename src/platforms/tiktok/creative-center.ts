@@ -33,9 +33,7 @@ export interface TrendingVideo {
  * @param options.country - Country code (default: "US")
  * @returns Array of trending topics, or empty array on failure
  */
-export async function getTrendingTopics(
-	options?: { country?: string },
-): Promise<TrendingTopic[]> {
+export async function getTrendingTopics(options?: { country?: string }): Promise<TrendingTopic[]> {
 	const country = options?.country ?? "US";
 
 	try {

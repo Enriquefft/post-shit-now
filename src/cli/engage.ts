@@ -4,15 +4,12 @@ import {
 	bridgeToContentCreation,
 	createEngagementSession,
 	draftForApproved,
-	executeEngagement,
-	triageOpportunities,
 	type ExecuteEngagementInput,
+	executeEngagement,
 	type TriageDecision,
+	triageOpportunities,
 } from "../engagement/session.ts";
-import {
-	getEngagementHistory,
-	getEngagementStats,
-} from "../engagement/tracker.ts";
+import { getEngagementHistory, getEngagementStats } from "../engagement/tracker.ts";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -178,7 +175,8 @@ if (import.meta.main) {
 				if (!decisionsJson) {
 					console.log(
 						JSON.stringify({
-							error: 'Missing --decisions. Usage: triage --decisions \'[{"id":"uuid","decision":"yes"}]\'',
+							error:
+								'Missing --decisions. Usage: triage --decisions \'[{"id":"uuid","decision":"yes"}]\'',
 						}),
 					);
 					process.exit(1);
@@ -194,7 +192,8 @@ if (import.meta.main) {
 				if (!engagementsJson) {
 					console.log(
 						JSON.stringify({
-							error: 'Missing --engagements. Usage: execute --engagements \'[{"opportunityId":"uuid","content":"...","type":"reply","platform":"x"}]\'',
+							error:
+								'Missing --engagements. Usage: execute --engagements \'[{"opportunityId":"uuid","content":"...","type":"reply","platform":"x"}]\'',
 						}),
 					);
 					process.exit(1);
@@ -222,7 +221,8 @@ if (import.meta.main) {
 				console.log(
 					JSON.stringify({
 						error: `Unknown command: ${command}`,
-						usage: "session | triage --decisions <json> | execute --engagements <json> | stats [--period day|week|month] | history [--limit N]",
+						usage:
+							"session | triage --decisions <json> | execute --engagements <json> | stats [--period day|week|month] | history [--limit N]",
 					}),
 				);
 				process.exit(1);

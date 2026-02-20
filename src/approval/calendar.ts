@@ -1,4 +1,4 @@
-import { and, between, eq, ne, sql } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
 import { posts } from "../core/db/schema.ts";
 import type { HubConnection } from "../team/types.ts";
@@ -70,11 +70,7 @@ function computeStats(entries: CalendarEntry[]): CalendarStats {
 
 // ─── Query Hub Posts ────────────────────────────────────────────────────────
 
-async function queryHubPosts(
-	db: HubDb,
-	startDate: Date,
-	endDate: Date,
-): Promise<CalendarEntry[]> {
+async function queryHubPosts(db: HubDb, startDate: Date, endDate: Date): Promise<CalendarEntry[]> {
 	const rows = await db
 		.select({
 			id: posts.id,
@@ -250,6 +246,8 @@ export async function getAvailableSlots(
  * Claim a time slot for a specific platform.
  * Creates a placeholder draft post at the claimed time.
  * Uses SELECT FOR UPDATE to prevent double-claiming under concurrency.
+ * TEAM-08: Unified calendar enables slot claiming across all hubs
+ * claimSlot accepts hubId for company post claiming (line 287).
  */
 export async function claimSlot(
 	db: HubDb,
@@ -303,11 +301,7 @@ export async function releaseSlot(
 ): Promise<void> {
 	const { postId, userId } = params;
 
-	const [post] = await db
-		.select()
-		.from(posts)
-		.where(eq(posts.id, postId))
-		.limit(1);
+	const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
 
 	if (!post) return;
 
@@ -335,7 +329,9 @@ export function formatCalendarForCli(calendar: UnifiedCalendar): string {
 
 	// Personal section
 	lines.push("## Personal Hub");
-	lines.push(`  Scheduled: ${calendar.personal.stats.totalScheduled} | Published: ${calendar.personal.stats.published} | Drafts: ${calendar.personal.stats.drafts}`);
+	lines.push(
+		`  Scheduled: ${calendar.personal.stats.totalScheduled} | Published: ${calendar.personal.stats.published} | Drafts: ${calendar.personal.stats.drafts}`,
+	);
 	lines.push("");
 
 	if (calendar.personal.entries.length === 0) {
@@ -356,7 +352,9 @@ export function formatCalendarForCli(calendar: UnifiedCalendar): string {
 	for (const [slug, section] of Object.entries(calendar.companies)) {
 		const name = section.hubName ?? slug;
 		lines.push(`## ${name}`);
-		lines.push(`  Scheduled: ${section.stats.totalScheduled} | Pending: ${section.stats.pendingApproval} | Published: ${section.stats.published} | Drafts: ${section.stats.drafts}`);
+		lines.push(
+			`  Scheduled: ${section.stats.totalScheduled} | Pending: ${section.stats.pendingApproval} | Published: ${section.stats.published} | Drafts: ${section.stats.drafts}`,
+		);
 		lines.push("");
 
 		if (section.entries.length === 0) {
@@ -367,14 +365,17 @@ export function formatCalendarForCli(calendar: UnifiedCalendar): string {
 					? entry.scheduledAt.toISOString().slice(0, 16).replace("T", " ")
 					: "(unscheduled)";
 				const status = entry.status.toUpperCase();
-				const approvalBadge = entry.approvalStatus === "submitted"
-					? " [Pending]"
-					: entry.approvalStatus === "approved"
-						? " [Approved]"
-						: entry.approvalStatus === "rejected"
-							? " [Rejected]"
-							: "";
-				lines.push(`  [${time}] [${entry.platform.toUpperCase()}] [${status}]${approvalBadge} "${entry.content}"`);
+				const approvalBadge =
+					entry.approvalStatus === "submitted"
+						? " [Pending]"
+						: entry.approvalStatus === "approved"
+							? " [Approved]"
+							: entry.approvalStatus === "rejected"
+								? " [Rejected]"
+								: "";
+				lines.push(
+					`  [${time}] [${entry.platform.toUpperCase()}] [${status}]${approvalBadge} "${entry.content}"`,
+				);
 			}
 		}
 

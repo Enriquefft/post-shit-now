@@ -1,6 +1,6 @@
-import type { SearchResult } from "../types.ts";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { getApiKey } from "../../core/db/api-keys";
+import type { SearchResult } from "../types.ts";
 
 /**
  * Search via Exa AI's neural search.
@@ -31,9 +31,7 @@ export async function searchExa(
 	});
 
 	if (!response.ok) {
-		throw new Error(
-			`Exa API error: ${response.status} ${response.statusText}`,
-		);
+		throw new Error(`Exa API error: ${response.status} ${response.statusText}`);
 	}
 
 	const json = (await response.json()) as {

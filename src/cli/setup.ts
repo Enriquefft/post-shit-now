@@ -1,43 +1,25 @@
 import type { SetupResult, ValidationSummary } from "../core/types/index.ts";
-import { setupCompanyHub } from "./setup-company-hub.ts";
-import { setupDatabase } from "./setup-db.ts";
-import { setupDisconnect } from "./setup-disconnect.ts";
-import { setupJoinHub } from "./setup-join.ts";
-import { setupKeys, setupProviderKeys, listProviderKeys } from "./setup-keys.ts";
-import { setupInstagramOAuth } from "./setup-instagram-oauth.ts";
-import { setupLinkedInOAuth } from "./setup-linkedin-oauth.ts";
-import { setupTikTokOAuth } from "./setup-tiktok-oauth.ts";
-import { setupTrigger } from "./setup-trigger.ts";
-import { setupXOAuth } from "./setup-x-oauth.ts";
-import { getSetupStatus, setupVoice, type SetupStatus } from "./setup-voice.ts";
-import { validateAll } from "./validate.ts";
 import { getHubConnection, getHubDb } from "../team/hub.ts";
 import { generateInviteCode } from "../team/invite.ts";
 import { isAdmin, listTeamMembers, promoteToAdmin } from "../team/members.ts";
-import { listEntities, createEntity } from "../voice/entity-profiles.ts";
+import { createEntity, listEntities } from "../voice/entity-profiles.ts";
+import { setupCompanyHub } from "./setup-company-hub.ts";
+import { setupDatabase } from "./setup-db.ts";
+import { setupDisconnect } from "./setup-disconnect.ts";
+import { setupInstagramOAuth } from "./setup-instagram-oauth.ts";
+import { setupJoinHub } from "./setup-join.ts";
+import { listProviderKeys, setupKeys, setupProviderKeys } from "./setup-keys.ts";
+import { setupLinkedInOAuth } from "./setup-linkedin-oauth.ts";
+import { setupTikTokOAuth } from "./setup-tiktok-oauth.ts";
+import { setupTrigger } from "./setup-trigger.ts";
+import { getSetupStatus, setupVoice } from "./setup-voice.ts";
+import { setupXOAuth } from "./setup-x-oauth.ts";
+import { validateAll } from "./validate.ts";
 
 interface SetupOutput {
 	steps: SetupResult[];
 	validation: ValidationSummary | null;
 	completed: boolean;
-}
-
-// ─── Subcommand Types ──────────────────────────────────────────────────────
-
-type SetupSubcommand = "hub" | "join" | "disconnect" | "invite" | "team" | "promote" | "notifications" | "keys" | "voice" | "entity" | "status";
-
-interface SubcommandParams {
-	hub: { slug: string; displayName: string; adminUserId?: string };
-	join: { inviteBundle: string; userId?: string; displayName?: string; email?: string };
-	disconnect: { slug: string; userId?: string };
-	invite: { slug: string; userId?: string };
-	team: { slug: string };
-	promote: { slug: string; userId: string; targetUserId: string };
-	notifications: { provider?: string; phone?: string };
-	keys: { service?: string; list?: boolean };
-	voice: { entity?: string; userId?: string };
-	entity: { list?: boolean; create?: string; description?: string; userId?: string };
-	status: { userId?: string };
 }
 
 /**
@@ -86,7 +68,9 @@ export async function runSetupSubcommand(
 			const connection = await getHubConnection(projectRoot, slug);
 			if (!connection) {
 				return {
-					steps: [{ step: "invite", status: "error", message: `No connection found for hub "${slug}"` }],
+					steps: [
+						{ step: "invite", status: "error", message: `No connection found for hub "${slug}"` },
+					],
 					validation: null,
 					completed: false,
 				};
@@ -96,7 +80,13 @@ export async function runSetupSubcommand(
 			const adminCheck = await isAdmin(db, { userId, hubId: connection.hubId });
 			if (!adminCheck) {
 				return {
-					steps: [{ step: "invite", status: "error", message: "Only hub admins can generate invite codes" }],
+					steps: [
+						{
+							step: "invite",
+							status: "error",
+							message: "Only hub admins can generate invite codes",
+						},
+					],
 					validation: null,
 					completed: false,
 				};
@@ -117,12 +107,14 @@ export async function runSetupSubcommand(
 			).toString("base64");
 
 			return {
-				steps: [{
-					step: "invite",
-					status: "success",
-					message: `Invite code generated for ${connection.displayName}`,
-					data: { bundle, expiresIn: "48 hours", oneTimeUse: true },
-				}],
+				steps: [
+					{
+						step: "invite",
+						status: "success",
+						message: `Invite code generated for ${connection.displayName}`,
+						data: { bundle, expiresIn: "48 hours", oneTimeUse: true },
+					},
+				],
 				validation: null,
 				completed: true,
 			};
@@ -132,7 +124,9 @@ export async function runSetupSubcommand(
 			const connection = await getHubConnection(projectRoot, slug);
 			if (!connection) {
 				return {
-					steps: [{ step: "team", status: "error", message: `No connection found for hub "${slug}"` }],
+					steps: [
+						{ step: "team", status: "error", message: `No connection found for hub "${slug}"` },
+					],
 					validation: null,
 					completed: false,
 				};
@@ -142,21 +136,23 @@ export async function runSetupSubcommand(
 			const members = await listTeamMembers(db, connection.hubId);
 
 			return {
-				steps: [{
-					step: "team",
-					status: "success",
-					message: `${members.length} members in ${connection.displayName}`,
-					data: {
-						hubName: connection.displayName,
-						members: members.map((m) => ({
-							userId: m.userId,
-							role: m.role,
-							displayName: m.displayName,
-							email: m.email,
-							joinedAt: m.joinedAt.toISOString(),
-						})),
+				steps: [
+					{
+						step: "team",
+						status: "success",
+						message: `${members.length} members in ${connection.displayName}`,
+						data: {
+							hubName: connection.displayName,
+							members: members.map((m) => ({
+								userId: m.userId,
+								role: m.role,
+								displayName: m.displayName,
+								email: m.email,
+								joinedAt: m.joinedAt.toISOString(),
+							})),
+						},
 					},
-				}],
+				],
 				validation: null,
 				completed: true,
 			};
@@ -177,7 +173,9 @@ export async function runSetupSubcommand(
 			const connection = await getHubConnection(projectRoot, slug);
 			if (!connection) {
 				return {
-					steps: [{ step: "promote", status: "error", message: `No connection found for hub "${slug}"` }],
+					steps: [
+						{ step: "promote", status: "error", message: `No connection found for hub "${slug}"` },
+					],
 					validation: null,
 					completed: false,
 				};
@@ -187,7 +185,9 @@ export async function runSetupSubcommand(
 			const adminCheck = await isAdmin(db, { userId, hubId: connection.hubId });
 			if (!adminCheck) {
 				return {
-					steps: [{ step: "promote", status: "error", message: "Only hub admins can promote members" }],
+					steps: [
+						{ step: "promote", status: "error", message: "Only hub admins can promote members" },
+					],
 					validation: null,
 					completed: false,
 				};
@@ -197,22 +197,26 @@ export async function runSetupSubcommand(
 				await promoteToAdmin(db, { userId: targetUserId, hubId: connection.hubId });
 			} catch (err) {
 				return {
-					steps: [{
-						step: "promote",
-						status: "error",
-						message: err instanceof Error ? err.message : String(err),
-					}],
+					steps: [
+						{
+							step: "promote",
+							status: "error",
+							message: err instanceof Error ? err.message : String(err),
+						},
+					],
 					validation: null,
 					completed: false,
 				};
 			}
 
 			return {
-				steps: [{
-					step: "promote",
-					status: "success",
-					message: `${targetUserId} promoted to admin of ${connection.displayName}`,
-				}],
+				steps: [
+					{
+						step: "promote",
+						status: "success",
+						message: `${targetUserId} promoted to admin of ${connection.displayName}`,
+					},
+				],
 				validation: null,
 				completed: true,
 			};
@@ -221,19 +225,21 @@ export async function runSetupSubcommand(
 			// Notification setup is guided by Claude through the slash command.
 			// This handler returns the current state so Claude can walk the user through configuration.
 			return {
-				steps: [{
-					step: "notifications",
-					status: "need_input",
-					message: "WhatsApp notification setup requires interactive configuration",
-					data: {
-						providers: ["waha", "twilio"],
-						preferences: ["pushEnabled", "digestFrequency", "quietHoursStart", "quietHoursEnd"],
-						instructions: {
-							waha: "Provide WAHA server URL and session name",
-							twilio: "Provide Account SID, Auth Token, and From number",
+				steps: [
+					{
+						step: "notifications",
+						status: "need_input",
+						message: "WhatsApp notification setup requires interactive configuration",
+						data: {
+							providers: ["waha", "twilio"],
+							preferences: ["pushEnabled", "digestFrequency", "quietHoursStart", "quietHoursEnd"],
+							instructions: {
+								waha: "Provide WAHA server URL and session name",
+								twilio: "Provide Account SID, Auth Token, and From number",
+							},
 						},
 					},
-				}],
+				],
 				validation: null,
 				completed: false,
 			};
@@ -242,21 +248,36 @@ export async function runSetupSubcommand(
 			// Provider key management: list or add specific key
 			if (params.keys?.list) {
 				const listResult = await listProviderKeys(configDir);
-				return { steps: [listResult], validation: null, completed: listResult.status === "success" };
+				return {
+					steps: [listResult],
+					validation: null,
+					completed: listResult.status === "success",
+				};
 			}
 
 			// Add specific key (requires --service flag)
 			const service = params.keys?.service;
 			if (!service) {
 				return {
-					steps: [{
-						step: "keys",
-						status: "error",
-						message: "Missing required flag: --service <provider-name>",
-						data: {
-							availableServices: ["perplexity", "brave", "tavily", "exa", "openai", "ideogram", "fal", "runway"],
+					steps: [
+						{
+							step: "keys",
+							status: "error",
+							message: "Missing required flag: --service <provider-name>",
+							data: {
+								availableServices: [
+									"perplexity",
+									"brave",
+									"tavily",
+									"exa",
+									"openai",
+									"ideogram",
+									"fal",
+									"runway",
+								],
+							},
 						},
-					}],
+					],
 					validation: null,
 					completed: false,
 				};
@@ -264,12 +285,14 @@ export async function runSetupSubcommand(
 
 			// Prompt user for key value (Claude handles this in slash command context)
 			return {
-				steps: [{
-					step: "keys",
-					status: "need_input",
-					message: `Provide API key for ${service}`,
-					data: { service, instructions: "Use /psn:setup keys --service <name> --key <value>" },
-				}],
+				steps: [
+					{
+						step: "keys",
+						status: "need_input",
+						message: `Provide API key for ${service}`,
+						data: { service, instructions: "Use /psn:setup keys --service <name> --key <value>" },
+					},
+				],
 				validation: null,
 				completed: false,
 			};
@@ -280,7 +303,13 @@ export async function runSetupSubcommand(
 			const connection = await getHubConnection(projectRoot, "personal");
 			if (!connection) {
 				return {
-					steps: [{ step: "voice", status: "error", message: "Personal Hub not configured. Run /psn:setup first." }],
+					steps: [
+						{
+							step: "voice",
+							status: "error",
+							message: "Personal Hub not configured. Run /psn:setup first.",
+						},
+					],
 					validation: null,
 					completed: false,
 				};
@@ -300,7 +329,13 @@ export async function runSetupSubcommand(
 			const connection = await getHubConnection(projectRoot, "personal");
 			if (!connection) {
 				return {
-					steps: [{ step: "entity", status: "error", message: "Personal Hub not configured. Run /psn:setup first." }],
+					steps: [
+						{
+							step: "entity",
+							status: "error",
+							message: "Personal Hub not configured. Run /psn:setup first.",
+						},
+					],
 					validation: null,
 					completed: false,
 				};
@@ -312,19 +347,21 @@ export async function runSetupSubcommand(
 			if (params.list) {
 				const entities = await listEntities(db, userId);
 				return {
-					steps: [{
-						step: "entity",
-						status: "success",
-						message: `${entities.length} entities found`,
-						data: {
-							entities: entities.map((e) => ({
-								slug: e.slug,
-								displayName: e.displayName,
-								description: e.description,
-								lastUsedAt: e.lastUsedAt?.toISOString(),
-							})),
+					steps: [
+						{
+							step: "entity",
+							status: "success",
+							message: `${entities.length} entities found`,
+							data: {
+								entities: entities.map((e) => ({
+									slug: e.slug,
+									displayName: e.displayName,
+									description: e.description,
+									lastUsedAt: e.lastUsedAt?.toISOString(),
+								})),
+							},
 						},
-					}],
+					],
 					validation: null,
 					completed: true,
 				};
@@ -333,12 +370,14 @@ export async function runSetupSubcommand(
 			if (params.create) {
 				const slug = await createEntity(db, userId, params.create, params.description);
 				return {
-					steps: [{
-						step: "entity",
-						status: "success",
-						message: `Entity created: ${slug}`,
-						data: { entitySlug: slug, displayName: params.create },
-					}],
+					steps: [
+						{
+							step: "entity",
+							status: "success",
+							message: `Entity created: ${slug}`,
+							data: { entitySlug: slug, displayName: params.create },
+						},
+					],
 					validation: null,
 					completed: true,
 				};
@@ -346,12 +385,17 @@ export async function runSetupSubcommand(
 
 			// Return need_input for entity creation prompt
 			return {
-				steps: [{
-					step: "entity",
-					status: "need_input",
-					message: "Entity name required",
-					data: { hint: "e.g., 'My Side Project' or 'PSN Founder'", usage: "/psn:setup entity --create \"Name\" [--description \"Description\"]" },
-				}],
+				steps: [
+					{
+						step: "entity",
+						status: "need_input",
+						message: "Entity name required",
+						data: {
+							hint: "e.g., 'My Side Project' or 'PSN Founder'",
+							usage: '/psn:setup entity --create "Name" [--description "Description"]',
+						},
+					},
+				],
 				validation: null,
 				completed: false,
 			};
@@ -366,27 +410,31 @@ export async function runSetupSubcommand(
 
 			const status = await getSetupStatus(configDir, db, params.userId ?? "default");
 			return {
-				steps: [{
-					step: "status",
-					status: "success",
-					message: status.incompleteSteps.length === 0
-						? "Setup complete"
-						: `${status.incompleteSteps.length} steps remaining`,
-					data: {
-						...status,
-						checkmarks: {
-							hub: status.hasHub ? "[x]" : "[ ]",
-							voice: status.hasVoiceProfile ? "[x]" : "[ ]",
-							platforms: status.hasPlatforms ? "[x]" : "[ ]",
+				steps: [
+					{
+						step: "status",
+						status: "success",
+						message:
+							status.incompleteSteps.length === 0
+								? "Setup complete"
+								: `${status.incompleteSteps.length} steps remaining`,
+						data: {
+							...status,
+							checkmarks: {
+								hub: status.hasHub ? "[x]" : "[ ]",
+								voice: status.hasVoiceProfile ? "[x]" : "[ ]",
+								platforms: status.hasPlatforms ? "[x]" : "[ ]",
+							},
+							suggestions: status.incompleteSteps.map((step) => {
+								if (step === "hub") return "Run /psn:setup to configure your Personal Hub";
+								if (step === "voice") return "Run /psn:setup voice to create your voice profile";
+								if (step === "platforms")
+									return "Connect a platform with /psn:setup (X, LinkedIn, Instagram, or TikTok)";
+								return `Complete: ${step}`;
+							}),
 						},
-						suggestions: status.incompleteSteps.map((step) => {
-							if (step === "hub") return "Run /psn:setup to configure your Personal Hub";
-							if (step === "voice") return "Run /psn:setup voice to create your voice profile";
-							if (step === "platforms") return "Connect a platform with /psn:setup (X, LinkedIn, Instagram, or TikTok)";
-							return `Complete: ${step}`;
-						}),
 					},
-				}],
+				],
 				validation: null,
 				completed: status.incompleteSteps.length === 0,
 			};
@@ -505,7 +553,10 @@ export async function runSetup(configDir = "config"): Promise<SetupOutput> {
 
 // ─── CLI Argument Parsing ───────────────────────────────────────────────────
 
-function parseCliArgs(args: string[]): { subcommand: string | null; params: Record<string, string> } {
+function parseCliArgs(args: string[]): {
+	subcommand: string | null;
+	params: Record<string, string>;
+} {
 	const subcommand = args[0] && !args[0].startsWith("--") ? args[0] : null;
 	const params: Record<string, string> = {};
 	const flagArgs = subcommand ? args.slice(1) : args;
@@ -521,7 +572,12 @@ function parseCliArgs(args: string[]): { subcommand: string | null; params: Reco
 	}
 
 	// Positional args for subcommands that need them
-	if (subcommand === "join" && !params.inviteBundle && flagArgs[0] && !flagArgs[0].startsWith("--")) {
+	if (
+		subcommand === "join" &&
+		!params.inviteBundle &&
+		flagArgs[0] &&
+		!flagArgs[0].startsWith("--")
+	) {
 		params.inviteBundle = flagArgs[0];
 	}
 	if (subcommand === "disconnect" && !params.slug && flagArgs[0] && !flagArgs[0].startsWith("--")) {
@@ -549,9 +605,7 @@ function parseCliArgs(args: string[]): { subcommand: string | null; params: Reco
 	}
 
 	// Handle --entity flag for voice subcommand
-	if (subcommand === "voice" && params.entity) {
-		params.entity = params.entity;
-	}
+	// params.entity is already set from command line args, no action needed
 
 	return { subcommand, params };
 }

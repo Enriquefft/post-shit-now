@@ -21,13 +21,7 @@ export const opportunityStatusSchema = z.enum([
 
 // ─── Suggested Engagement Types ─────────────────────────────────────────────
 
-export type SuggestedEngagement =
-	| "reply"
-	| "quote"
-	| "repost"
-	| "duet"
-	| "stitch"
-	| "comment";
+export type SuggestedEngagement = "reply" | "quote" | "repost" | "duet" | "stitch" | "comment";
 
 export const suggestedEngagementSchema = z.enum([
 	"reply",

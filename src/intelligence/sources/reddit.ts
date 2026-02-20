@@ -33,15 +33,12 @@ export async function fetchRedditTrending(subreddits: string[], limit = 10): Pro
 	const allTrends: RawTrend[] = [];
 
 	for (const subreddit of subreddits) {
-		const res = await fetch(
-			`https://oauth.reddit.com/r/${subreddit}/hot.json?limit=${limit}`,
-			{
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-					"User-Agent": "post-shit-now/1.0",
-				},
+		const res = await fetch(`https://oauth.reddit.com/r/${subreddit}/hot.json?limit=${limit}`, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"User-Agent": "post-shit-now/1.0",
 			},
-		);
+		});
 
 		if (!res.ok) continue;
 

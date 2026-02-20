@@ -3,11 +3,7 @@ import { join } from "node:path";
 import { and, desc, eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { voiceProfiles } from "../core/db/schema";
-import {
-	createBlankSlateProfile,
-	type MaturityLevel,
-	type VoiceProfile,
-} from "./types";
+import { createBlankSlateProfile, type MaturityLevel, type VoiceProfile } from "./types";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -89,9 +85,7 @@ export async function loadProfileByEntity(
 			profileData: voiceProfiles.profileData,
 		})
 		.from(voiceProfiles)
-		.where(
-			and(eq(voiceProfiles.userId, userId), eq(voiceProfiles.entitySlug, entitySlug)),
-		)
+		.where(and(eq(voiceProfiles.userId, userId), eq(voiceProfiles.entitySlug, entitySlug)))
 		.limit(1);
 
 	if (result.length === 0) {
@@ -179,9 +173,7 @@ export async function updateEntity(
 	await db
 		.update(voiceProfiles)
 		.set(updateData)
-		.where(
-			and(eq(voiceProfiles.userId, userId), eq(voiceProfiles.entitySlug, entitySlug)),
-		);
+		.where(and(eq(voiceProfiles.userId, userId), eq(voiceProfiles.entitySlug, entitySlug)));
 }
 
 /**
@@ -197,9 +189,7 @@ export async function deleteEntity(
 ): Promise<void> {
 	await db
 		.delete(voiceProfiles)
-		.where(
-			and(eq(voiceProfiles.userId, userId), eq(voiceProfiles.entitySlug, entitySlug)),
-		);
+		.where(and(eq(voiceProfiles.userId, userId), eq(voiceProfiles.entitySlug, entitySlug)));
 }
 
 // ─── YAML Export ────────────────────────────────────────────────────────────
@@ -211,10 +201,7 @@ const VOICE_DIR = "content/voice";
  * @param profile VoiceProfile with entity fields populated
  * @param baseDir Optional base directory (defaults to content/voice)
  */
-export async function saveEntityToYaml(
-	profile: VoiceProfile,
-	baseDir?: string,
-): Promise<void> {
+export async function saveEntityToYaml(profile: VoiceProfile, baseDir?: string): Promise<void> {
 	if (!profile.entitySlug) {
 		throw new Error("Profile must have entitySlug to export to YAML");
 	}

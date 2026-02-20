@@ -59,11 +59,7 @@ export async function redeemInviteCode(
 	const { code, userId, displayName, email } = params;
 
 	// Look up the invite code
-	const rows = await db
-		.select()
-		.from(inviteCodes)
-		.where(eq(inviteCodes.code, code))
-		.limit(1);
+	const rows = await db.select().from(inviteCodes).where(eq(inviteCodes.code, code)).limit(1);
 
 	const invite = rows[0];
 

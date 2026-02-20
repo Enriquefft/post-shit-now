@@ -1,5 +1,5 @@
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { monitoredAccounts } from "../core/db/schema.ts";
 import { XClient } from "../platforms/x/client.ts";
 import type { Pillar } from "./types.ts";
@@ -92,19 +92,14 @@ function extractTopics(texts: string[], limit = 10): string[] {
  * Suggest content gaps based on competitor topics vs user's pillars.
  * Returns topics the competitor covers that the user's pillars don't.
  */
-function suggestGaps(
-	competitorTopics: string[],
-	pillars: Pillar[],
-): string[] {
-	const pillarWords = new Set(
-		pillars.flatMap((p) => p.name.toLowerCase().split(/\s+/)),
-	);
+function suggestGaps(competitorTopics: string[], pillars: Pillar[]): string[] {
+	const pillarWords = new Set(pillars.flatMap((p) => p.name.toLowerCase().split(/\s+/)));
 
-	const gaps = competitorTopics.filter(
-		(topic) => !pillarWords.has(topic.toLowerCase()),
-	);
+	const gaps = competitorTopics.filter((topic) => !pillarWords.has(topic.toLowerCase()));
 
-	return gaps.slice(0, 5).map((topic) => `Competitor covers "${topic}" -- consider if relevant to your audience`);
+	return gaps
+		.slice(0, 5)
+		.map((topic) => `Competitor covers "${topic}" -- consider if relevant to your audience`);
 }
 
 // ---- Main Function --------------------------------------------------------
@@ -140,9 +135,7 @@ export async function checkCompetitors(
 
 		try {
 			// Look up user by handle
-			const { data: user } = await xClient.getUserByUsername(
-				account.accountHandle,
-			);
+			const { data: user } = await xClient.getUserByUsername(account.accountHandle);
 
 			// Fetch their recent tweets
 			const { data: tweets } = await xClient.getUserTweets(user.id, {
@@ -160,19 +153,13 @@ export async function checkCompetitors(
 				const last = tweets[tweets.length - 1];
 				if (first?.createdAt && last?.createdAt) {
 					const daySpan =
-						(new Date(first.createdAt).getTime() -
-							new Date(last.createdAt).getTime()) /
+						(new Date(first.createdAt).getTime() - new Date(last.createdAt).getTime()) /
 						(1000 * 60 * 60 * 24);
-					postFrequency =
-						daySpan > 0
-							? Math.round((tweets.length / daySpan) * 7)
-							: tweets.length;
+					postFrequency = daySpan > 0 ? Math.round((tweets.length / daySpan) * 7) : tweets.length;
 				}
 			}
 
-			const gapSuggestions = options?.pillars
-				? suggestGaps(recentTopics, options.pillars)
-				: [];
+			const gapSuggestions = options?.pillars ? suggestGaps(recentTopics, options.pillars) : [];
 
 			reports.push({
 				account: account.accountHandle,

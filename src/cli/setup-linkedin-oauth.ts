@@ -5,12 +5,12 @@ import { oauthTokens } from "../core/db/schema.ts";
 import type { SetupResult } from "../core/types/index.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
-import { LinkedInUserInfoSchema } from "../platforms/linkedin/types.ts";
 import {
 	createLinkedInOAuthClient,
 	exchangeCode,
 	generateAuthUrl,
 } from "../platforms/linkedin/oauth.ts";
+import { LinkedInUserInfoSchema } from "../platforms/linkedin/types.ts";
 
 const LINKEDIN_CALLBACK_URL = "https://example.com/callback";
 

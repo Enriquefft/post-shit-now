@@ -319,7 +319,9 @@ export async function generateWeeklyReview(
 						dayOfWeek: number;
 						avgScore: number;
 					}> | null,
-					lockedSettings: model.lockedSettings as Parameters<typeof computeAdjustments>[0]["lockedSettings"],
+					lockedSettings: model.lockedSettings as Parameters<
+						typeof computeAdjustments
+					>[0]["lockedSettings"],
 				},
 				strategy,
 				currentMetrics.length,

@@ -1,5 +1,5 @@
 import { logger } from "@trigger.dev/sdk";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
 import { editHistory, posts } from "../core/db/schema.ts";
 import { isAdmin } from "../team/members.ts";
@@ -40,7 +40,8 @@ interface ApprovalStats {
 /**
  * Submit a draft post for admin approval.
  * Transitions: draft -> submitted.
- * Does NOT dispatch notifications -- the caller (slash command) triggers that separately.
+ * NOTIF-01: Notify admins about new approval request via notification dispatcher.
+ * Already wired: see lines 84-99, approval.requested notification trigger.
  */
 export async function submitForApproval(
 	db: HubDb,
@@ -49,11 +50,7 @@ export async function submitForApproval(
 	const { postId, userId } = params;
 
 	// Fetch post
-	const [post] = await db
-		.select()
-		.from(posts)
-		.where(eq(posts.id, postId))
-		.limit(1);
+	const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
 
 	if (!post) {
 		return { success: false, error: "Post not found" };
@@ -126,11 +123,7 @@ export async function approvePost(
 	}
 
 	// Fetch post
-	const [post] = await db
-		.select()
-		.from(posts)
-		.where(eq(posts.id, postId))
-		.limit(1);
+	const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
 
 	if (!post) {
 		return { success: false, error: "Post not found" };
@@ -221,11 +214,7 @@ export async function rejectPost(
 	}
 
 	// Fetch post
-	const [post] = await db
-		.select()
-		.from(posts)
-		.where(eq(posts.id, postId))
-		.limit(1);
+	const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
 
 	if (!post) {
 		return { success: false, error: "Post not found" };
@@ -286,11 +275,7 @@ export async function resubmitPost(
 ): Promise<ApprovalResult> {
 	const { postId, userId } = params;
 
-	const [post] = await db
-		.select()
-		.from(posts)
-		.where(eq(posts.id, postId))
-		.limit(1);
+	const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
 
 	if (!post) {
 		return { success: false, error: "Post not found" };
@@ -358,10 +343,7 @@ export async function getApprovalStatus(
  * List all posts pending admin approval in a given hub.
  * Ordered by scheduledAt ascending (most urgent first).
  */
-export async function listPendingApprovals(
-	db: HubDb,
-	hubId: string,
-): Promise<PendingApproval[]> {
+export async function listPendingApprovals(db: HubDb, hubId: string): Promise<PendingApproval[]> {
 	const rows = await db
 		.select({
 			id: posts.id,
@@ -372,12 +354,7 @@ export async function listPendingApprovals(
 			updatedAt: posts.updatedAt,
 		})
 		.from(posts)
-		.where(
-			and(
-				eq(posts.approvalStatus, "submitted"),
-				sql`${posts.metadata}->>'hubId' = ${hubId}`,
-			),
-		)
+		.where(and(eq(posts.approvalStatus, "submitted"), sql`${posts.metadata}->>'hubId' = ${hubId}`))
 		.orderBy(posts.scheduledAt);
 
 	return rows.map((row) => ({
@@ -396,10 +373,7 @@ export async function listPendingApprovals(
  * Get approval statistics for a hub: pending count, today's approved/rejected counts.
  * Used in calendar and digest views.
  */
-export async function getApprovalStats(
-	db: HubDb,
-	hubId: string,
-): Promise<ApprovalStats> {
+export async function getApprovalStats(db: HubDb, hubId: string): Promise<ApprovalStats> {
 	const todayStart = new Date();
 	todayStart.setHours(0, 0, 0, 0);
 
@@ -407,12 +381,7 @@ export async function getApprovalStats(
 	const pendingRows = await db
 		.select({ id: posts.id })
 		.from(posts)
-		.where(
-			and(
-				eq(posts.approvalStatus, "submitted"),
-				sql`${posts.metadata}->>'hubId' = ${hubId}`,
-			),
-		);
+		.where(and(eq(posts.approvalStatus, "submitted"), sql`${posts.metadata}->>'hubId' = ${hubId}`));
 
 	// Approved today
 	const approvedRows = await db

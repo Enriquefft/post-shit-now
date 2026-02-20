@@ -1,9 +1,9 @@
-import type { SearchResult } from "../types.ts";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { searchPerplexity } from "./perplexity.ts";
-import { searchExa } from "./exa.ts";
-import { searchTavily } from "./tavily.ts";
+import type { SearchResult } from "../types.ts";
 import { searchBrave } from "./brave-search.ts";
+import { searchExa } from "./exa.ts";
+import { searchPerplexity } from "./perplexity.ts";
+import { searchTavily } from "./tavily.ts";
 
 /**
  * Unified search aggregator across all available providers.
@@ -40,8 +40,8 @@ export async function searchAll(
 	return allResults;
 }
 
+export { searchBrave } from "./brave-search.ts";
+export { searchExa } from "./exa.ts";
 // Re-export individual clients for direct use
 export { searchPerplexity } from "./perplexity.ts";
-export { searchExa } from "./exa.ts";
 export { searchTavily } from "./tavily.ts";
-export { searchBrave } from "./brave-search.ts";

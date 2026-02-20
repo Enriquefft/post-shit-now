@@ -2,8 +2,8 @@ import { logger, schedules } from "@trigger.dev/sdk";
 import { sql } from "drizzle-orm";
 import { createHubConnection } from "../core/db/connection.ts";
 import { compileDigest, formatDigestMessage } from "../notifications/digest.ts";
-import { createWhatsAppProvider } from "../notifications/provider.ts";
 import { isQuietHours } from "../notifications/dispatcher.ts";
+import { createWhatsAppProvider } from "../notifications/provider.ts";
 import type { NotificationPreference } from "../notifications/types.ts";
 
 // ─── Digest Compiler Task ──────────────────────────────────────────────────
@@ -199,7 +199,6 @@ function calculateSinceDate(frequency: string): Date {
 			return new Date(now.getTime() - 12 * 60 * 60 * 1000);
 		case "weekly":
 			return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-		case "daily":
 		default:
 			return new Date(now.getTime() - 24 * 60 * 60 * 1000);
 	}

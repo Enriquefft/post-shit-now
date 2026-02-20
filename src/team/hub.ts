@@ -5,7 +5,7 @@ import { createHubConnection, type HubDb } from "../core/db/connection.ts";
 import { runMigrations } from "../core/db/migrate.ts";
 import * as schema from "../core/db/schema.ts";
 import { loadKeysEnv } from "../core/utils/env.ts";
-import { HubConnectionSchema, type HubConnection, type HubRole } from "./types.ts";
+import { type HubConnection, HubConnectionSchema } from "./types.ts";
 
 // ─── Hub Provisioning ──────────────────────────────────────────────────────
 
@@ -58,7 +58,7 @@ export async function createCompanyHub(
 	}
 
 	const projects = JSON.parse(listStdout);
-	const projectList = Array.isArray(projects) ? projects : projects.projects ?? [];
+	const projectList = Array.isArray(projects) ? projects : (projects.projects ?? []);
 	if (projectList.length === 0) {
 		throw new Error("No Neon projects found. Run /psn:setup first to create a Personal Hub.");
 	}

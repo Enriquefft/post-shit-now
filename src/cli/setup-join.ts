@@ -2,8 +2,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createHubConnection } from "../core/db/connection.ts";
 import type { SetupResult } from "../core/types/index.ts";
-import type { HubConnection } from "../team/types.ts";
 import { redeemInviteCode } from "../team/invite.ts";
+import type { HubConnection } from "../team/types.ts";
 
 interface InviteBundle {
 	code: string;
@@ -42,13 +42,7 @@ interface SetupJoinParams {
  * 4. Save connection file to .hubs/
  */
 export async function setupJoinHub(params: SetupJoinParams): Promise<SetupResult> {
-	const {
-		inviteBundle,
-		userId = "default",
-		displayName,
-		email,
-		projectRoot = ".",
-	} = params;
+	const { inviteBundle, userId = "default", displayName, email, projectRoot = "." } = params;
 
 	// Decode the invite bundle
 	let bundle: InviteBundle;

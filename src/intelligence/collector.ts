@@ -1,12 +1,12 @@
 import { readFile } from "node:fs/promises";
-import type { Pillar, RawTrend } from "./types.ts";
-import { fetchHNTopStories } from "./sources/hackernews.ts";
-import { fetchRedditTrending } from "./sources/reddit.ts";
-import { fetchProductHuntFeatured } from "./sources/producthunt.ts";
+import { XClient } from "../platforms/x/client.ts";
 import { fetchGoogleTrends } from "./sources/google-trends.ts";
+import { fetchHNTopStories } from "./sources/hackernews.ts";
+import { fetchProductHuntFeatured } from "./sources/producthunt.ts";
+import { fetchRedditTrending } from "./sources/reddit.ts";
 import { fetchRSSFeeds } from "./sources/rss.ts";
 import { fetchXTrending } from "./sources/x-trending.ts";
-import { XClient } from "../platforms/x/client.ts";
+import type { Pillar, RawTrend } from "./types.ts";
 
 // ---- Strategy YAML helpers ------------------------------------------------
 
@@ -15,9 +15,7 @@ interface StrategyYaml {
 	customRssFeeds?: string[];
 }
 
-async function loadStrategy(
-	strategyPath = "content/strategy.yaml",
-): Promise<StrategyYaml | null> {
+async function loadStrategy(strategyPath = "content/strategy.yaml"): Promise<StrategyYaml | null> {
 	try {
 		const raw = await readFile(strategyPath, "utf-8");
 		// Lightweight YAML parse — strategy files are simple key-value
@@ -59,17 +57,14 @@ export interface CollectResult {
  * Conditionally calls Reddit, Product Hunt, RSS, X based on available credentials.
  */
 export async function collectTrends(
-	pillars: Pillar[],
+	_pillars: Pillar[],
 	options?: { strategyPath?: string; xAccessToken?: string },
 ): Promise<CollectResult> {
 	const trends: RawTrend[] = [];
 	const errors: Array<{ source: string; error: string }> = [];
 
 	// Helper to safely run a source adapter
-	const collect = async (
-		name: string,
-		fn: () => Promise<RawTrend[]>,
-	): Promise<void> => {
+	const collect = async (name: string, fn: () => Promise<RawTrend[]>): Promise<void> => {
 		try {
 			const result = await fn();
 			trends.push(...result);
@@ -90,9 +85,7 @@ export async function collectTrends(
 	// BYOK: Reddit (requires REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET)
 	if (process.env.REDDIT_CLIENT_ID && process.env.REDDIT_CLIENT_SECRET) {
 		tasks.push(
-			collect("reddit", () =>
-				fetchRedditTrending(["technology", "programming", "startups"], 10),
-			),
+			collect("reddit", () => fetchRedditTrending(["technology", "programming", "startups"], 10)),
 		);
 	}
 
@@ -104,9 +97,8 @@ export async function collectTrends(
 	// RSS feeds from strategy.yaml
 	const strategy = await loadStrategy(options?.strategyPath);
 	if (strategy?.customRssFeeds && strategy.customRssFeeds.length > 0) {
-		tasks.push(
-			collect("rss", () => fetchRSSFeeds(strategy.customRssFeeds!, 5)),
-		);
+		const feeds = strategy.customRssFeeds;
+		tasks.push(collect("rss", () => fetchRSSFeeds(feeds, 5)));
 	}
 
 	// BYOK: X trending (requires stored access token)
@@ -135,10 +127,7 @@ export async function collectBreakingNews(options?: {
 	const trends: RawTrend[] = [];
 	const errors: Array<{ source: string; error: string }> = [];
 
-	const collect = async (
-		name: string,
-		fn: () => Promise<RawTrend[]>,
-	): Promise<void> => {
+	const collect = async (name: string, fn: () => Promise<RawTrend[]>): Promise<void> => {
 		try {
 			const result = await fn();
 			trends.push(...result);
@@ -150,9 +139,7 @@ export async function collectBreakingNews(options?: {
 		}
 	};
 
-	const tasks: Promise<void>[] = [
-		collect("hackernews", () => fetchHNTopStories(10)),
-	];
+	const tasks: Promise<void>[] = [collect("hackernews", () => fetchHNTopStories(10))];
 
 	if (options?.xAccessToken) {
 		const xClient = new XClient(options.xAccessToken);

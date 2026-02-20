@@ -3,7 +3,8 @@
 export const ACADEMIC_HOOK_PATTERNS = {
 	statistics: "Over 70% of students admit procrastination affects their writing quality",
 	question: "What if we could reverse climate change within 10 years?",
-	problemSolution: "Challenge: Researchers struggle with X. Solution: Our approach reduces time by 40%.",
+	problemSolution:
+		"Challenge: Researchers struggle with X. Solution: Our approach reduces time by 40%.",
 	authority: "As Einstein once said, 'Education is the most powerful weapon for change.'",
 } as const;
 

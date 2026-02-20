@@ -1,6 +1,6 @@
+import { type TwilioConfig, TwilioProvider } from "./twilio.ts";
 import type { WhatsAppProvider } from "./types.ts";
-import { WahaProvider, type WahaConfig } from "./waha.ts";
-import { TwilioProvider, type TwilioConfig } from "./twilio.ts";
+import { type WahaConfig, WahaProvider } from "./waha.ts";
 
 // ─── Provider Factory ──────────────────────────────────────────────────────
 // Creates a WhatsAppProvider based on config. WAHA for self-hosted,

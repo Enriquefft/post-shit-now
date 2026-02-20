@@ -49,13 +49,16 @@ export async function compileDigest(
 
 	// Group events by category
 	const published = events.filter((e) => e.event_type === "post.published");
-	const approvals = events.filter((e) =>
-		e.event_type === "approval.requested" || e.event_type === "approval.result",
+	const approvals = events.filter(
+		(e) => e.event_type === "approval.requested" || e.event_type === "approval.result",
 	);
 	const failures = events.filter((e) => e.event_type === "post.failed");
 	const viral = events.filter((e) => e.event_type === "post.viral");
 	const tokens = events.filter((e) => e.event_type === "token.expiring");
-	const downgraded = events.filter((e) => e.tier === "digest" && e.event_type !== "digest.daily" && e.event_type !== "digest.weekly");
+	const downgraded = events.filter(
+		(e) =>
+			e.tier === "digest" && e.event_type !== "digest.daily" && e.event_type !== "digest.weekly",
+	);
 
 	// Published posts section
 	if (published.length > 0) {
@@ -114,7 +117,12 @@ export async function compileDigest(
 
 	// Downgraded push events (fatigue-limited)
 	const uniqueDowngraded = downgraded.filter(
-		(e) => !published.includes(e) && !approvals.includes(e) && !failures.includes(e) && !viral.includes(e) && !tokens.includes(e),
+		(e) =>
+			!published.includes(e) &&
+			!approvals.includes(e) &&
+			!failures.includes(e) &&
+			!viral.includes(e) &&
+			!tokens.includes(e),
 	);
 	if (uniqueDowngraded.length > 0) {
 		sections.push({

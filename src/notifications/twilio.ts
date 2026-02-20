@@ -67,8 +67,7 @@ export class TwilioProvider implements WhatsAppProvider {
 	): Promise<MessageResult> {
 		// Twilio requires pre-registered Content Templates for interactive buttons.
 		// Fall back to numbered text options for flexibility.
-		const fallbackBody =
-			`${body}\n\n${buttons.map((b, i) => `${i + 1}. ${b.body}`).join("\n")}\n\nReply with a number to choose.`;
+		const fallbackBody = `${body}\n\n${buttons.map((b, i) => `${i + 1}. ${b.body}`).join("\n")}\n\nReply with a number to choose.`;
 		return this.sendText(to, fallbackBody);
 	}
 
@@ -83,8 +82,7 @@ export class TwilioProvider implements WhatsAppProvider {
 		// Twilio requires Content Templates for list messages.
 		// Fall back to formatted text.
 		const items = sections.flatMap((s) => s.rows);
-		const fallbackBody =
-			`${body}\n\n${items.map((r, i) => `${i + 1}. ${r.title}${r.description ? ` - ${r.description}` : ""}`).join("\n")}\n\nReply with a number to choose.`;
+		const fallbackBody = `${body}\n\n${items.map((r, i) => `${i + 1}. ${r.title}${r.description ? ` - ${r.description}` : ""}`).join("\n")}\n\nReply with a number to choose.`;
 		return this.sendText(to, fallbackBody);
 	}
 

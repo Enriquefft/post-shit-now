@@ -1,14 +1,13 @@
 import { sql } from "drizzle-orm";
 import type { createHubConnection } from "../core/db/connection.ts";
-import { notificationLog, notificationPreferences, teamMembers } from "../core/db/schema.ts";
 import type {
+	MessageResult,
 	NotificationEvent,
 	NotificationPreference,
 	NotificationTier,
 	WhatsAppProvider,
-	NOTIFICATION_ROUTES,
 } from "./types.ts";
-import { NOTIFICATION_ROUTES as ROUTES, FATIGUE_LIMITS } from "./types.ts";
+import { FATIGUE_LIMITS, NOTIFICATION_ROUTES as ROUTES } from "./types.ts";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -90,7 +89,7 @@ export async function dispatchNotification(params: {
 
 	// Format and send the message
 	const formatted = formatNotificationMessage(event);
-	let result;
+	let result: MessageResult;
 
 	if (formatted.buttons && formatted.buttons.length > 0) {
 		result = await provider.sendButtons(recipient, formatted.body, formatted.buttons);
@@ -123,7 +122,7 @@ export async function checkFatigueLimits(
 	db: DrizzleClient,
 	params: { userId: string; tier: string; eventType: string; dedupKey: string },
 ): Promise<FatigueCheckResult> {
-	const { userId, tier, dedupKey } = params;
+	const { userId, dedupKey } = params;
 
 	// Check 1: Daily push count < maxPushPerDay
 	const dailyCountResult = await db.execute(sql`

@@ -438,7 +438,8 @@ export function detectMaturityFromAnswer(answer: string): MaturityLevel | null {
 	const lower = answer.toLowerCase();
 	if (lower.includes("never") || lower.includes("starting")) return "never_posted";
 	if (lower.includes("sporadically") || lower.includes("few times per month")) return "sporadic";
-	if (lower.includes("consistently") || lower.includes("multiple times per week")) return "consistent";
+	if (lower.includes("consistently") || lower.includes("multiple times per week"))
+		return "consistent";
 	if (lower.includes("very active") || lower.includes("daily")) return "very_active";
 	return null;
 }

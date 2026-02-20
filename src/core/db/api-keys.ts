@@ -1,7 +1,7 @@
-import { apiKeys } from "./schema";
-import { eq, and } from "drizzle-orm";
-import { encrypt, decrypt, keyFromHex } from "../utils/crypto";
+import { and, eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { decrypt, encrypt, keyFromHex } from "../utils/crypto";
+import { apiKeys } from "./schema";
 
 export interface ApiKeyEntry {
 	service: string;
@@ -87,15 +87,14 @@ export async function setApiKey(
 	const existing = await db
 		.select({ id: apiKeys.id })
 		.from(apiKeys)
-		.where(and(eq(apiKeys.userId, hubId), eq(apiKeys.service, service), eq(apiKeys.keyName, keyName)))
+		.where(
+			and(eq(apiKeys.userId, hubId), eq(apiKeys.service, service), eq(apiKeys.keyName, keyName)),
+		)
 		.limit(1);
 
 	if (existing.length > 0) {
 		// Update existing key
-		await db
-			.update(apiKeys)
-			.set({ encryptedValue })
-			.where(eq(apiKeys.id, existing[0].id));
+		await db.update(apiKeys).set({ encryptedValue }).where(eq(apiKeys.id, existing[0].id));
 	} else {
 		// Insert new key
 		await db.insert(apiKeys).values({

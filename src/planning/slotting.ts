@@ -2,7 +2,7 @@ import type { CalendarState, PlanIdea, PlanSlot, StrategyConfig } from "./types.
 
 // ─── Angle Taxonomy (from topic-suggest.ts) ──────────────────────────────────
 
-const ANGLES = [
+const _ANGLES = [
 	"hot-take",
 	"how-to",
 	"story",

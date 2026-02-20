@@ -26,9 +26,18 @@ async function loadStrategyConfig(
 			const trimmed = line.trim();
 
 			// Section detection
-			if (trimmed === "pillars:") { section = "pillars"; continue; }
-			if (trimmed === "platforms:") { section = "platforms"; continue; }
-			if (trimmed === "languages:") { section = "languages"; continue; }
+			if (trimmed === "pillars:") {
+				section = "pillars";
+				continue;
+			}
+			if (trimmed === "platforms:") {
+				section = "platforms";
+				continue;
+			}
+			if (trimmed === "languages:") {
+				section = "languages";
+				continue;
+			}
 			if (trimmed.match(/^\w+:/) && !trimmed.startsWith("-") && !trimmed.startsWith(" ")) {
 				section = "";
 			}
@@ -36,7 +45,13 @@ async function loadStrategyConfig(
 			if (section === "pillars") {
 				if (trimmed.startsWith("- name:")) {
 					if (currentPillar.name) pillars.push(currentPillar as StrategyConfig["pillars"][number]);
-					currentPillar = { name: trimmed.replace("- name:", "").trim().replace(/^["']|["']$/g, ""), weight: 1 };
+					currentPillar = {
+						name: trimmed
+							.replace("- name:", "")
+							.trim()
+							.replace(/^["']|["']$/g, ""),
+						weight: 1,
+					};
 				} else if (trimmed.startsWith("weight:")) {
 					currentPillar.weight = Number(trimmed.replace("weight:", "").trim());
 				}
@@ -44,29 +59,49 @@ async function loadStrategyConfig(
 
 			if (section === "platforms") {
 				if (trimmed.startsWith("- name:")) {
-					if (currentPlatform.name) platforms.push(currentPlatform as StrategyConfig["platforms"][number]);
-					currentPlatform = { name: trimmed.replace("- name:", "").trim().replace(/^["']|["']$/g, ""), frequency: 3 };
+					if (currentPlatform.name)
+						platforms.push(currentPlatform as StrategyConfig["platforms"][number]);
+					currentPlatform = {
+						name: trimmed
+							.replace("- name:", "")
+							.trim()
+							.replace(/^["']|["']$/g, ""),
+						frequency: 3,
+					};
 				} else if (trimmed.startsWith("frequency:")) {
 					currentPlatform.frequency = Number(trimmed.replace("frequency:", "").trim());
 				} else if (trimmed.startsWith("defaultLanguage:")) {
-					currentPlatform.defaultLanguage = trimmed.replace("defaultLanguage:", "").trim().replace(/^["']|["']$/g, "");
+					currentPlatform.defaultLanguage = trimmed
+						.replace("defaultLanguage:", "")
+						.trim()
+						.replace(/^["']|["']$/g, "");
 				}
 			}
 
 			if (section === "languages") {
 				if (trimmed.startsWith("primary:")) {
-					languages.primary = trimmed.replace("primary:", "").trim().replace(/^["']|["']$/g, "");
+					languages.primary = trimmed
+						.replace("primary:", "")
+						.trim()
+						.replace(/^["']|["']$/g, "");
 				} else if (trimmed.startsWith("secondary:")) {
-					languages.secondary = trimmed.replace("secondary:", "").trim().replace(/^["']|["']$/g, "");
+					languages.secondary = trimmed
+						.replace("secondary:", "")
+						.trim()
+						.replace(/^["']|["']$/g, "");
 				} else if (trimmed.startsWith("default:")) {
-					languages.default = trimmed.replace("default:", "").trim().replace(/^["']|["']$/g, "");
+					languages.default = trimmed
+						.replace("default:", "")
+						.trim()
+						.replace(/^["']|["']$/g, "");
 				}
 			}
 		}
 
 		// Push last items
 		if (currentPillar.name) pillars.push(currentPillar as StrategyConfig["pillars"][number]);
-		if (currentPlatform.name) platforms.push(currentPlatform as StrategyConfig["platforms"][number]);
+		if (currentPlatform.name)
+			platforms.push(currentPlatform as StrategyConfig["platforms"][number]);
 
 		return {
 			pillars: pillars.length > 0 ? pillars : [{ name: "general", weight: 1 }],
@@ -110,7 +145,7 @@ export async function getCalendarState(
 		id: p.id,
 		platform: p.platform,
 		content: p.content.slice(0, 100),
-		scheduledAt: p.scheduledAt!,
+		scheduledAt: p.scheduledAt ?? new Date(),
 		status: p.status,
 		language: p.language,
 		seriesId: p.seriesId,
@@ -129,20 +164,21 @@ export async function getCalendarState(
 
 	// Load strategy for capacity calculation
 	const strategy = await loadStrategyConfig(strategyPath);
-	const totalCapacity = strategy
-		? strategy.platforms.reduce((sum, p) => sum + p.frequency, 0)
-		: 7; // default: 1 post/day
+	const totalCapacity = strategy ? strategy.platforms.reduce((sum, p) => sum + p.frequency, 0) : 7; // default: 1 post/day
 
 	// Identify gap days (days with no content scheduled)
 	const scheduledDays = new Set<string>();
 	for (const post of scheduledPosts) {
-		scheduledDays.add(post.scheduledAt.toISOString().split("T")[0]!);
+		const dateStr = post.scheduledAt.toISOString().split("T")[0];
+		if (dateStr) {
+			scheduledDays.add(dateStr);
+		}
 	}
 
 	const gaps: string[] = [];
 	for (let d = new Date(weekStart); d < weekEnd; d.setDate(d.getDate() + 1)) {
-		const dayStr = d.toISOString().split("T")[0]!;
-		if (!scheduledDays.has(dayStr)) {
+		const dayStr = d.toISOString().split("T")[0];
+		if (dayStr && !scheduledDays.has(dayStr)) {
 			gaps.push(dayStr);
 		}
 	}

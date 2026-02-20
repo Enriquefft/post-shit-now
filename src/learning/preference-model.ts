@@ -263,10 +263,7 @@ export async function computeWeeklyUpdate(db: HubDb, userId: string): Promise<We
 			const reasonCounts = new Map<string, number>();
 			for (const idea of killedIdeas) {
 				if (idea.killReason) {
-					reasonCounts.set(
-						idea.killReason,
-						(reasonCounts.get(idea.killReason) ?? 0) + 1,
-					);
+					reasonCounts.set(idea.killReason, (reasonCounts.get(idea.killReason) ?? 0) + 1);
 				}
 			}
 

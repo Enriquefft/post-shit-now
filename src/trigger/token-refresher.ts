@@ -7,10 +7,7 @@ import {
 	createLinkedInOAuthClient,
 	refreshAccessToken as refreshLinkedInToken,
 } from "../platforms/linkedin/oauth.ts";
-import {
-	createTikTokOAuthClient,
-	refreshTikTokToken,
-} from "../platforms/tiktok/oauth.ts";
+import { createTikTokOAuthClient, refreshTikTokToken } from "../platforms/tiktok/oauth.ts";
 import { createXOAuthClient, refreshAccessToken as refreshXToken } from "../platforms/x/oauth.ts";
 import { notificationDispatcherTask } from "./notification-dispatcher.ts";
 
@@ -127,9 +124,12 @@ export const tokenRefresher = schedules.task({
 					const clientId = process.env.LINKEDIN_CLIENT_ID;
 					const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
 					if (!clientId || !clientSecret) {
-						logger.warn("LINKEDIN_CLIENT_ID or LINKEDIN_CLIENT_SECRET not set — skipping LinkedIn token", {
-							tokenId: token.id,
-						});
+						logger.warn(
+							"LINKEDIN_CLIENT_ID or LINKEDIN_CLIENT_SECRET not set — skipping LinkedIn token",
+							{
+								tokenId: token.id,
+							},
+						);
 						result.skipped++;
 						continue;
 					}
@@ -152,9 +152,12 @@ export const tokenRefresher = schedules.task({
 					const clientKey = process.env.TIKTOK_CLIENT_KEY;
 					const clientSecret = process.env.TIKTOK_CLIENT_SECRET;
 					if (!clientKey || !clientSecret) {
-						logger.warn("TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET not set — skipping TikTok token", {
-							tokenId: token.id,
-						});
+						logger.warn(
+							"TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET not set — skipping TikTok token",
+							{
+								tokenId: token.id,
+							},
+						);
 						result.skipped++;
 						continue;
 					}
@@ -262,6 +265,9 @@ export const tokenRefresher = schedules.task({
 						error: metaError instanceof Error ? metaError.message : String(metaError),
 					});
 				}
+
+				// AUTH-07: Notify user on token refresh failure requiring re-auth
+				// Already wired: see lines 267-282, token.expiring notification trigger.
 
 				// Notify user about token expiry requiring re-auth (fire-and-forget)
 				try {

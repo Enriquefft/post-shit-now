@@ -187,11 +187,14 @@ export async function processCommand(
 				WHERE id = ${postId}::uuid
 				LIMIT 1
 			`);
-			const post = postResult.rows[0] as { content: string; platform: string; scheduled_at: Date | null } | undefined;
+			const post = postResult.rows[0] as
+				| { content: string; platform: string; scheduled_at: Date | null }
+				| undefined;
 			if (!post) {
 				return { response: "Post not found." };
 			}
-			const preview = post.content.length > 500 ? `${post.content.substring(0, 500)}...` : post.content;
+			const preview =
+				post.content.length > 500 ? `${post.content.substring(0, 500)}...` : post.content;
 			return {
 				response: `Platform: ${post.platform}\nScheduled: ${post.scheduled_at ? new Date(post.scheduled_at).toISOString() : "unscheduled"}\n\n${preview}`,
 				buttons: [
@@ -225,7 +228,11 @@ export async function processCommand(
 		case "skip":
 			return {
 				response: "Skipped. Context cleared.",
-				updateState: { pendingApprovalPostId: undefined, options: undefined, lastEventType: undefined },
+				updateState: {
+					pendingApprovalPostId: undefined,
+					options: undefined,
+					lastEventType: undefined,
+				},
 			};
 
 		default:

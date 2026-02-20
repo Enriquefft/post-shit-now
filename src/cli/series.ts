@@ -1,16 +1,14 @@
 import { createHubConnection } from "../core/db/connection.ts";
 import { loadHubEnv } from "../core/utils/env.ts";
 import { detectSeriesPatterns } from "../series/detection.ts";
-import { getDueEpisodes, recordEpisodePublished } from "../series/episodes.ts";
+import { getDueEpisodes } from "../series/episodes.ts";
 import {
 	createSeries,
 	getSeriesAnalytics,
-	getSeries,
 	listSeries,
 	pauseSeries,
 	resumeSeries,
 	retireSeries,
-	updateSeries,
 } from "../series/manager.ts";
 import type { CreateSeriesInput, SeriesTemplate } from "../series/types.ts";
 
@@ -37,11 +35,7 @@ export async function createCommand(input: CreateSeriesInput) {
 	return createSeries(db, "default", input);
 }
 
-export async function listCommand(opts?: {
-	status?: string;
-	platform?: string;
-	hubId?: string;
-}) {
+export async function listCommand(opts?: { status?: string; platform?: string; hubId?: string }) {
 	const db = await getDb();
 	return listSeries(db, "default", opts);
 }
@@ -97,9 +91,7 @@ if (import.meta.main) {
 				const hubId = getArg(args, "hub");
 
 				if (!name) {
-					console.log(
-						JSON.stringify({ error: "Missing --name argument" }),
-					);
+					console.log(JSON.stringify({ error: "Missing --name argument" }));
 					process.exit(1);
 				}
 
@@ -113,12 +105,8 @@ if (import.meta.main) {
 					platform,
 					template,
 					cadence: cadence as CreateSeriesInput["cadence"],
-					cadenceCustomDays: cadenceCustomDays
-						? Number(cadenceCustomDays)
-						: undefined,
-					trackingMode: trackingMode as
-						| CreateSeriesInput["trackingMode"]
-						| undefined,
+					cadenceCustomDays: cadenceCustomDays ? Number(cadenceCustomDays) : undefined,
+					trackingMode: trackingMode as CreateSeriesInput["trackingMode"] | undefined,
 					trackingFormat,
 					pillar,
 					hubId,
@@ -142,9 +130,7 @@ if (import.meta.main) {
 			case "pause": {
 				const seriesId = args[1];
 				if (!seriesId) {
-					console.log(
-						JSON.stringify({ error: "Missing series ID. Usage: pause <seriesId>" }),
-					);
+					console.log(JSON.stringify({ error: "Missing series ID. Usage: pause <seriesId>" }));
 					process.exit(1);
 				}
 				const result = await pauseCommand(seriesId);
@@ -155,9 +141,7 @@ if (import.meta.main) {
 			case "resume": {
 				const seriesId = args[1];
 				if (!seriesId) {
-					console.log(
-						JSON.stringify({ error: "Missing series ID. Usage: resume <seriesId>" }),
-					);
+					console.log(JSON.stringify({ error: "Missing series ID. Usage: resume <seriesId>" }));
 					process.exit(1);
 				}
 				const result = await resumeCommand(seriesId);
@@ -168,9 +152,7 @@ if (import.meta.main) {
 			case "retire": {
 				const seriesId = args[1];
 				if (!seriesId) {
-					console.log(
-						JSON.stringify({ error: "Missing series ID. Usage: retire <seriesId>" }),
-					);
+					console.log(JSON.stringify({ error: "Missing series ID. Usage: retire <seriesId>" }));
 					process.exit(1);
 				}
 				const result = await retireCommand(seriesId);
@@ -181,9 +163,7 @@ if (import.meta.main) {
 			case "analytics": {
 				const seriesId = args[1];
 				if (!seriesId) {
-					console.log(
-						JSON.stringify({ error: "Missing series ID. Usage: analytics <seriesId>" }),
-					);
+					console.log(JSON.stringify({ error: "Missing series ID. Usage: analytics <seriesId>" }));
 					process.exit(1);
 				}
 				const result = await analyticsCommand(seriesId);

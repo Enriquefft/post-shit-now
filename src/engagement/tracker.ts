@@ -140,7 +140,8 @@ export async function updateScoringWeights(
 			let total = 0;
 			for (const entry of entries) {
 				const outcome = entry.outcome as EngagementOutcome | null;
-				total += (outcome?.impressions ?? 0) + (outcome?.likes ?? 0) * 10 + (outcome?.replies ?? 0) * 20;
+				total +=
+					(outcome?.impressions ?? 0) + (outcome?.likes ?? 0) * 10 + (outcome?.replies ?? 0) * 20;
 			}
 			return total / entries.length;
 		};
@@ -157,9 +158,12 @@ export async function updateScoringWeights(
 		if (!corr) continue;
 
 		const currentWeight = DEFAULT_WEIGHTS[dim];
-		const ratio = corr.lowScoreAvgOutcome > 0
-			? corr.highScoreAvgOutcome / corr.lowScoreAvgOutcome
-			: corr.highScoreAvgOutcome > 0 ? 2 : 1;
+		const ratio =
+			corr.lowScoreAvgOutcome > 0
+				? corr.highScoreAvgOutcome / corr.lowScoreAvgOutcome
+				: corr.highScoreAvgOutcome > 0
+					? 2
+					: 1;
 
 		// If high-scored items don't outperform low-scored items, reduce weight
 		if (ratio < 1.1 && currentWeight > 0.1) {
@@ -195,10 +199,7 @@ export async function updateScoringWeights(
  * Engagement outcomes influence what gets surfaced during /psn:review,
  * completing the cross-phase wire: engagement → tracker → learning/feedback.
  */
-export async function feedEngagementToLearningLoop(
-	db: HubDb,
-	userId: string,
-): Promise<void> {
+export async function feedEngagementToLearningLoop(db: HubDb, userId: string): Promise<void> {
 	// detectFeedbackMoments analyzes post_metrics and edit_history
 	// to find patterns worth surfacing. Engagement outcomes stored in
 	// engagement_log complement this by providing engagement-side signals.

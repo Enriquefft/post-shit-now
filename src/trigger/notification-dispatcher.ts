@@ -3,7 +3,11 @@ import { sql } from "drizzle-orm";
 import { createHubConnection } from "../core/db/connection.ts";
 import { dispatchNotification, routeCompanyNotification } from "../notifications/dispatcher.ts";
 import { createWhatsAppProvider } from "../notifications/provider.ts";
-import type { NotificationEvent, NotificationEventType, NotificationPreference } from "../notifications/types.ts";
+import type {
+	NotificationEvent,
+	NotificationEventType,
+	NotificationPreference,
+} from "../notifications/types.ts";
 
 // ─── Notification Dispatcher Task ──────────────────────────────────────────
 // Trigger.dev task for async notification dispatch.

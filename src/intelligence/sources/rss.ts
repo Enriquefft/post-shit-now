@@ -24,10 +24,7 @@ export async function fetchRSSFeeds(feedUrls: string[], limit = 5): Promise<RawT
 					tags: item.categories ?? undefined,
 				});
 			}
-		} catch {
-			// Gracefully skip feeds that fail -- log handled by caller
-			continue;
-		}
+		} catch {}
 	}
 
 	return allTrends;

@@ -68,42 +68,63 @@ const PLATFORM_FORMAT_MAP: Record<Platform, Partial<Record<string, PostFormat>>>
 	tiktok: { "hot-take": "reel-script", "how-to": "reel-script", story: "reel-script" },
 };
 
-// ─── Topic Suggestion ───────────────────────────────────────────────────────
+// ─── Topic Suggestion ────────────────────────────────────────────────────────
 
 let angleRotationIndex = 0;
+
+export interface IdeaBankStatus {
+	hasReadyIdeas: boolean;
+	readyCount: number;
+	ideas: Array<{ id: string; title: string; pillar: string | null }>;
+}
 
 export function suggestTopics(params: {
 	profile: VoiceProfile;
 	platform: Platform;
 	count?: number;
 	fatiguedTopics?: string[];
+	ideaBankStatus?: IdeaBankStatus;
 }): TopicSuggestion[] {
-	const { profile, platform, count = 3, fatiguedTopics = [] } = params;
+	const { profile, platform, count = 3, fatiguedTopics = [], ideaBankStatus } = params;
 	const pillars = profile.identity.pillars;
 
-	if (pillars.length === 0) {
-		return [
-			{
-				topic: "Share something you learned this week",
-				pillar: "general",
-				angle: "story",
-				suggestedFormat: platform === "tiktok" ? "reel-script" : "short-post",
-			},
-		];
+	// POST-11: Mix in ready ideas from bank if available
+	// Ready ideas appear first in suggestions, prioritized over AI-generated topics
+	const suggestions: TopicSuggestion[] = [];
+	if (ideaBankStatus?.hasReadyIdeas && ideaBankStatus.readyCount > 0) {
+		for (const idea of ideaBankStatus.ideas) {
+			suggestions.push({
+				topic: `Ready: ${idea.title} (${idea.pillar ?? "general"})`,
+				pillar: idea.pillar ?? "general",
+				angle: "idea-bank",
+				suggestedFormat: "short-post" as PostFormat,
+			});
+		}
 	}
 
-	const suggestions: TopicSuggestion[] = [];
+	if (pillars.length === 0) {
+		return suggestions.length > 0
+			? suggestions
+			: [
+					{
+						topic: "Share something you learned this week",
+						pillar: "general",
+						angle: "story",
+						suggestedFormat: platform === "tiktok" ? "reel-script" : "short-post",
+					},
+				];
+	}
 
-	for (let i = 0; i < count; i++) {
+	for (let i = suggestions.length; i < count; i++) {
 		// Rotate through pillars and angles
-		const pillar = pillars[i % pillars.length] ?? pillars[0];
+		const pillar = pillars[(i - suggestions.length) % pillars.length] ?? pillars[0];
 		if (!pillar) continue;
 
 		const angle = ANGLES[(angleRotationIndex + i) % ANGLES.length];
 		if (!angle) continue;
 
 		// Apply platform-specific format override
-		const platformOverride = PLATFORM_FORMAT_MAP[platform][angle.name];
+		const platformOverride = PLATFORM_FORMAT_MAP[platform]?.[angle.name];
 		const format = platformOverride ?? angle.format;
 
 		suggestions.push({
@@ -146,7 +167,7 @@ export function suggestTopics(params: {
 // ─── Idea Bank Check ────────────────────────────────────────────────────────
 
 /**
- * Check the idea bank for ready ideas. Wired to real implementation in Phase 5.
+ * Check the idea bank for ready ideas.
  * Falls back to empty if no DB provided (backward compatible for non-DB contexts).
  */
 export async function checkIdeaBank(

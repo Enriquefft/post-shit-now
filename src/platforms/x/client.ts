@@ -190,10 +190,7 @@ export class XClient {
 	 * Get the authenticated user's recent tweets (reverse chronological timeline).
 	 * Used by intelligence layer to detect trending topics in user's network.
 	 */
-	async getTimeline(params?: {
-		maxResults?: number;
-		tweetFields?: string[];
-	}): Promise<{
+	async getTimeline(params?: { maxResults?: number; tweetFields?: string[] }): Promise<{
 		data: Array<{
 			id: string;
 			text: string;
@@ -261,10 +258,9 @@ export class XClient {
 			? `/2/users/by/username/${username}?${queryString}`
 			: `/2/users/by/username/${username}`;
 
-		const { data, rateLimit } = await this.request<{ data: { id: string; name: string; username: string } }>(
-			endpoint,
-			{ method: "GET" },
-		);
+		const { data, rateLimit } = await this.request<{
+			data: { id: string; name: string; username: string };
+		}>(endpoint, { method: "GET" });
 
 		return { data: data.data, rateLimit };
 	}
@@ -353,11 +349,7 @@ export class XClient {
 		const queryParams = new URLSearchParams();
 		queryParams.set("query", query);
 		queryParams.set("max_results", String(params?.maxResults ?? 10));
-		const tweetFields = params?.tweetFields ?? [
-			"created_at",
-			"public_metrics",
-			"author_id",
-		];
+		const tweetFields = params?.tweetFields ?? ["created_at", "public_metrics", "author_id"];
 		queryParams.set("tweet.fields", tweetFields.join(","));
 		queryParams.set("expansions", "author_id");
 		if (params?.userFields) {

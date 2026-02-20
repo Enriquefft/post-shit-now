@@ -1,10 +1,16 @@
 import { sql } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
-import { checkCooldown, checkDailyCap, isBlocked, loadEngagementConfig, recordEngagement } from "./config.ts";
-import { draftQuotePost, draftReplies, type ReplyDraft, type QuotePostDraft } from "./drafting.ts";
-import { fromBasisPoints } from "./scoring.ts";
-import type { DailyCapResult, EngagementOpportunity, OpportunityScore, SuggestedEngagement } from "./types.ts";
 import { loadProfile } from "../voice/profile.ts";
+import {
+	checkCooldown,
+	checkDailyCap,
+	isBlocked,
+	loadEngagementConfig,
+	recordEngagement,
+} from "./config.ts";
+import { draftQuotePost, draftReplies, type QuotePostDraft, type ReplyDraft } from "./drafting.ts";
+import { fromBasisPoints } from "./scoring.ts";
+import type { DailyCapResult, EngagementOpportunity, SuggestedEngagement } from "./types.ts";
 
 // ─── Session Types ────────────────────────────────────────────────────────
 
@@ -154,7 +160,7 @@ export async function triageOpportunities(
  */
 export async function draftForApproved(
 	db: HubDb,
-	userId: string,
+	_userId: string,
 	approvedIds: string[],
 	voiceProfilePath?: string,
 ): Promise<DraftResult[]> {
@@ -339,11 +345,12 @@ export function bridgeToContentCreation(
 
 		suggestions.push({
 			topic: `Inspired by @${opp.authorHandle}'s ${platform} post: "${snippet}..."`,
-			angle: opp.suggestedType === "quote"
-				? "Expand your quote post perspective into a full post"
-				: opp.suggestedType === "duet" || opp.suggestedType === "stitch"
-					? "Turn your video response angle into a standalone piece"
-					: "Build on your reply -- expand the conversation into a full post",
+			angle:
+				opp.suggestedType === "quote"
+					? "Expand your quote post perspective into a full post"
+					: opp.suggestedType === "duet" || opp.suggestedType === "stitch"
+						? "Turn your video response angle into a standalone piece"
+						: "Build on your reply -- expand the conversation into a full post",
 			sourceOpportunity: opp,
 		});
 	}

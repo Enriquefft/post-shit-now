@@ -1,12 +1,12 @@
 import type { InstagramClient } from "./client.ts";
 import {
 	InstagramApiError,
-	InstagramContainerSchema,
-	InstagramContainerStatusSchema,
-	InstagramPublishSchema,
 	type InstagramContainer,
+	InstagramContainerSchema,
 	type InstagramContainerStatus,
+	InstagramContainerStatusSchema,
 	type InstagramPublish,
+	InstagramPublishSchema,
 } from "./types.ts";
 
 // ─── Container Creation ─────────────────────────────────────────────────────
@@ -68,10 +68,7 @@ export async function createCarouselContainers(
 ): Promise<InstagramContainer> {
 	// Validate carousel size (2-10 images required)
 	if (imageUrls.length < 2 || imageUrls.length > 10) {
-		throw new InstagramApiError(
-			400,
-			`Carousel requires 2-10 images, got ${imageUrls.length}`,
-		);
+		throw new InstagramApiError(400, `Carousel requires 2-10 images, got ${imageUrls.length}`);
 	}
 
 	// Step 1: Create child containers
@@ -149,7 +146,7 @@ export async function waitForContainerReady(
 
 	throw new InstagramApiError(
 		408,
-		`Container ${containerId} did not become FINISHED within ${maxAttempts * pollIntervalMs / 1000} seconds`,
+		`Container ${containerId} did not become FINISHED within ${(maxAttempts * pollIntervalMs) / 1000} seconds`,
 	);
 }
 

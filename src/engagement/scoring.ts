@@ -1,4 +1,8 @@
-import { PLATFORM_ENGAGEMENT_TYPES, type OpportunityScore, type SuggestedEngagement } from "./types.ts";
+import {
+	type OpportunityScore,
+	PLATFORM_ENGAGEMENT_TYPES,
+	type SuggestedEngagement,
+} from "./types.ts";
 
 // ─── Relevance Score ────────────────────────────────────────────────────────
 
@@ -6,10 +10,7 @@ import { PLATFORM_ENGAGEMENT_TYPES, type OpportunityScore, type SuggestedEngagem
  * Count keyword matches in post content, normalize to 0-100.
  * Higher score = more keyword overlap with user's niche.
  */
-export function computeRelevanceScore(
-	postContent: string,
-	nicheKeywords: string[],
-): number {
+export function computeRelevanceScore(postContent: string, nicheKeywords: string[]): number {
 	if (nicheKeywords.length === 0) return 0;
 
 	const lowerContent = postContent.toLowerCase();
@@ -92,8 +93,7 @@ export function scoreOpportunity(raw: {
 	reach: number;
 	potential: number;
 }): number {
-	const composite =
-		raw.relevance * 0.4 + raw.recency * 0.3 + raw.reach * 0.2 + raw.potential * 0.1;
+	const composite = raw.relevance * 0.4 + raw.recency * 0.3 + raw.reach * 0.2 + raw.potential * 0.1;
 	return Math.round(Math.min(100, Math.max(0, composite)));
 }
 

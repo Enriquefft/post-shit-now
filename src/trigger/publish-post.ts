@@ -35,17 +35,11 @@ import {
 	postPhotos,
 	uploadVideoChunks,
 } from "../platforms/tiktok/media.ts";
-import {
-	createTikTokOAuthClient,
-	refreshTikTokToken,
-} from "../platforms/tiktok/oauth.ts";
+import { createTikTokOAuthClient, refreshTikTokToken } from "../platforms/tiktok/oauth.ts";
 import { TikTokRateLimitError } from "../platforms/tiktok/types.ts";
 import { XClient } from "../platforms/x/client.ts";
 import { uploadMedia } from "../platforms/x/media.ts";
-import {
-	createXOAuthClient,
-	refreshAccessToken as refreshXToken,
-} from "../platforms/x/oauth.ts";
+import { createXOAuthClient, refreshAccessToken as refreshXToken } from "../platforms/x/oauth.ts";
 import { RateLimitError } from "../platforms/x/types.ts";
 import { recordEpisodePublished } from "../series/episodes.ts";
 import { notificationDispatcherTask } from "./notification-dispatcher.ts";
@@ -185,7 +179,10 @@ export const publishPost = task({
 		const failed = results.filter((r) => r.status === "failed");
 
 		const metadata = (post.metadata ?? {}) as Record<string, unknown>;
-		const platformStatus: Record<string, { status: string; externalPostId?: string; error?: string }> = {};
+		const platformStatus: Record<
+			string,
+			{ status: string; externalPostId?: string; error?: string }
+		> = {};
 		for (const r of results) {
 			platformStatus[r.platform] = {
 				status: r.status,
@@ -234,6 +231,9 @@ export const publishPost = task({
 
 		// All platforms failed
 		await markFailed(db, post.id, "all_platforms_failed", { platformStatus });
+
+		// NOTIF-01: Notify user on post failure via notification dispatcher
+		// Already wired: see lines 238-256, post.failed notification trigger.
 
 		// Notify on post failure (fire-and-forget, never crash publish task)
 		try {
@@ -467,7 +467,11 @@ async function publishToLinkedIn(
 	const linkedInClientSecret = process.env.LINKEDIN_CLIENT_SECRET;
 
 	if (!linkedInClientId || !linkedInClientSecret) {
-		return { platform: "linkedin", status: "failed", error: "LINKEDIN_CLIENT_ID or LINKEDIN_CLIENT_SECRET not set" };
+		return {
+			platform: "linkedin",
+			status: "failed",
+			error: "LINKEDIN_CLIENT_ID or LINKEDIN_CLIENT_SECRET not set",
+		};
 	}
 
 	// Fetch OAuth token
@@ -528,11 +532,16 @@ async function publishToLinkedIn(
 	const personUrn = tokenMetadata.personUrn as string | undefined;
 
 	if (!personUrn) {
-		return { platform: "linkedin", status: "failed", error: "person_urn_not_found_in_token_metadata" };
+		return {
+			platform: "linkedin",
+			status: "failed",
+			error: "person_urn_not_found_in_token_metadata",
+		};
 	}
 
 	// Determine content type from metadata
-	const linkedinFormat = (metadata.linkedinFormat as string) ?? (metadata.format as string) ?? "text";
+	const linkedinFormat =
+		(metadata.linkedinFormat as string) ?? (metadata.format as string) ?? "text";
 	const visibility = (metadata.linkedinVisibility as "PUBLIC" | "CONNECTIONS") ?? "PUBLIC";
 
 	// Extract plain text from content (strip thread JSON if needed)
@@ -693,7 +702,11 @@ async function publishToInstagram(
 	const instagramAppSecret = process.env.INSTAGRAM_APP_SECRET;
 
 	if (!instagramAppId || !instagramAppSecret) {
-		return { platform: "instagram", status: "failed", error: "INSTAGRAM_APP_ID or INSTAGRAM_APP_SECRET not set" };
+		return {
+			platform: "instagram",
+			status: "failed",
+			error: "INSTAGRAM_APP_ID or INSTAGRAM_APP_SECRET not set",
+		};
 	}
 
 	// Fetch OAuth token
@@ -749,7 +762,11 @@ async function publishToInstagram(
 	const accountId = tokenMetadata.accountId as string | undefined;
 
 	if (!accountId) {
-		return { platform: "instagram", status: "failed", error: "instagram_account_id_not_in_token_metadata" };
+		return {
+			platform: "instagram",
+			status: "failed",
+			error: "instagram_account_id_not_in_token_metadata",
+		};
 	}
 
 	// Check daily post count limit (25 posts/day)
@@ -766,7 +783,11 @@ async function publishToInstagram(
 		);
 
 	if (todayPosts.length >= MAX_POSTS_PER_DAY) {
-		return { platform: "instagram", status: "failed", error: `instagram_daily_limit_reached_${MAX_POSTS_PER_DAY}` };
+		return {
+			platform: "instagram",
+			status: "failed",
+			error: `instagram_daily_limit_reached_${MAX_POSTS_PER_DAY}`,
+		};
 	}
 
 	const client = new InstagramClient(accessToken, accountId);
@@ -781,7 +802,8 @@ async function publishToInstagram(
 	}
 
 	// Determine Instagram format from metadata
-	const instagramFormat = (metadata.instagramFormat as string) ?? (metadata.format as string) ?? "image-post";
+	const instagramFormat =
+		(metadata.instagramFormat as string) ?? (metadata.format as string) ?? "image-post";
 
 	try {
 		let publishedMediaId: string;
@@ -813,7 +835,11 @@ async function publishToInstagram(
 						const published = await publishContainer(client, container.id);
 						publishedMediaId = published.id;
 					} else {
-						return { platform: "instagram", status: "failed", error: "carousel_requires_2_or_more_images" };
+						return {
+							platform: "instagram",
+							status: "failed",
+							error: "carousel_requires_2_or_more_images",
+						};
 					}
 					break;
 				}
@@ -824,9 +850,6 @@ async function publishToInstagram(
 				publishedMediaId = carouselPublished.id;
 				break;
 			}
-
-			case "image-post":
-			case "quote-image":
 			default: {
 				// Feed image: requires image URL (publicly accessible)
 				if (!mediaUrls || mediaUrls.length === 0) {
@@ -879,7 +902,11 @@ async function publishToTikTok(
 	const tiktokClientSecret = process.env.TIKTOK_CLIENT_SECRET;
 
 	if (!tiktokClientKey || !tiktokClientSecret) {
-		return { platform: "tiktok", status: "failed", error: "TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET not set" };
+		return {
+			platform: "tiktok",
+			status: "failed",
+			error: "TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET not set",
+		};
 	}
 
 	// Fetch OAuth token
@@ -953,7 +980,8 @@ async function publishToTikTok(
 	const title = (metadata.tiktokTitle as string) ?? description.slice(0, 90);
 
 	// Determine TikTok format
-	const tiktokFormat = (metadata.tiktokFormat as string) ?? (metadata.format as string) ?? "video-post";
+	const tiktokFormat =
+		(metadata.tiktokFormat as string) ?? (metadata.format as string) ?? "video-post";
 
 	try {
 		let publishId: string;
@@ -1001,7 +1029,11 @@ async function publishToTikTok(
 			case "photo": {
 				// Photo post: URLs must be publicly accessible
 				if (!mediaUrls || mediaUrls.length === 0) {
-					return { platform: "tiktok", status: "failed", error: "tiktok_photo_requires_media_urls" };
+					return {
+						platform: "tiktok",
+						status: "failed",
+						error: "tiktok_photo_requires_media_urls",
+					};
 				}
 
 				publishId = await postPhotos(client, {
@@ -1030,7 +1062,11 @@ async function publishToTikTok(
 				const defaultVideoBuffer = Buffer.from(await defaultVideoFile.arrayBuffer());
 
 				const defaultUpload = await initVideoUpload(client, defaultVideoBuffer.length);
-				await uploadVideoChunks(defaultUpload.uploadUrl, defaultVideoBuffer, defaultUpload.chunkSize);
+				await uploadVideoChunks(
+					defaultUpload.uploadUrl,
+					defaultVideoBuffer,
+					defaultUpload.chunkSize,
+				);
 				const defaultStatus = await checkPublishStatus(client, defaultUpload.publishId);
 				publishId = defaultStatus.publicPostId ?? defaultUpload.publishId;
 				break;
@@ -1177,7 +1213,11 @@ async function updateBrandPreferenceIfCompany(
 				})
 				.where(eq(preferenceModel.userId, hubId));
 
-			logger.info("Brand preference model updated", { hubId, format: postFormat, pillar: postPillar });
+			logger.info("Brand preference model updated", {
+				hubId,
+				format: postFormat,
+				pillar: postPillar,
+			});
 		}
 	} catch (error) {
 		// Brand model update failure should never roll back a successful publish

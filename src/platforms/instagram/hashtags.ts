@@ -95,7 +95,7 @@ export async function refreshHashtagPool(
 	maxSearches = 10,
 	projectRoot = ".",
 ): Promise<HashtagPoolCache> {
-	let cache = loadCache(projectRoot) ?? {
+	const cache = loadCache(projectRoot) ?? {
 		lastRefreshed: new Date().toISOString(),
 		searchesUsedThisWeek: 0,
 		weekStartDate: new Date().toISOString(),

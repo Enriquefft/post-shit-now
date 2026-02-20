@@ -1,4 +1,4 @@
-import { desc, eq, gte } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
 import { posts } from "../core/db/schema.ts";
 import type { PlanSlot, StrategyConfig } from "./types.ts";
@@ -37,13 +37,11 @@ export async function suggestLanguages(
 
 	if (db && userId) {
 		try {
-			const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+			const _fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
 			const recentPosts = await db
 				.select({ language: posts.language })
 				.from(posts)
-				.where(
-					eq(posts.userId, userId),
-				);
+				.where(eq(posts.userId, userId));
 
 			// Filter by date manually since we need simple logic
 			for (const p of recentPosts) {

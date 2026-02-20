@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
-import { postMetrics, posts } from "../core/db/schema.ts";
+import { postMetrics } from "../core/db/schema.ts";
 
 // ─── Remix Suggestion ────────────────────────────────────────────────────────
 
@@ -76,12 +76,7 @@ export async function getRemixSuggestions(
 		const topPosts = await db
 			.select()
 			.from(postMetrics)
-			.where(
-				and(
-					eq(postMetrics.userId, userId),
-					gte(postMetrics.collectedAt, ninetyDaysAgo),
-				),
-			)
+			.where(and(eq(postMetrics.userId, userId), gte(postMetrics.collectedAt, ninetyDaysAgo)))
 			.orderBy(desc(postMetrics.engagementScore))
 			.limit(limit * 2); // Extra to allow filtering
 
@@ -93,7 +88,9 @@ export async function getRemixSuggestions(
 			const remixOptions = PLATFORM_REMIX_MAP[metric.platform];
 			if (!remixOptions || remixOptions.length === 0) continue;
 
-			const remix = remixOptions[0]!;
+			const remix = remixOptions[0];
+			if (!remix) continue;
+
 			suggestions.push({
 				originalPostId: metric.postId,
 				originalPlatform: metric.platform,
@@ -127,12 +124,7 @@ export async function getRecycleSuggestions(
 		const oldTopPosts = await db
 			.select()
 			.from(postMetrics)
-			.where(
-				and(
-					eq(postMetrics.userId, userId),
-					lte(postMetrics.collectedAt, sixtyDaysAgo),
-				),
-			)
+			.where(and(eq(postMetrics.userId, userId), lte(postMetrics.collectedAt, sixtyDaysAgo)))
 			.orderBy(desc(postMetrics.engagementScore))
 			.limit(limit * 2);
 

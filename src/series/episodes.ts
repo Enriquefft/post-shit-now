@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import type { HubDb } from "../core/db/connection.ts";
 import { series } from "../core/db/schema.ts";
-import { CADENCE_DAYS } from "./types.ts";
 import type { Series, SeriesCadence } from "./types.ts";
+import { CADENCE_DAYS } from "./types.ts";
 
 // ─── Due Episodes ────────────────────────────────────────────────────────────
 
@@ -11,37 +11,25 @@ import type { Series, SeriesCadence } from "./types.ts";
  * Per RESEARCH.md pitfall 4: calculates from lastPublishedAt, not creation date.
  * Falls back to createdAt only when no episode has been published yet.
  */
-export async function getDueEpisodes(
-	db: HubDb,
-	userId: string,
-	asOfDate?: Date,
-) {
+export async function getDueEpisodes(db: HubDb, userId: string, asOfDate?: Date) {
 	const now = asOfDate ?? new Date();
 
-	const activeSeries = await db
-		.select()
-		.from(series)
-		.where(eq(series.status, "active"));
+	const activeSeries = await db.select().from(series).where(eq(series.status, "active"));
 
 	// Filter to user's series
 	const userSeries = activeSeries.filter((s) => s.userId === userId);
 
 	const dueEpisodes: Array<{
-		series: typeof userSeries[number];
+		series: (typeof userSeries)[number];
 		nextDueDate: Date;
 		nextEpisodeLabel: string | undefined;
 	}> = [];
 
 	for (const s of userSeries) {
-		const cadenceDays = getCadenceDays(
-			s.cadence as SeriesCadence,
-			s.cadenceCustomDays,
-		);
+		const cadenceDays = getCadenceDays(s.cadence as SeriesCadence, s.cadenceCustomDays);
 		// Use lastPublishedAt if available, otherwise createdAt
 		const baseDate = s.lastPublishedAt ?? s.createdAt;
-		const nextDueDate = new Date(
-			baseDate.getTime() + cadenceDays * 24 * 60 * 60 * 1000,
-		);
+		const nextDueDate = new Date(baseDate.getTime() + cadenceDays * 24 * 60 * 60 * 1000);
 
 		if (nextDueDate <= now) {
 			dueEpisodes.push({
@@ -97,11 +85,7 @@ export function getNextEpisodeLabel(s: Series): string | undefined {
  * Increments episodeCount, sets lastPublishedAt to now.
  */
 export async function recordEpisodePublished(db: HubDb, seriesId: string) {
-	const [existing] = await db
-		.select()
-		.from(series)
-		.where(eq(series.id, seriesId))
-		.limit(1);
+	const [existing] = await db.select().from(series).where(eq(series.id, seriesId)).limit(1);
 	if (!existing) throw new Error(`Series not found: ${seriesId}`);
 
 	const rows = await db
@@ -114,15 +98,16 @@ export async function recordEpisodePublished(db: HubDb, seriesId: string) {
 		.where(eq(series.id, seriesId))
 		.returning();
 
-	return rows[0]!;
+	const updatedSeries = rows[0];
+	if (!updatedSeries) {
+		throw new Error(`Series with id ${seriesId} not found`);
+	}
+	return updatedSeries;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function getCadenceDays(
-	cadence: SeriesCadence,
-	customDays: number | null,
-): number {
+function getCadenceDays(cadence: SeriesCadence, customDays: number | null): number {
 	if (cadence === "custom") {
 		if (!customDays) throw new Error("Custom cadence requires cadenceCustomDays");
 		return customDays;
