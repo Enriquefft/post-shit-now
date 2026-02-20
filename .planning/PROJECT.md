@@ -2,62 +2,98 @@
 
 ## What This Is
 
-A Claude Code-first social media growth system where users interact entirely through slash commands in their terminal. Trigger.dev Cloud handles the automation layer (scheduling, posting, analytics collection, intelligence gathering, notifications). No web app, no dashboard — just commands + a thin automation backend. Distributed as a git repo that users clone as their personal "social media workspace."
+A Claude Code-first social media growth system where users interact entirely through slash commands in their terminal. Trigger.dev Cloud handles automation layer (scheduling, posting, analytics collection, intelligence gathering, notifications). No web app, no dashboard — just commands + a thin automation backend. Distributed as a git repo that users clone as their personal "social media workspace."
 
 ## Core Value
 
 Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently — one command to generate, review, and schedule a post.
 
-## Requirements
+## Current State
 
-### Validated
+### Shipped: v1.0 (February 20, 2026)
 
-- ✓ Neon Postgres + Drizzle ORM with migration infrastructure — Phase 1
-- ✓ BYOK for all APIs — Phase 1
-- ✓ Postgres RLS for per-user data isolation — Phase 1
-- ✓ X OAuth 2.0 PKCE with encrypted token storage — Phase 2
-- ✓ Token auto-refresh with race-condition-safe row-level locking — Phase 2
-- ✓ Post scheduling via Trigger.dev delayed runs — Phase 2
-- ✓ Thread auto-splitting with boundary respect — Phase 2
-- ✓ Voice profiling with adaptive interview and content import — Phase 3
-- ✓ Three voice profile types: personal, brand-operator, brand-ambassador — Phase 3
-- ✓ Image generation (GPT Image, Ideogram 3, Flux 2) with smart provider selection — Phase 3
-- ✓ Video generation (Kling, Runway, Pika) with content-hint scoring — Phase 3
-- ✓ Calibration engine with edit tracking and convergence detection — Phase 3
-- ✓ Content brain: format picker, topic suggestions, draft management — Phase 3
-- ✓ `/psn:post` voice-matched workflow and `/psn:voice` management command — Phase 3
-- ✓ X analytics collection with tiered cadence and composite engagement scoring — Phase 4
-- ✓ Preference model with weekly updates from engagement + edit + feedback signals — Phase 4
-- ✓ Autonomous strategy adjustments (tiered auto/approval) with transparent changelog — Phase 4
-- ✓ `/psn:review` weekly review with per-post breakdown, recommendations, fatigue warnings — Phase 4
-- ✓ Content fatigue detection and deprioritization in suggestions — Phase 4
-- ✓ Semi-automated draft finish flow for video scripts — Phase 4
-- ✓ Hub routing (personal/company) in draft metadata — Phase 4
-- ✓ Intelligence layer: scheduled trend collection (HN, Reddit, PH, RSS, Google Trends) + on-demand research (Perplexity, Exa, Tavily, Brave) — Phase 5
-- ✓ Idea bank with maturity pipeline: spark → seed → ready → claimed → developed → used/killed — Phase 5
-- ✓ Content series system: recurring formats with cadence, format templates, and performance tracking — Phase 5
-- ✓ Weekly planning engine with series-first slotting, pillar balancing, and content recycling — Phase 5
-- ✓ Bilingual content creation: English + Spanish, per-post language choice, language-specific voice sections — Phase 5
-- ✓ `/psn:plan`, `/psn:capture`, `/psn:series` slash commands — Phase 5
+✅ **Complete** — 14 phases, 54 plans, 148 requirements
 
-### Active
+Post Shit Now v1.0 is production-ready with comprehensive feature coverage:
 
-- [ ] Two-Hub architecture: mandatory Personal Hub (Neon Postgres + Trigger.dev) for every user, optional Company Hubs for teams
-- [ ] Engagement engine: semi-automated replies to viral/trending posts with human-in-the-loop approval
-- [ ] 4 platform support: X, LinkedIn, Instagram, TikTok (incremental rollout starting with X)
-- [ ] WhatsApp notifications via WAHA (push, digest, standard tiers) with structured command interaction
-- [ ] Company coordination: approval workflows, content calendar, invite code onboarding, team idea surfacing
-- [ ] Remaining slash commands: `/psn:engage`, `/psn:approve`, `/psn:config`, `/psn:calendar`
+**Platform Support:**
+- Full support for X, LinkedIn, Instagram, and TikTok
+- OAuth authentication with encrypted token storage
+- Platform-specific content adaptation (threads, carousels, Reels, videos)
+- Multi-platform posting with partial failure isolation
 
-### Out of Scope
+**Voice & Content:**
+- Adaptive voice profiling with content import and calibration
+- Entity-scoped profiles for multi-project solo founders
+- Bilingual support (English/Spanish) with language-specific voice sections
+- Three posting personas (personal, brand-operator, brand-ambassador)
+- Academic content support with research archetypes
 
-- Web app / dashboard / frontend — CLI-only by design
-- Self-hosted Trigger.dev — Cloud-only for simplicity
-- Real-time chat features — not core to content creation
-- Languages beyond English and Spanish — two is enough for v1
-- Offline/degraded mode — managed services have 99.9%+ uptime, not worth the complexity
-- Claude-powered WhatsApp chatbot — future upgrade, structured commands first
-- Cloud media storage (S3/R2) — future, local git for now
+**Intelligence & Planning:**
+- Daily trend collection from HN, Reddit, Product Hunt, RSS, Google Trends
+- On-demand research (Perplexity, Exa, Tavily, Brave)
+- Idea bank with maturity pipeline (spark → ready → used/killed)
+- Content series with automatic slotting and cadence management
+- Weekly planning engine with pillar balancing and content recycling
+
+**Analytics & Learning:**
+- Multi-platform analytics collection
+- Composite engagement scoring (saves > shares > comments > likes)
+- Weekly performance review with actionable recommendations
+- Autonomous strategy adjustments with transparent changelog
+- Content fatigue detection and deprioritization
+
+**Engagement & Notifications:**
+- Engagement monitor with opportunity scoring
+- Semi-automated reply drafting with human approval
+- Three-tier WhatsApp notifications (push, digest, standard)
+- Notification fatigue prevention with caps and cooldowns
+
+**Team Coordination:**
+- Two-Hub architecture (mandatory Personal Hub, optional Company Hubs)
+- Postgres RLS for per-user data isolation
+- Approval workflows with notification routing
+- Unified calendar with cross-hub slot claiming
+- Invite code onboarding for team members
+
+**Infrastructure:**
+- BYOK model for all APIs (encrypted storage in DB)
+- Trigger.dev Cloud for automation (scheduling, tasks, jobs)
+- Neon Postgres with Drizzle ORM and migration infrastructure
+- Comprehensive error handling with retry logic and backoff
+
+See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for complete milestone details
+
+## Next Milestone Goals
+
+**Status:** Planning not yet begun
+
+Use `/gsd:new-milestone` to initiate the v2 milestone cycle, which includes:
+- Requirements gathering and validation
+- Research into potential enhancements
+- Roadmap planning for v2 features
+
+**Potential v2 directions** (not yet prioritized):
+- WhatsApp chatbot (natural language vs structured commands)
+- Cloud media storage (S3/Cloudflare R2)
+- Content template library
+- Team analytics leaderboard
+- Additional language support
+
+<details>
+<summary>v1.0 Archived Requirements</summary>
+
+### Validated (v1.0)
+
+- ✓ All 148 v1.0 requirements complete
+- ✓ Complete platform coverage (X, LinkedIn, Instagram, TikTok)
+- ✓ Voice profiling with calibration and bilingual support
+- ✓ Intelligence layer with trend collection and research
+- ✓ Learning loop with autonomous adjustments
+- ✓ Team coordination with approval workflows
+- ✓ Notification system with WhatsApp integration
+
+</details>
 
 ## Context
 
@@ -103,20 +139,20 @@ Make it so easy to create and post high-quality, voice-matched content that team
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Claude Code commands, not a web app | Users are Claude Code users. Commands are infinitely flexible. No maintenance burden. | — Pending |
-| Personal Hub mandatory for all users | Your data is always yours. Leaving company = delete a connection file. | — Pending |
-| BYOK for all APIs | Each user/company controls own costs and rate limits. No central billing. | ✓ Validated Phase 1-2 |
-| Neon Postgres + Drizzle ORM | Full Postgres ecosystem, RLS for isolation, zero vendor lock-in. | ✓ Validated Phase 1 |
-| Trigger.dev Cloud (not self-hosted) | Free tier for light usage, warm starts, auto-scaling, no infra maintenance. | ✓ Validated Phase 1-2 |
-| Semi-automated engagement only | Fully automated replies get accounts banned. Human approves every reply. | — Pending |
-| Incremental platform rollout | X first (easiest API), then LinkedIn, then IG/TikTok. Matches approval timelines. | ✓ X complete |
-| Bilingual (en/es) not translation | Each language independently crafted. Voice profiles have language-specific sections. | — Pending |
-| Invite code flow for team onboarding | No raw credential sharing. One-time use, time-limited codes. | — Pending |
-| Learning loop mostly autonomous | System is a social media manager, not a consultant. Makes tactical decisions, reports back. | — Pending |
-| Voice profiles as YAML files (git-stored) | Version-controlled, human-readable, portable. Zod validation on load/save. | ✓ Validated Phase 3 |
-| fal.ai as unified gateway for media gen | One API for Ideogram, Flux, Kling, Pika. Direct SDK for GPT Image and Runway. | ✓ Validated Phase 3 |
-| Content-hint keyword scoring for provider selection | Deterministic, no ML needed. Lets Claude pick best tool per content. | ✓ Validated Phase 3 |
-| Edit distance for calibration convergence | 10 consecutive posts below 15% edit ratio = calibrated. Dual signals (edits + explicit). | ✓ Validated Phase 3 |
+| Claude Code commands, not a web app | Users are Claude Code users. Commands are infinitely flexible. No maintenance burden. | ✓ Validated v1.0 |
+| Personal Hub mandatory for all users | Your data is always yours. Leaving company = delete a connection file. | ✓ Validated v1.0 |
+| BYOK for all APIs | Each user/company controls own costs and rate limits. No central billing. | ✓ Validated v1.0 |
+| Neon Postgres + Drizzle ORM | Full Postgres ecosystem, RLS for isolation, zero vendor lock-in. | ✓ Validated v1.0 |
+| Trigger.dev Cloud (not self-hosted) | Free tier for light usage, warm starts, auto-scaling, no infra maintenance. | ✓ Validated v1.0 |
+| Semi-automated engagement only | Fully automated replies get accounts banned. Human approves every reply. | ✓ Validated v1.0 |
+| Incremental platform rollout | X first (easiest API), then LinkedIn, then IG/TikTok. Matches approval timelines. | ✓ Validated v1.0 |
+| Bilingual (en/es) not translation | Each language independently crafted. Voice profiles have language-specific sections. | ✓ Validated v1.0 |
+| Invite code flow for team onboarding | No raw credential sharing. One-time use, time-limited codes. | ✓ Validated v1.0 |
+| Learning loop mostly autonomous | System is a social media manager, not a consultant. Makes tactical decisions, reports back. | ✓ Validated v1.0 |
+| Voice profiles as YAML files (git-stored) | Version-controlled, human-readable, portable. Zod validation on load/save. | ✓ Validated v1.0 |
+| fal.ai as unified gateway for media gen | One API for Ideogram, Flux, Kling, Pika. Direct SDK for GPT Image and Runway. | ✓ Validated v1.0 |
+| Content-hint keyword scoring for provider selection | Deterministic, no ML needed. Lets Claude pick best tool per content. | ✓ Validated v1.0 |
+| Edit distance for calibration convergence | 10 consecutive posts below 15% edit ratio = calibrated. Dual signals (edits + explicit). | ✓ Validated v1.0 |
 
 ---
-*Last updated: 2026-02-19 after Phase 5*
+*Last updated: 2026-02-20 (v1.0 milestone complete)*
