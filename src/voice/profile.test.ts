@@ -11,12 +11,7 @@ import {
 	saveStrategy,
 	validateProfile,
 } from "./profile.ts";
-import {
-	type VoiceProfile,
-	createBlankSlateProfile,
-	createDefaultProfile,
-	voiceProfileSchema,
-} from "./types.ts";
+import { createBlankSlateProfile, createDefaultProfile, voiceProfileSchema } from "./types.ts";
 
 describe("Voice Profile", () => {
 	let tmpDir: string;
@@ -260,8 +255,8 @@ describe("Voice Profile", () => {
 			profile.identity.pillars = ["A", "B"];
 			const strategy = generateStrategy(profile);
 
-			expect(strategy.pillars[0]!.weight).toBe(0.5);
-			expect(strategy.pillars[1]!.weight).toBe(0.5);
+			expect(strategy.pillars[0]?.weight).toBe(0.5);
+			expect(strategy.pillars[1]?.weight).toBe(0.5);
 		});
 
 		it("enables only platforms with personas", () => {
