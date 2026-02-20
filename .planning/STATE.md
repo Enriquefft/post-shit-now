@@ -65,6 +65,7 @@ Progress: [██████████] 100% v1.0 Complete
 | Phase 11 P06 | 5 | 2 tasks | 1 files |
 | Phase 12 P01 | 5min | 4 tasks | 5 files |
 | Phase 12 P02 | 7min | 4 tasks | 4 files |
+| Phase 4-review-psn-session P01 | 3 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -241,6 +242,7 @@ Recent decisions affecting current work:
 - [Phase 12]: Maturity detection uses keyword matching in answer text (never/starting -> never_posted, etc.)
 - [Phase 12]: Idea count adapted via Math.min(requestedCount, adaptation.suggestedIdeasCount) for progressive autonomy
 - [Phase 12]: Sample posts generated only for first (top) idea for never_posted users to keep focus
+- [Phase 4-review-psn-session]: Issue categorization: 6 critical, 14 major, 10 minor issues documented from PSN session
 
 ### Pending Todos
 
