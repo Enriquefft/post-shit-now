@@ -1,6 +1,10 @@
 import { z } from "zod";
 import type { Platform } from "../core/types/index.ts";
 
+// ─── Maturity Level ─────────────────────────────────────────────────────────
+
+export type MaturityLevel = "never_posted" | "sporadic" | "consistent" | "very_active";
+
 // ─── Calibration ────────────────────────────────────────────────────────────
 
 export const calibrationStateSchema = z.object({
@@ -89,6 +93,11 @@ export const voiceProfileSchema = z.object({
 		instagram: platformPersonaSchema.optional(),
 		tiktok: platformPersonaSchema.optional(),
 	}),
+	// Entity-scoped profile fields (for solo founder multi-project support)
+	entitySlug: z.string().optional(),
+	entityDisplayName: z.string().optional(),
+	entityDescription: z.string().optional(),
+	maturityLevel: z.enum(["never_posted", "sporadic", "consistent", "very_active"]).optional(),
 });
 
 export type VoiceProfile = z.infer<typeof voiceProfileSchema>;
