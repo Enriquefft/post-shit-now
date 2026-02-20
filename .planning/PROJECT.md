@@ -64,21 +64,18 @@ Post Shit Now v1.0 is production-ready with comprehensive feature coverage:
 
 See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for complete milestone details
 
-## Next Milestone Goals
+## Current Milestone: v1.1 (Bug Fix & Refinement)
 
-**Status:** Planning not yet begun
+**Goal:** Fix bugs, improve setup experience, and validate through early user testing
 
-Use `/gsd:new-milestone` to initiate the v2 milestone cycle, which includes:
-- Requirements gathering and validation
-- Research into potential enhancements
-- Roadmap planning for v2 features
+**Context:** Trial run identified 30 issues across setup, database, voice interview, and UX. Milestone will address all prioritized issues while incorporating early user feedback.
 
-**Potential v2 directions** (not yet prioritized):
-- WhatsApp chatbot (natural language vs structured commands)
-- Cloud media storage (S3/Cloudflare R2)
-- Content template library
-- Team analytics leaderboard
-- Additional language support
+**Focus areas:**
+- Critical setup blockers (hub detection, migration errors, API key configuration)
+- Database stability (RLS policies, missing tables, state management)
+- Voice interview completeness (CLI commands, state persistence)
+- UX improvements (progress indicators, error messages, validation)
+- Recovery mechanisms (reset command, dry-run mode, health checks)
 
 <details>
 <summary>v1.0 Archived Requirements</summary>
@@ -155,4 +152,4 @@ Use `/gsd:new-milestone` to initiate the v2 milestone cycle, which includes:
 | Edit distance for calibration convergence | 10 consecutive posts below 15% edit ratio = calibrated. Dual signals (edits + explicit). | ✓ Validated v1.0 |
 
 ---
-*Last updated: 2026-02-20 (v1.0 milestone complete)*
+*Last updated: 2026-02-20 (v1.1 milestone started)*
