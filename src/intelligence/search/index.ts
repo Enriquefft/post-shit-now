@@ -1,4 +1,5 @@
 import type { SearchResult } from "../types.ts";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { searchPerplexity } from "./perplexity.ts";
 import { searchExa } from "./exa.ts";
 import { searchTavily } from "./tavily.ts";
@@ -7,14 +8,18 @@ import { searchBrave } from "./brave-search.ts";
 /**
  * Unified search aggregator across all available providers.
  * Calls all providers in parallel via Promise.allSettled.
- * Deduplicates results by URL. Missing API keys cause providers to return [].
+ * Deduplicates results by URL. Missing API keys cause providers to throw errors.
  */
-export async function searchAll(query: string): Promise<SearchResult[]> {
+export async function searchAll(
+	query: string,
+	db: PostgresJsDatabase,
+	hubId: string,
+): Promise<SearchResult[]> {
 	const results = await Promise.allSettled([
-		searchPerplexity(query),
-		searchExa(query),
-		searchTavily(query),
-		searchBrave(query),
+		searchPerplexity(query, db, hubId),
+		searchExa(query, db, hubId),
+		searchTavily(query, db, hubId),
+		searchBrave(query, db, hubId),
 	]);
 
 	const allResults: SearchResult[] = [];
