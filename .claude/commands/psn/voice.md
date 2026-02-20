@@ -1,11 +1,15 @@
 ---
-description: Voice profile management — interview, calibration, and tweaks
+description: Voice profile management — tweaks, calibration, and imports
 ---
 
 # /psn:voice — Voice profile management
 
 ## What this does
-Manages your voice profile — the foundation that makes AI-generated posts sound like you, not generic AI. Covers the full lifecycle: interview, content import, editing, calibration, and recalibration.
+Manages your voice profile — the foundation that makes AI-generated posts sound like you, not generic AI. Covers quick tweaks, calibration, and content imports.
+
+> **Note:** Voice interviews are now managed via `/psn:setup voice`.
+> Use `/psn:setup voice` to create or update your voice profile.
+> This command remains for quick tweaks, calibration reports, and content imports.
 
 ## Arguments
 $ARGUMENTS
@@ -40,13 +44,22 @@ bun run src/voice/calibration.ts list-profiles
 
 Show each profile with its type (personal, brand-operator, brand-ambassador) and path.
 
-If no profile exists, suggest: "Run `/psn:voice interview` to create your voice profile."
+If no profile exists, suggest: "Run `/psn:setup voice` to create your voice profile."
 
 ---
 
 ### /psn:voice interview — Full voice interview
 
-Run a guided voice interview to create or update your voice profile. This should feel like a conversation with a social media strategist, not a form to fill out.
+> **Moved to `/psn:setup voice`**
+>
+> The interview flow is now part of the unified setup. Run:
+> ```
+> /psn:setup voice
+> ```
+>
+> For a specific entity: `/psn:setup voice --entity my-project`
+
+---
 
 **Start the interview:**
 ```
