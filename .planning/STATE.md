@@ -232,6 +232,9 @@ Recent decisions affecting current work:
 - [Phase 12]: Function overload pattern for backward-compatible loadProfile() extension
 - [Phase 12]: Voice interview absorbed into /psn:setup for unified configuration entry point (SETUP-01)
 - [Phase 12]: Status detection uses hybrid approach: file-based for hub, DB-based for entities/platforms
+- [Phase 12]: Maturity detection uses keyword matching in answer text (never/starting -> never_posted, etc.)
+- [Phase 12]: Idea count adapted via Math.min(requestedCount, adaptation.suggestedIdeasCount) for progressive autonomy
+- [Phase 12]: Sample posts generated only for first (top) idea for never_posted users to keep focus
 
 ### Pending Todos
 
