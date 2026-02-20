@@ -71,6 +71,10 @@ const STORY_KEYWORDS = [
 const HOWTO_KEYWORDS = ["how to", "tutorial", "guide", "steps", "tips", "tricks", "walkthrough"];
 const QUOTE_KEYWORDS = ["quote", "said", "wisdom", "inspiration", "words"];
 const TREND_KEYWORDS = ["trend", "hot take", "controversial", "unpopular opinion", "debate"];
+const ACADEMIC_KEYWORDS = [
+	"paper", "research", "study", "findings", "published", "accepted",
+	"journal", "conference", "academic", "publication", "results",
+];
 
 function hasKeywords(text: string, keywords: string[]): boolean {
 	const lower = text.toLowerCase();
@@ -136,6 +140,14 @@ function pickFormatX(
 		};
 	}
 
+	if (hasKeywords(type, ACADEMIC_KEYWORDS)) {
+		return {
+			recommended: "thread",
+			alternatives: [{ format: "short-post", reason: "Condense into single tweet" }],
+			reasoning: "Academic content works well as threads — break down research into digestible chunks (problem → methods → findings → implications)",
+		};
+	}
+
 	if (contentLength && contentLength > 280) {
 		return {
 			recommended: "thread",
@@ -175,6 +187,18 @@ function pickFormatLinkedIn(
 			recommended: prefFormat,
 			alternatives: [{ format: "carousel", reason: "Carousels get 11.2x impressions" }],
 			reasoning: `Using preferred format: ${prefFormat}`,
+		};
+	}
+
+	// Academic content -> carousel (research findings and data visualization)
+	if (hasKeywords(type, ACADEMIC_KEYWORDS)) {
+		return {
+			recommended: "carousel",
+			alternatives: [
+				{ format: "long-post", reason: "Long-form text version (1000-1300 chars)" },
+				{ format: "infographic", reason: "Single-image data visualization" },
+			],
+			reasoning: "Research findings and data visualization work best as LinkedIn carousels (11.2x impressions)",
 		};
 	}
 
@@ -273,6 +297,18 @@ function pickFormatInstagram(
 			recommended: prefFormat,
 			alternatives: [{ format: "reel-script", reason: "Reels get 30.81% reach rate" }],
 			reasoning: `Using preferred format: ${prefFormat}`,
+		};
+	}
+
+	// Academic content -> reel-script (visual explanations of research concepts)
+	if (hasKeywords(type, ACADEMIC_KEYWORDS)) {
+		return {
+			recommended: "reel-script",
+			alternatives: [
+				{ format: "carousel", reason: "Step-by-step breakdown visual" },
+				{ format: "image-post", reason: "Single finding as image" },
+			],
+			reasoning: "Visual explanations of research concepts perform well as Reels",
 		};
 	}
 

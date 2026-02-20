@@ -63,6 +63,11 @@ export const STARTER_ARCHETYPES = [
 		description: "Challenges conventional wisdom, sparks debate with hot takes",
 		style: { formality: 3, humor: 7, technicalDepth: 5, storytelling: 5, controversy: 8 },
 	},
+	{
+		name: "Academic Researcher",
+		description: "Shares papers, research findings, and academic insights",
+		style: { formality: 8, humor: 2, technicalDepth: 9, storytelling: 6, controversy: 4 },
+	},
 ] as const;
 
 // ─── Question Banks ─────────────────────────────────────────────────────────

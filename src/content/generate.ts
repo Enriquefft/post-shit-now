@@ -6,6 +6,11 @@ import { getLockedSettings, isSettingLocked } from "../learning/locks.ts";
 import { getPreferenceModel } from "../learning/preference-model.ts";
 import { loadProfile } from "../voice/profile.ts";
 import type { VoiceProfile } from "../voice/types.ts";
+import {
+	ACADEMIC_HOOK_PATTERNS,
+	CITATION_PATTERNS,
+	TONE_BALANCE_GUIDANCE,
+} from "./academic-guidance.ts";
 import { saveDraft } from "./drafts.ts";
 import { type FormatSuggestion, type PostFormat, pickFormat } from "./format-picker.ts";
 import { checkIdeaBank, suggestTopics, type TopicSuggestion } from "./topic-suggest.ts";
@@ -115,6 +120,22 @@ export function buildVoicePromptContext(
 	}
 	if (profile.identity.boundaries.cautious.length > 0) {
 		sections.push(`- CAUTIOUS: ${profile.identity.boundaries.cautious.join(", ")}`);
+	}
+
+	// Academic guidance: check if profile has academic traits or content hints research
+	const hasAcademicArchetype = profile.identity.pillars.some(p =>
+		["research", "academic", "science", "papers", "studies"].some(k => p.toLowerCase().includes(k))
+	);
+	const hasAcademicStyle = profile.style.technicalDepth >= 8 && profile.style.formality >= 7;
+
+	if (hasAcademicArchetype || hasAcademicStyle) {
+		sections.push("\n## Academic Content Guidance");
+		sections.push("When posting research or papers, use these patterns:");
+		sections.push("- Hook strategies: statistics, question, problem-solution, authority quotes");
+		sections.push("- Tone balance: default to accessible (5-7/10), increase formality for peers");
+		sections.push("- Citations: flexible (DOI, arXiv, title+author, or link-free)");
+		sections.push("- What this means: translate technical findings for broader audiences");
+		sections.push("- Format preference: thread (X), carousel (LinkedIn findings), reel (IG visual)");
 	}
 
 	// Reference voices
