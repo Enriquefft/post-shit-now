@@ -226,7 +226,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 9. Integration Wiring Fixes | 2/2 | Complete | 2026-02-19 |
 | 10. Milestone Documentation Closure | 1/1 | Complete | 2026-02-19 |
 | 11. Tech Debt Remediation | 6/6 | Complete   | 2026-02-20 |
-| 12. Solo Founder Experience | 0/3 | Pending | — |
+| 12. Solo Founder Experience | 1/3 | In Progress|  |
 | 13. Academic Content Support | 0/1 | Pending | — |
 
 ### Phase 11: Tech Debt Remediation - CONFIG-04 + IMG/VID Provider Migration
@@ -262,7 +262,7 @@ Plans:
   3. Voice interview captures social maturity level (never posted / sporadic / consistent / very active)
   4. `/psn:plan` adapts prescriptiveness based on user maturity: more hand-holding for cold-start users, more autonomous for mature users
   5. `/psn:setup` detects what's already configured and offers targeted updates (voice only, add platform, manage connections)
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 12-01-PLAN.md — Entity-scoped voice profiles: schema extension, profile selection during `/psn:post`, persona routing without Company Hub dependency

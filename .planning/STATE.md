@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Core value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
-**Current focus:** Phase 9 - Integration Wiring Fixes
+**Current focus:** Phase 12 - Solo Founder Experience
 
 ## Current Position
 
-Phase: 11 of 11 (Tech Debt Remediation)
-Plan: 6 of 6 in current phase (COMPLETE)
-Status: Phase 11 Complete
-Last activity: 2026-02-20 - Completed 11-06 (Wire hub context to search and media generation)
+Phase: 12 of 13 (Solo Founder Experience)
+Plan: 1 of 3 in current phase (EXECUTING)
+Status: 12-01 complete, entity-scoped voice profiles
+Last activity: 2026-02-19 - Completed 12-01 (entity-scoped voice profiles)
 
-Progress: [██████████] 100%
+Progress: [██████████░] 92%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [██████████] 100%
 | Phase 11 P04 | 4 | 1 tasks | 4 files |
 | Phase 11 P05 | 8 | 2 tasks | 2 files |
 | Phase 11 P06 | 5 | 2 tasks | 1 files |
+| Phase 12 P01 | 5min | 4 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -224,6 +225,10 @@ Recent decisions affecting current work:
 - [Phase 11-tech-debt-remediation]: Ideogram tries fal key first, then ideogram key (fallback pattern)
 - [Phase 11-tech-debt-remediation]: /psn:setup keys subcommand supports --list and --service flags
 - [Phase 11-tech-debt-remediation]: Architectural limitation: ideation.ts needs hubId for on-demand search (future work)
+- [Phase 12]: Entity-scoped voice profiles use entitySlug field for multi-project support
+- [Phase 12]: Slug collisions handled by appending -2, -3, etc. to base slug
+- [Phase 12]: PostgresJsDatabase type used for DB connection (matching existing pattern)
+- [Phase 12]: Function overload pattern for backward-compatible loadProfile() extension
 
 ### Pending Todos
 
