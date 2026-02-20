@@ -37,6 +37,9 @@ coverage/
 # Company Hub connection files (contain credentials)
 .hubs/
 
+# User data (personal voice profiles and content)
+users/
+
 # OS
 .DS_Store
 Thumbs.db
