@@ -3,16 +3,18 @@ import { setupCompanyHub } from "./setup-company-hub.ts";
 import { setupDatabase } from "./setup-db.ts";
 import { setupDisconnect } from "./setup-disconnect.ts";
 import { setupJoinHub } from "./setup-join.ts";
-import { setupKeys, setupProviderKeys, writeProviderKey, listProviderKeys } from "./setup-keys.ts";
+import { setupKeys, setupProviderKeys, listProviderKeys } from "./setup-keys.ts";
 import { setupInstagramOAuth } from "./setup-instagram-oauth.ts";
 import { setupLinkedInOAuth } from "./setup-linkedin-oauth.ts";
 import { setupTikTokOAuth } from "./setup-tiktok-oauth.ts";
 import { setupTrigger } from "./setup-trigger.ts";
 import { setupXOAuth } from "./setup-x-oauth.ts";
+import { getSetupStatus, setupVoice, type SetupStatus } from "./setup-voice.ts";
 import { validateAll } from "./validate.ts";
 import { getHubConnection, getHubDb } from "../team/hub.ts";
 import { generateInviteCode } from "../team/invite.ts";
 import { isAdmin, listTeamMembers, promoteToAdmin } from "../team/members.ts";
+import { listEntities, createEntity } from "../voice/entity-profiles.ts";
 
 interface SetupOutput {
 	steps: SetupResult[];
@@ -22,7 +24,7 @@ interface SetupOutput {
 
 // ─── Subcommand Types ──────────────────────────────────────────────────────
 
-type SetupSubcommand = "hub" | "join" | "disconnect" | "invite" | "team" | "promote" | "notifications" | "keys";
+type SetupSubcommand = "hub" | "join" | "disconnect" | "invite" | "team" | "promote" | "notifications" | "keys" | "voice" | "entity" | "status";
 
 interface SubcommandParams {
 	hub: { slug: string; displayName: string; adminUserId?: string };
@@ -33,6 +35,9 @@ interface SubcommandParams {
 	promote: { slug: string; userId: string; targetUserId: string };
 	notifications: { provider?: string; phone?: string };
 	keys: { service?: string; list?: boolean };
+	voice: { entity?: string; userId?: string };
+	entity: { list?: boolean; create?: string; description?: string; userId?: string };
+	status: { userId?: string };
 }
 
 /**
@@ -269,6 +274,123 @@ export async function runSetupSubcommand(
 				completed: false,
 			};
 		}
+		case "voice": {
+			// Voice profile setup - absorbs /psn:voice interview
+			// Get Personal Hub connection for DB access
+			const connection = await getHubConnection(projectRoot, "personal");
+			if (!connection) {
+				return {
+					steps: [{ step: "voice", status: "error", message: "Personal Hub not configured. Run /psn:setup first." }],
+					validation: null,
+					completed: false,
+				};
+			}
+
+			const db = getHubDb(connection);
+			const result = await setupVoice({
+				userId: params.userId ?? "default",
+				entitySlug: params.entity,
+				db,
+				configDir,
+			});
+			return { steps: [result], validation: null, completed: result.status === "success" };
+		}
+		case "entity": {
+			// Entity management - list or create entities
+			const connection = await getHubConnection(projectRoot, "personal");
+			if (!connection) {
+				return {
+					steps: [{ step: "entity", status: "error", message: "Personal Hub not configured. Run /psn:setup first." }],
+					validation: null,
+					completed: false,
+				};
+			}
+
+			const db = getHubDb(connection);
+			const userId = params.userId ?? "default";
+
+			if (params.list) {
+				const entities = await listEntities(db, userId);
+				return {
+					steps: [{
+						step: "entity",
+						status: "success",
+						message: `${entities.length} entities found`,
+						data: {
+							entities: entities.map((e) => ({
+								slug: e.slug,
+								displayName: e.displayName,
+								description: e.description,
+								lastUsedAt: e.lastUsedAt?.toISOString(),
+							})),
+						},
+					}],
+					validation: null,
+					completed: true,
+				};
+			}
+
+			if (params.create) {
+				const slug = await createEntity(db, userId, params.create, params.description);
+				return {
+					steps: [{
+						step: "entity",
+						status: "success",
+						message: `Entity created: ${slug}`,
+						data: { entitySlug: slug, displayName: params.create },
+					}],
+					validation: null,
+					completed: true,
+				};
+			}
+
+			// Return need_input for entity creation prompt
+			return {
+				steps: [{
+					step: "entity",
+					status: "need_input",
+					message: "Entity name required",
+					data: { hint: "e.g., 'My Side Project' or 'PSN Founder'", usage: "/psn:setup entity --create \"Name\" [--description \"Description\"]" },
+				}],
+				validation: null,
+				completed: false,
+			};
+		}
+		case "status": {
+			// Show setup status with what's configured and what's missing
+			const connection = await getHubConnection(projectRoot, "personal");
+			let db: ReturnType<typeof getHubDb> | undefined;
+			if (connection) {
+				db = getHubDb(connection);
+			}
+
+			const status = await getSetupStatus(configDir, db, params.userId ?? "default");
+			return {
+				steps: [{
+					step: "status",
+					status: "success",
+					message: status.incompleteSteps.length === 0
+						? "Setup complete"
+						: `${status.incompleteSteps.length} steps remaining`,
+					data: {
+						...status,
+						checkmarks: {
+							hub: status.hasHub ? "[x]" : "[ ]",
+							voice: status.hasVoiceProfile ? "[x]" : "[ ]",
+							platforms: status.hasPlatforms ? "[x]" : "[ ]",
+						},
+						suggestions: status.incompleteSteps.map((step) => {
+							if (step === "hub") return "Run /psn:setup to configure your Personal Hub";
+							if (step === "voice") return "Run /psn:setup voice to create your voice profile";
+							if (step === "platforms") return "Connect a platform with /psn:setup (X, LinkedIn, Instagram, or TikTok)";
+							return `Complete: ${step}`;
+						}),
+					},
+				}],
+				validation: null,
+				completed: status.incompleteSteps.length === 0,
+			};
+		}
 		default:
 			return null; // Not a recognized subcommand — fall through to default setup
 	}
@@ -419,6 +541,16 @@ function parseCliArgs(args: string[]): { subcommand: string | null; params: Reco
 	// Handle --list flag for keys subcommand
 	if (subcommand === "keys" && flagArgs.includes("--list")) {
 		params.keys = { list: true };
+	}
+
+	// Handle --list flag for entity subcommand
+	if (subcommand === "entity" && flagArgs.includes("--list")) {
+		params.list = "true";
+	}
+
+	// Handle --entity flag for voice subcommand
+	if (subcommand === "voice" && params.entity) {
+		params.entity = params.entity;
 	}
 
 	return { subcommand, params };
