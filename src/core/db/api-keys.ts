@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { DbClient } from "../db/connection";
 import { decrypt, encrypt, keyFromHex } from "../utils/crypto";
 import { apiKeys } from "./schema";
 
@@ -18,7 +18,7 @@ export interface ApiKeyEntry {
  * @throws Error if key not found or HUB_ENCRYPTION_KEY is missing
  */
 export async function getApiKey(
-	db: PostgresJsDatabase,
+	db: DbClient,
 	hubId: string,
 	service: string,
 	keyName?: string,
@@ -46,7 +46,7 @@ export async function getApiKey(
 		throw new Error(`API key for ${keyIdentifier} not found in hub ${hubId}`);
 	}
 
-	const encryptedValue = result[0].encryptedValue;
+	const encryptedValue = result[0]?.encryptedValue;
 	if (!encryptedValue) {
 		throw new Error(`API key lookup returned empty value for ${service} in hub ${hubId}`);
 	}
@@ -69,7 +69,7 @@ export async function getApiKey(
  * @throws Error if HUB_ENCRYPTION_KEY is missing
  */
 export async function setApiKey(
-	db: PostgresJsDatabase,
+	db: DbClient,
 	hubId: string,
 	service: string,
 	keyName: string,
@@ -92,7 +92,7 @@ export async function setApiKey(
 		)
 		.limit(1);
 
-	if (existing.length > 0) {
+	if (existing.length > 0 && existing[0]?.id) {
 		// Update existing key
 		await db.update(apiKeys).set({ encryptedValue }).where(eq(apiKeys.id, existing[0].id));
 	} else {
@@ -114,7 +114,7 @@ export async function setApiKey(
  * @returns Array of service/keyName pairs (no decrypted values)
  */
 export async function listKeys(
-	db: PostgresJsDatabase,
+	db: DbClient,
 	hubId: string,
 	service?: string,
 ): Promise<ApiKeyEntry[]> {

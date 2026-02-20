@@ -1,5 +1,5 @@
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { getApiKey } from "../../core/db/api-keys";
+import type { DbClient } from "../../core/db/connection.ts";
 import type { GeneratedVideo, VideoGenParams, VideoProvider } from "../video-gen.ts";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -31,11 +31,7 @@ export const pikaProvider: VideoProvider = {
 	strengths: ["animated-clips", "text-animation", "quote-videos", "creative-effects"],
 	supportedModes: ["text-to-video", "image-to-video"],
 
-	async generate(
-		params: VideoGenParams,
-		db: PostgresJsDatabase,
-		hubId: string,
-	): Promise<GeneratedVideo> {
+	async generate(params: VideoGenParams, db: DbClient, hubId: string): Promise<GeneratedVideo> {
 		const falKey = await getApiKey(db, hubId, "fal");
 		if (!falKey) {
 			throw new Error("API key lookup returned empty value");

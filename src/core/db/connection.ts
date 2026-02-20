@@ -1,6 +1,14 @@
 import { neon } from "@neondatabase/serverless";
+import type { NeonHttpDatabase } from "drizzle-orm/neon-http";
 import { drizzle as drizzleHttp } from "drizzle-orm/neon-http";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema.ts";
+
+/**
+ * Generic type for both database implementations.
+ * Accepts both Neon HTTP and Postgres.js database types.
+ */
+export type DbClient = PostgresJsDatabase<typeof schema> | NeonHttpDatabase<typeof schema>;
 
 /**
  * Create a Hub database connection using Neon HTTP driver.

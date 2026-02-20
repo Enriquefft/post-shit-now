@@ -11,6 +11,10 @@ import { loadProfile } from "../voice/profile.ts";
 import type { MaturityLevel, VoiceProfile } from "../voice/types.ts";
 import type { PlanIdea, PlanIdeaSource } from "./types.ts";
 
+// ─── Source Constants ──────────────────────────────────────────────────────────
+
+const SOURCE_TREND = "trend" as const satisfies PlanIdeaSource;
+
 // ─── Maturity Adaptations ─────────────────────────────────────────────────────
 
 /**
@@ -223,14 +227,14 @@ export async function generatePlanIdeas(
 	if (opts?.enableOnDemandSearch) {
 		try {
 			for (const pillar of pillars.slice(0, 2)) {
-				const results = await searchAll(`${pillar.name} latest trends 2026`);
+				const results = await searchAll(`${pillar.name} latest trends 2026`, db, userId);
 				for (const result of results.slice(0, 2)) {
 					ideas.push({
 						topic: result.title,
 						pillar: pillar.name,
 						angle: "trend",
 						format: "thread",
-						source: "trend" as PlanIdeaSource,
+						source: SOURCE_TREND,
 					});
 				}
 			}

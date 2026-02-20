@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { count, eq } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { DbClient } from "../core/db/connection.ts";
 import { oauthTokens, voiceProfiles } from "../core/db/schema";
 import type { SetupResult } from "../core/types/index.ts";
 import { createEntity, type EntitySummary, listEntities } from "../voice/entity-profiles";
@@ -23,7 +23,7 @@ export interface SetupStatus {
 export interface SetupVoiceOptions {
 	userId: string;
 	entitySlug?: string;
-	db: PostgresJsDatabase;
+	db: DbClient;
 	configDir: string;
 }
 
@@ -32,7 +32,7 @@ export interface CreateEntityOptions {
 	displayName: string;
 	description?: string;
 	maturityLevel?: MaturityLevel;
-	db: PostgresJsDatabase;
+	db: DbClient;
 }
 
 // ─── Setup Status Detection ─────────────────────────────────────────────────
@@ -45,7 +45,7 @@ export interface CreateEntityOptions {
  */
 export async function getSetupStatus(
 	configDir: string,
-	db?: PostgresJsDatabase,
+	db?: DbClient,
 	userId?: string,
 ): Promise<SetupStatus> {
 	const status: SetupStatus = {

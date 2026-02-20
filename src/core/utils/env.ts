@@ -4,6 +4,7 @@ interface HubEnv {
 	databaseUrl: string;
 	triggerProjectRef: string;
 	encryptionKey: string;
+	hubId?: string;
 }
 
 function parseEnvFile(content: string): Record<string, string> {
@@ -53,6 +54,7 @@ export async function loadHubEnv(
 			databaseUrl: env.DATABASE_URL,
 			triggerProjectRef: env.TRIGGER_PROJECT_REF ?? "",
 			encryptionKey: env.HUB_ENCRYPTION_KEY ?? "",
+			hubId: env.HUB_ID,
 		},
 	};
 }

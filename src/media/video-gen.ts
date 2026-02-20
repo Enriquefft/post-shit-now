@@ -1,4 +1,4 @@
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { DbClient } from "../core/db/connection.ts";
 import type { Platform } from "../core/types/index.ts";
 import { PLATFORM_VIDEO_SPECS } from "./platform-specs.ts";
 import { klingProvider } from "./providers/kling.ts";
@@ -13,7 +13,7 @@ export interface VideoProvider {
 	name: string;
 	strengths: string[];
 	supportedModes: VideoMode[];
-	generate(params: VideoGenParams, db: PostgresJsDatabase, hubId: string): Promise<GeneratedVideo>;
+	generate(params: VideoGenParams, db: DbClient, hubId: string): Promise<GeneratedVideo>;
 }
 
 export interface VideoGenParams {
@@ -182,7 +182,7 @@ export interface GenerateVideoResult {
 
 export async function generateVideo(
 	options: GenerateVideoOptions,
-	db: PostgresJsDatabase,
+	db: DbClient,
 	hubId: string,
 ): Promise<GenerateVideoResult> {
 	const spec = PLATFORM_VIDEO_SPECS[options.platform];

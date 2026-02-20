@@ -1,7 +1,7 @@
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { and, desc, eq } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { DbClient } from "../core/db/connection.ts";
 import { voiceProfiles } from "../core/db/schema";
 import { createBlankSlateProfile, type MaturityLevel, type VoiceProfile } from "./types";
 
@@ -43,10 +43,7 @@ export function slugify(name: string): string {
  * @param userId User ID
  * @returns Array of EntitySummary for picker display
  */
-export async function listEntities(
-	db: PostgresJsDatabase,
-	userId: string,
-): Promise<EntitySummary[]> {
+export async function listEntities(db: DbClient, userId: string): Promise<EntitySummary[]> {
 	const results = await db
 		.select({
 			slug: voiceProfiles.entitySlug,
@@ -75,7 +72,7 @@ export async function listEntities(
  * @returns VoiceProfile if found, null otherwise
  */
 export async function loadProfileByEntity(
-	db: PostgresJsDatabase,
+	db: DbClient,
 	userId: string,
 	entitySlug: string,
 ): Promise<VoiceProfile | null> {
@@ -117,7 +114,7 @@ export async function loadProfileByEntity(
  * @returns Entity slug
  */
 export async function createEntity(
-	db: PostgresJsDatabase,
+	db: DbClient,
 	userId: string,
 	displayName: string,
 	description?: string,
@@ -151,7 +148,7 @@ export async function createEntity(
  * @param updates Fields to update
  */
 export async function updateEntity(
-	db: PostgresJsDatabase,
+	db: DbClient,
 	userId: string,
 	entitySlug: string,
 	updates: EntityUpdates,
@@ -183,7 +180,7 @@ export async function updateEntity(
  * @param entitySlug Entity slug
  */
 export async function deleteEntity(
-	db: PostgresJsDatabase,
+	db: DbClient,
 	userId: string,
 	entitySlug: string,
 ): Promise<void> {
@@ -228,18 +225,14 @@ export async function saveEntityToYaml(profile: VoiceProfile, baseDir?: string):
 /**
  * Ensure slug is unique by appending -2, -3, etc. if needed.
  */
-async function ensureUniqueSlug(
-	db: PostgresJsDatabase,
-	userId: string,
-	baseSlug: string,
-): Promise<string> {
+async function ensureUniqueSlug(db: DbClient, userId: string, baseSlug: string): Promise<string> {
 	// Find all slugs that start with the base slug
 	const results = await db
 		.select({ slug: voiceProfiles.entitySlug })
 		.from(voiceProfiles)
 		.where(eq(voiceProfiles.userId, userId));
 
-	const existingSlugs = new Set(results.map((r) => r.slug));
+	const existingSlugs = new Set<string>(results.map((r) => r.slug));
 
 	if (!existingSlugs.has(baseSlug)) {
 		return baseSlug;

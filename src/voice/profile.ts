@@ -1,6 +1,6 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { parse, stringify } from "yaml";
+import type { DbClient } from "../core/db/connection.ts";
 import type { Platform } from "../core/types/index.ts";
 import { loadProfileByEntity } from "./entity-profiles.ts";
 import {
@@ -21,7 +21,7 @@ const DEFAULT_STRATEGY_PATH = "content/voice/strategy.yaml";
 export interface LoadProfileOptions {
 	profilePath?: string;
 	entitySlug?: string;
-	db?: PostgresJsDatabase;
+	db?: DbClient;
 	userId?: string;
 }
 

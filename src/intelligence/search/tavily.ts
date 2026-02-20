@@ -1,5 +1,5 @@
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { getApiKey } from "../../core/db/api-keys";
+import type { DbClient } from "../../core/db/connection.ts";
 import type { SearchResult } from "../types.ts";
 
 /**
@@ -9,7 +9,7 @@ import type { SearchResult } from "../types.ts";
  */
 export async function searchTavily(
 	query: string,
-	db: PostgresJsDatabase,
+	db: DbClient,
 	hubId: string,
 ): Promise<SearchResult[]> {
 	const apiKey = await getApiKey(db, hubId, "tavily");

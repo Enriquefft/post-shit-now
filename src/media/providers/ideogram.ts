@@ -1,5 +1,5 @@
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { getApiKey } from "../../core/db/api-keys";
+import type { DbClient } from "../../core/db/connection.ts";
 import type { GeneratedImage, ImageGenOptions, ImageProvider } from "../image-gen.ts";
 
 // ─── Size Mapping (fal.ai SDK uses image_size, not aspect_ratio) ─────────────
@@ -70,11 +70,11 @@ function mapStyle(style?: string): "AUTO" | "GENERAL" | "REALISTIC" | "DESIGN" |
 // ─── fal.ai Path ─────────────────────────────────────────────────────────────
 
 async function generateViaFal(
+	db: DbClient,
+	hubId: string,
 	prompt: string,
 	aspectRatio?: string,
 	style?: string,
-	db: PostgresJsDatabase,
-	hubId: string,
 ): Promise<GeneratedImage> {
 	const falKey = await getApiKey(db, hubId, "fal");
 	if (!falKey) {
@@ -120,11 +120,11 @@ async function generateViaFal(
 // ─── Direct API Path ─────────────────────────────────────────────────────────
 
 async function generateViaDirect(
+	db: DbClient,
+	hubId: string,
 	prompt: string,
 	aspectRatio?: string,
 	style?: string,
-	db: PostgresJsDatabase,
-	hubId: string,
 ): Promise<GeneratedImage> {
 	const apiKey = await getApiKey(db, hubId, "ideogram");
 	if (!apiKey) {
@@ -179,17 +179,17 @@ export const ideogramProvider: ImageProvider = {
 	async generate(
 		prompt: string,
 		options: ImageGenOptions,
-		db: PostgresJsDatabase,
+		db: DbClient,
 		hubId: string,
 	): Promise<GeneratedImage> {
 		// Prefer fal.ai (no minimum usage requirement) over direct API
 		// Check if fal key exists by attempting to get it
 		try {
-			return await generateViaFal(prompt, options.aspectRatio, options.style, db, hubId);
+			return await generateViaFal(db, hubId, prompt, options.aspectRatio, options.style);
 		} catch (err) {
 			if (err instanceof Error && err.message.includes("API key")) {
 				// Fal key not found, try ideogram key
-				return await generateViaDirect(prompt, options.aspectRatio, options.style, db, hubId);
+				return await generateViaDirect(db, hubId, prompt, options.aspectRatio, options.style);
 			}
 			throw err;
 		}

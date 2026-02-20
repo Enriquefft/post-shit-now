@@ -1,4 +1,4 @@
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { DbClient } from "../../core/db/connection.ts";
 import type { SearchResult } from "../types.ts";
 import { searchBrave } from "./brave-search.ts";
 import { searchExa } from "./exa.ts";
@@ -12,7 +12,7 @@ import { searchTavily } from "./tavily.ts";
  */
 export async function searchAll(
 	query: string,
-	db: PostgresJsDatabase,
+	db: DbClient,
 	hubId: string,
 ): Promise<SearchResult[]> {
 	const results = await Promise.allSettled([

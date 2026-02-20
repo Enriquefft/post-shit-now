@@ -1,5 +1,5 @@
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { getApiKey } from "../../core/db/api-keys";
+import type { DbClient } from "../../core/db/connection.ts";
 import type { GeneratedImage, ImageGenOptions, ImageProvider } from "../image-gen.ts";
 
 // ─── Size Mapping ────────────────────────────────────────────────────────────
@@ -48,7 +48,7 @@ export const fluxProvider: ImageProvider = {
 	async generate(
 		prompt: string,
 		options: ImageGenOptions,
-		db: PostgresJsDatabase,
+		db: DbClient,
 		hubId: string,
 	): Promise<GeneratedImage> {
 		const falKey = await getApiKey(db, hubId, "fal");

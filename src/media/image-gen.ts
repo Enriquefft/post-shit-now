@@ -1,4 +1,4 @@
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { DbClient } from "../core/db/connection.ts";
 import type { Platform } from "../core/types/index.ts";
 import { type ProcessedImage, processImageForPlatform } from "./processor.ts";
 import { fluxProvider } from "./providers/flux.ts";
@@ -13,7 +13,7 @@ export interface ImageProvider {
 	generate(
 		prompt: string,
 		options: ImageGenOptions,
-		db: PostgresJsDatabase,
+		db: DbClient,
 		hubId: string,
 	): Promise<GeneratedImage>;
 }
@@ -133,7 +133,7 @@ export interface GenerateImageOptions {
 	aspectRatio?: string;
 	style?: string;
 	negativePrompt?: string;
-	db?: PostgresJsDatabase;
+	db?: DbClient;
 	hubId?: string;
 }
 

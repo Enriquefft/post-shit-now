@@ -246,7 +246,7 @@ export async function runSetupSubcommand(
 		}
 		case "keys": {
 			// Provider key management: list or add specific key
-			if (params.keys?.list) {
+			if (params.list === "true") {
 				const listResult = await listProviderKeys(configDir);
 				return {
 					steps: [listResult],
@@ -256,7 +256,7 @@ export async function runSetupSubcommand(
 			}
 
 			// Add specific key (requires --service flag)
-			const service = params.keys?.service;
+			const service = params.service;
 			if (!service) {
 				return {
 					steps: [
@@ -596,7 +596,14 @@ function parseCliArgs(args: string[]): {
 
 	// Handle --list flag for keys subcommand
 	if (subcommand === "keys" && flagArgs.includes("--list")) {
-		params.keys = { list: true };
+		params.list = "true";
+	}
+	// Handle --service flag for keys subcommand
+	if (subcommand === "keys") {
+		const serviceIndex = flagArgs.indexOf("--service");
+		if (serviceIndex !== -1 && serviceIndex + 1 < flagArgs.length) {
+			params.service = flagArgs[serviceIndex + 1] ?? "";
+		}
 	}
 
 	// Handle --list flag for entity subcommand
