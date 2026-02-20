@@ -39,9 +39,9 @@ export async function searchTavily(
 		results: z
 			.array(
 				z.object({
-					title: z.string().optional(),
+					title: z.string().nullable().optional(),
 					url: z.string(),
-					content: z.string().optional(),
+					content: z.string().nullable().optional(),
 					score: z.number().optional(),
 				}),
 			)

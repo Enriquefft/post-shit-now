@@ -39,10 +39,10 @@ export async function searchExa(
 		results: z
 			.array(
 				z.object({
-					title: z.string().optional(),
+					title: z.string().nullable().optional(),
 					url: z.string(),
-					text: z.string().optional(),
-					publishedDate: z.string().optional(),
+					text: z.string().nullable().optional(),
+					publishedDate: z.string().nullable().optional(),
 				}),
 			)
 			.optional(),

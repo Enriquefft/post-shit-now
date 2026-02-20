@@ -18,7 +18,7 @@ export async function fetchHNTopStories(limit = 30): Promise<RawTrend[]> {
 		id: z.number(),
 		type: z.string(),
 		title: z.string(),
-		url: z.string().optional(),
+		url: z.string().nullable().optional(),
 		score: z.number(),
 		time: z.number(),
 	});
@@ -27,7 +27,8 @@ export async function fetchHNTopStories(limit = 30): Promise<RawTrend[]> {
 		topIds.map(async (id) => {
 			const res = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
 			if (!res.ok) return null;
-			return hnItemSchema.parse(await res.json());
+			const result = hnItemSchema.safeParse(await res.json());
+			return result.success ? result.data : null;
 		}),
 	);
 
@@ -35,7 +36,7 @@ export async function fetchHNTopStories(limit = 30): Promise<RawTrend[]> {
 		.filter((s): s is NonNullable<typeof s> => s != null && s.type === "story")
 		.map((s) => ({
 			title: s.title,
-			url: s.url,
+			url: s.url ?? undefined,
 			source: "hackernews" as const,
 			sourceScore: s.score,
 			publishedAt: new Date(s.time * 1000),

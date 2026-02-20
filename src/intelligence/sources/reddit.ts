@@ -53,7 +53,7 @@ export async function fetchRedditTrending(subreddits: string[], limit = 10): Pro
 							url: z.string(),
 							score: z.number(),
 							created_utc: z.number(),
-							link_flair_text: z.string().optional(),
+							link_flair_text: z.string().nullable().optional(),
 						}),
 					}),
 				),

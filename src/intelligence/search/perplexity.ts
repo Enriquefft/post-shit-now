@@ -44,7 +44,7 @@ export async function searchPerplexity(
 		choices: z
 			.array(
 				z.object({
-					message: z.object({ content: z.string().optional() }).optional(),
+					message: z.object({ content: z.string().nullable().optional() }).optional(),
 				}),
 			)
 			.optional(),

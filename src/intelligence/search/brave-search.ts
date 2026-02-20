@@ -45,9 +45,9 @@ export async function searchBrave(
 				results: z
 					.array(
 						z.object({
-							title: z.string().optional(),
+							title: z.string().nullable().optional(),
 							url: z.string(),
-							description: z.string().optional(),
+							description: z.string().nullable().optional(),
 						}),
 					)
 					.optional(),
