@@ -33,12 +33,21 @@ Ask: "Want to continue to ideation, or is this overview enough for now?"
 
 ### Phase 2: Ideation
 
+**First, detect the user's maturity level:**
+```typescript
+const profile = await loadProfile();
+const maturity = profile.maturityLevel;
+const adaptation = getMaturityAdaptation(maturity);
+```
+
+The maturity level determines how many ideas to generate and how much hand-holding to provide.
+
 Generate ideas from multiple sources:
 ```
 bun run src/cli/plan.ts ideate --count 12
 ```
 
-Present 10-15 ideas grouped by source:
+Present ideas grouped by source (count adapts to maturity level):
 - **Trending** (from stored trend data): topic, pillar, angle
 - **From idea bank** (ready ideas): title, pillar
 - **Generated** (AI-suggested): topic, pillar, angle, format
@@ -63,6 +72,45 @@ The user can rate individually or batch ("love 1, 3, 5; kill 2; maybe the rest")
 Ask: "Want to continue to slot allocation, or stop here with your rated ideas?"
 - If stop -> confirm rated ideas summary
 - If continue -> Phase 3
+
+### Maturity-Specific Behaviors (handHoldingLevel)
+
+The `/psn:plan` command adapts its guidance based on the user's social media experience level:
+
+#### For "Never Posted" Users (handHoldingLevel: "full")
+
+Before generating ideas, explain the options:
+> "I'll suggest a few post ideas based on your interests. For each one, I'll show you what a draft might look like so you can see how it works."
+
+Generate only 1-2 specific ideas:
+> "Based on your interest in [pillars], here are two post ideas to start with:"
+> 1. **[Specific topic]** - [Why this angle works]
+> 2. **[Specific topic]** - [Why this angle works]
+
+Show sample posts:
+> "Here's what the first idea might look like as a draft:"
+> [Show generated sample]
+
+Ask for preference before proceeding:
+> "Which of these resonates with you? Or would you like different topics?"
+
+#### For "Sporadic" Users (handHoldingLevel: "moderate")
+
+- Generate 3 ideas with brief explanations
+- Skip sample post generation unless requested
+- Proceed through rating at user's pace
+
+#### For "Consistent" Users (handHoldingLevel: "minimal")
+
+- Generate 5 ideas, let user filter
+- Minimal explanation, focus on efficiency
+- Trust user's judgment on quality
+
+#### For "Very Active" Users (handHoldingLevel: "none")
+
+- Generate 8+ ideas, maximum options
+- No explanations unless asked
+- Fast-path through ideation, trust user completely
 
 ### Phase 3: Slot Allocation
 
@@ -93,6 +141,9 @@ Let the user adjust:
 - Change language for specific slots
 - Remove slots they don't want
 - Add specific topics to empty slots
+
+**For never_posted users:**
+> "If this is your first time planning content, don't worry about filling every slot. Start with 1-2 posts this week."
 
 Ask: "Want to continue to drafting, or save this plan as-is?"
 - If stop -> save plan: `bun run src/cli/plan.ts save '<json>'`
@@ -160,3 +211,8 @@ When creating posts during the drafting phase, always include the `language` fie
 - Pillar weights from strategy.yaml determine distribution targets
 - Angle diversity is enforced (max 2 of same angle per week)
 - This should feel like a collaborative planning session, not a rigid wizard
+- **Maturity-aware:** Check user's maturityLevel from voice profile to adapt guidance:
+  - never_posted: 2 ideas, full hand-holding, sample posts
+  - sporadic: 3 ideas, moderate guidance
+  - consistent: 5 ideas, minimal guidance
+  - very_active: 8+ ideas, autonomous mode
