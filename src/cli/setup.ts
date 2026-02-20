@@ -3,7 +3,7 @@ import { setupCompanyHub } from "./setup-company-hub.ts";
 import { setupDatabase } from "./setup-db.ts";
 import { setupDisconnect } from "./setup-disconnect.ts";
 import { setupJoinHub } from "./setup-join.ts";
-import { setupKeys } from "./setup-keys.ts";
+import { setupKeys, setupProviderKeys, writeProviderKey, listProviderKeys } from "./setup-keys.ts";
 import { setupInstagramOAuth } from "./setup-instagram-oauth.ts";
 import { setupLinkedInOAuth } from "./setup-linkedin-oauth.ts";
 import { setupTikTokOAuth } from "./setup-tiktok-oauth.ts";
@@ -22,7 +22,7 @@ interface SetupOutput {
 
 // ─── Subcommand Types ──────────────────────────────────────────────────────
 
-type SetupSubcommand = "hub" | "join" | "disconnect" | "invite" | "team" | "promote" | "notifications";
+type SetupSubcommand = "hub" | "join" | "disconnect" | "invite" | "team" | "promote" | "notifications" | "keys";
 
 interface SubcommandParams {
 	hub: { slug: string; displayName: string; adminUserId?: string };
@@ -32,6 +32,7 @@ interface SubcommandParams {
 	team: { slug: string };
 	promote: { slug: string; userId: string; targetUserId: string };
 	notifications: { provider?: string; phone?: string };
+	keys: { service?: string; list?: boolean };
 }
 
 /**
@@ -232,6 +233,42 @@ export async function runSetupSubcommand(
 				completed: false,
 			};
 		}
+		case "keys": {
+			// Provider key management: list or add specific key
+			if (params.keys?.list) {
+				const listResult = await listProviderKeys(configDir);
+				return { steps: [listResult], validation: null, completed: listResult.status === "success" };
+			}
+
+			// Add specific key (requires --service flag)
+			const service = params.keys?.service;
+			if (!service) {
+				return {
+					steps: [{
+						step: "keys",
+						status: "error",
+						message: "Missing required flag: --service <provider-name>",
+						data: {
+							availableServices: ["perplexity", "brave", "tavily", "exa", "openai", "ideogram", "fal", "runway"],
+						},
+					}],
+					validation: null,
+					completed: false,
+				};
+			}
+
+			// Prompt user for key value (Claude handles this in slash command context)
+			return {
+				steps: [{
+					step: "keys",
+					status: "need_input",
+					message: `Provide API key for ${service}`,
+					data: { service, instructions: "Use /psn:setup keys --service <name> --key <value>" },
+				}],
+				validation: null,
+				completed: false,
+			};
+		}
 		default:
 			return null; // Not a recognized subcommand — fall through to default setup
 	}
@@ -256,6 +293,18 @@ export async function runSetup(configDir = "config"): Promise<SetupOutput> {
 		};
 	}
 	steps.push(keysResult);
+
+	// Step 1.5: Collect provider keys (DB-based)
+	const providerKeysResult = await setupProviderKeys(configDir);
+	if (Array.isArray(providerKeysResult)) {
+		// Missing provider keys — return them so Claude can prompt user
+		return {
+			steps: [...steps, ...providerKeysResult],
+			validation: null,
+			completed: false,
+		};
+	}
+	steps.push(providerKeysResult);
 
 	// Step 2: Create database (includes Step 3: migrations)
 	const dbResult = await setupDatabase(configDir);
@@ -365,6 +414,11 @@ function parseCliArgs(args: string[]): { subcommand: string | null; params: Reco
 	if (subcommand === "promote" && flagArgs.length >= 2) {
 		if (!params.slug) params.slug = flagArgs[0] ?? "";
 		if (!params.targetUserId) params.targetUserId = flagArgs[1] ?? "";
+	}
+
+	// Handle --list flag for keys subcommand
+	if (subcommand === "keys" && flagArgs.includes("--list")) {
+		params.keys = { list: true };
 	}
 
 	return { subcommand, params };
