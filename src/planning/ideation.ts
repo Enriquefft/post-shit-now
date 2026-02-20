@@ -8,7 +8,54 @@ import { getReadyIdeas } from "../ideas/bank.ts";
 import { searchAll } from "../intelligence/search/index.ts";
 import { getPreferenceModel } from "../learning/preference-model.ts";
 import { loadProfile } from "../voice/profile.ts";
+import type { MaturityLevel } from "../voice/types.ts";
 import type { PlanIdea, PlanIdeaSource } from "./types.ts";
+
+// ─── Maturity Adaptations ─────────────────────────────────────────────────────
+
+/**
+ * Defines how planning adapts based on user's social media experience level.
+ * Never-posted users get full hand-holding; very active users get autonomous mode.
+ */
+export const MATURITY_ADAPTATIONS: Record<MaturityLevel, {
+	explainBeforeAsking: boolean;
+	suggestedIdeasCount: number;
+	showSamplePosts: boolean;
+	handHoldingLevel: "full" | "moderate" | "minimal" | "none";
+}> = {
+	never_posted: {
+		explainBeforeAsking: true,
+		suggestedIdeasCount: 2,
+		showSamplePosts: true,
+		handHoldingLevel: "full",
+	},
+	sporadic: {
+		explainBeforeAsking: false,
+		suggestedIdeasCount: 3,
+		showSamplePosts: false,
+		handHoldingLevel: "moderate",
+	},
+	consistent: {
+		explainBeforeAsking: false,
+		suggestedIdeasCount: 5,
+		showSamplePosts: false,
+		handHoldingLevel: "minimal",
+	},
+	very_active: {
+		explainBeforeAsking: false,
+		suggestedIdeasCount: 8,
+		showSamplePosts: false,
+		handHoldingLevel: "none",
+	},
+};
+
+/**
+ * Get maturity adaptation settings for a given level.
+ * Defaults to "consistent" behavior if no level provided.
+ */
+export function getMaturityAdaptation(level: MaturityLevel | undefined): typeof MATURITY_ADAPTATIONS.never_posted {
+	return MATURITY_ADAPTATIONS[level ?? "consistent"];
+}
 
 // ─── Ideation Options ────────────────────────────────────────────────────────
 
@@ -17,6 +64,7 @@ export interface IdeationOptions {
 	platform?: string;
 	profilePath?: string;
 	enableOnDemandSearch?: boolean;
+	maturityLevel?: MaturityLevel;
 }
 
 // ─── Generate Plan Ideas ─────────────────────────────────────────────────────
@@ -34,7 +82,11 @@ export async function generatePlanIdeas(
 	pillars: Array<{ name: string; weight: number }>,
 	opts?: IdeationOptions,
 ): Promise<PlanIdea[]> {
-	const targetCount = opts?.count ?? 12;
+	// Get maturity adaptation to limit idea count based on experience level
+	const adaptation = getMaturityAdaptation(opts?.maturityLevel);
+	const requestedCount = opts?.count ?? 12;
+	// Adapt count based on maturity - never_posted gets fewer, more focused ideas
+	const targetCount = Math.min(requestedCount, adaptation.suggestedIdeasCount);
 	const ideas: PlanIdea[] = [];
 
 	// Load preference model for format insights and fatigue
