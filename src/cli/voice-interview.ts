@@ -1,7 +1,7 @@
-import { loadKeysEnv } from "../core/utils/env.ts";
 import { readFile, unlink, writeFile } from "node:fs/promises";
-import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
+import * as readline from "node:readline/promises";
+import { loadKeysEnv } from "../core/utils/env.ts";
 import type { ContentAnalysis } from "../voice/import.ts";
 import {
 	analyzeImportedContent,
@@ -93,12 +93,11 @@ async function deleteInterviewState(): Promise<void> {
 async function promptForAnswer(
 	rl: readline.Interface,
 	question: InterviewQuestion,
-	phaseIndex: number,
+	_phaseIndex: number,
 ): Promise<string> {
-	const totalPhases = PHASE_ORDER.length;
+	const _totalPhases = PHASE_ORDER.length;
 	const currentPhase = question.phase;
-	const phaseOrderIndex = PHASE_ORDER.indexOf(currentPhase);
-	const phaseLabel = `${phaseOrderIndex + 1}/${totalPhases}`;
+	const _phaseOrderIndex = PHASE_ORDER.indexOf(currentPhase);
 
 	let prompt = `\n${currentPhase.toUpperCase()} PHASE\n`;
 	prompt += `${question.text}`;
@@ -221,7 +220,9 @@ export async function submitAnswersInteractive(): Promise<{
 					// Validate required answers
 					if (question.required && !answer.trim()) {
 						attempts++;
-						console.log(`This field is required. Please try again.${attempts < maxAttempts ? "" : " (Skipping question.)"}`);
+						console.log(
+							`This field is required. Please try again.${attempts < maxAttempts ? "" : " (Skipping question.)"}`,
+						);
 						if (attempts >= maxAttempts) {
 							answer = "";
 							break;
@@ -291,9 +292,7 @@ export async function completeInterviewInteractive(): Promise<{
 
 	// Validate interview is complete
 	if (state.phase !== "review") {
-		throw new Error(
-			"Interview not complete. Run 'submit' to finish answering questions.",
-		);
+		throw new Error("Interview not complete. Run 'submit' to finish answering questions.");
 	}
 
 	const rl = readline.createInterface({ input, output });
