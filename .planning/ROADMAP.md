@@ -88,7 +88,7 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 | 16.4 | Add voice profile directory creation | M6, M4, m6 |
 
 **Plans:**
-2/4 plans executed
+3/4 plans executed
 - [x] 16-02-PLAN.md — Implement interview state persistence
 - [x] 16-03-PLAN.md — Fix setup-keys.ts stdin reading
 - [x] 16-04-PLAN.md — Add voice profile directory creation
