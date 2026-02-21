@@ -5,6 +5,7 @@ import type { SetupResult } from "../core/types/index.ts";
 import { generateEncryptionKey } from "../core/utils/crypto.ts";
 import { loadKeysEnv, migratePersonalHubToHubsDir, validateNeonApiKey } from "../core/utils/env.ts";
 import { formatErrorWithMasking, maskDatabaseUrl } from "./utils/masking.ts";
+import { createProgressStep, runStep } from "./utils/progress.ts";
 
 /**
  * Provision a Neon database for the Personal Hub.
@@ -14,6 +15,9 @@ import { formatErrorWithMasking, maskDatabaseUrl } from "./utils/masking.ts";
 export async function setupDatabase(configDir = "config", projectRoot = "."): Promise<SetupResult> {
 	const hubsDir = join(projectRoot, ".hubs");
 	const personalHubPath = join(hubsDir, "personal.json");
+
+	// Display step list upfront
+	createProgressStep(["Creating Neon project", "Running database migrations", "Saving connection to .hubs/personal.json"]);
 
 	// Migration check: migrate config/hub.env to .hubs/personal.json if needed
 	const migrateResult = await migratePersonalHubToHubsDir(configDir, projectRoot);
@@ -108,63 +112,56 @@ export async function setupDatabase(configDir = "config", projectRoot = "."): Pr
 		};
 	}
 
-	// Create Neon project
+	// Create Neon project (long-running operation)
 	const suffix = Math.random().toString(36).slice(2, 8);
 	const projectName = `psn-hub-${suffix}`;
 
-	const proc = Bun.spawn(
-		[
-			"neonctl",
-			"projects",
-			"create",
-			"--name",
-			projectName,
-			"--output",
-			"json",
-			"--api-key",
-			neonApiKey,
-		],
-		{ stdout: "pipe", stderr: "pipe" },
-	);
+	const connectionUri = await runStep("Creating Neon project", async () => {
+		const proc = Bun.spawn(
+			[
+				"neonctl",
+				"projects",
+				"create",
+				"--name",
+				projectName,
+				"--output",
+				"json",
+				"--api-key",
+				neonApiKey,
+			],
+			{ stdout: "pipe", stderr: "pipe" },
+		);
 
-	const exitCode = await proc.exited;
-	const stdout = await new Response(proc.stdout).text();
-	const stderr = await new Response(proc.stderr).text();
+		const exitCode = await proc.exited;
+		const stdout = await new Response(proc.stdout).text();
+		const stderr = await new Response(proc.stderr).text();
 
-	if (exitCode !== 0) {
-		return {
-			step: "database",
-			status: "error",
-			message: `neonctl failed: ${stderr.trim() || stdout.trim()}`,
-		};
-	}
-
-	// Parse neonctl output to extract connection string
-	let connectionUri: string;
-	try {
-		const output = JSON.parse(stdout);
-		connectionUri = output.connection_uris?.[0]?.connection_uri ?? output.connection_uri ?? "";
-
-		if (!connectionUri) {
-			// Try alternative output format
-			const dbUri = output.databases?.[0]?.connection_uri;
-			if (dbUri) {
-				connectionUri = dbUri;
-			} else {
-				return {
-					step: "database",
-					status: "error",
-					message: `Could not extract connection URI from neonctl output. Raw: ${stdout.slice(0, 200)}`,
-				};
-			}
+		if (exitCode !== 0) {
+			throw new Error(`neonctl failed: ${stderr.trim() || stdout.trim()}`);
 		}
-	} catch {
-		return {
-			step: "database",
-			status: "error",
-			message: `Failed to parse neonctl output: ${stdout.slice(0, 200)}`,
-		};
-	}
+
+		// Parse neonctl output to extract connection string
+		try {
+			const output = JSON.parse(stdout);
+			let uri = output.connection_uris?.[0]?.connection_uri ?? output.connection_uri ?? "";
+
+			if (!uri) {
+				// Try alternative output format
+				const dbUri = output.databases?.[0]?.connection_uri;
+				if (dbUri) {
+					uri = dbUri;
+				} else {
+					throw new Error(
+						`Could not extract connection URI from neonctl output. Raw: ${stdout.slice(0, 200)}`,
+					);
+				}
+			}
+			return uri;
+		} catch (error) {
+			if (error instanceof Error) throw error;
+			throw new Error(`Failed to parse neonctl output: ${stdout.slice(0, 200)}`);
+		}
+	});
 
 	// Generate encryption key
 	const encKey = generateEncryptionKey().toString("hex");
@@ -188,16 +185,13 @@ export async function setupDatabase(configDir = "config", projectRoot = "."): Pr
 	await mkdir(hubsDir, { recursive: true });
 	await Bun.write(personalHubPath, JSON.stringify(connection, null, 2));
 
-	// Run migrations
-	const migrationResult = await runMigrationsWithRetry(connectionUri);
-	if (!migrationResult.success) {
-		return {
-			step: "database",
-			status: "error",
-			message: `Database created but migrations failed: ${migrationResult.error}. personal.json saved — re-run setup to retry migrations.`,
-			data: { projectName, databaseUrl: maskDatabaseUrl(connectionUri) },
-		};
-	}
+	// Run migrations (long-running operation)
+	await runStep("Running database migrations", async () => {
+		const migrationResult = await runMigrationsWithRetry(connectionUri);
+		if (!migrationResult.success) {
+			throw new Error(`Migrations failed: ${migrationResult.error}. personal.json saved — re-run setup to retry migrations.`);
+		}
+	});
 
 	return {
 		step: "database",
