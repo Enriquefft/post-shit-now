@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import type { SetupResult } from "../core/types/index.ts";
 import { loadKeysEnv } from "../core/utils/env.ts";
+import { formatErrorWithMasking, maskApiKey } from "./utils/masking.ts";
 
 const TRIGGER_CONFIG_PATH = "trigger.config.ts";
 const PLACEHOLDER_REF = "<your-project-ref>";
@@ -67,7 +68,10 @@ export async function setupTrigger(configDir = "config"): Promise<SetupResult> {
 			return {
 				step: "trigger",
 				status: "error",
-				message: `trigger.dev init failed: ${stderr.trim()}. You can manually set TRIGGER_PROJECT_REF in keys.env.`,
+				message: formatErrorWithMasking(
+					`trigger.dev init failed: ${stderr.trim()}. You can manually set TRIGGER_PROJECT_REF in keys.env.`,
+					{ apiKey: secretKey },
+				),
 			};
 		}
 
