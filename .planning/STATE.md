@@ -13,8 +13,8 @@ See: .planning/PROJECT.md (updated 2026-02-20 after v1.0 milestone)
 **Status:** In progress
 
 **Current Phase:** 01
-**Current Plan:** 01-04
-**Phase Progress:** 3/4 plans complete (75%)
+**Current Plan:** Complete
+**Phase Progress:** 4/4 plans complete (100%)
 
 **Milestone v1.0 Summary:** 14 phases, 54 plans, 148 requirements complete (100%)
 - Full platform support (X, LinkedIn, Instagram, TikTok)
@@ -25,14 +25,14 @@ See: .planning/PROJECT.md (updated 2026-02-20 after v1.0 milestone)
 - Notification system with WhatsApp integration
 
 **Milestone v1.1 Progress:**
-- Phase 1 (Foundation Infrastructure): 3/4 plans complete (75%)
+- Phase 1 (Foundation Infrastructure): 4/4 plans complete (100%)
 - Plans: Setup wizard, migration RLS, hub storage unification, provider keys validation
 
-Last activity: 2026-02-21 - Completed 01-03 (hub storage unification), ready for 01-04 (provider key validation framework)
+Last activity: 2026-02-21 - Completed 01-04 (provider key validation framework)
 
-Session: 2026-02-21T06:37:43Z - Completed 01-03 (hub storage unification)
+Session: 2026-02-21T14:30:00Z - Completed 01-04 (provider key validation framework)
 
-Progress: [███████████████░░░] 3/4 plans (75%) v1.1 Phase 1
+Progress: [████████████████] 4/4 plans (100%) v1.1 Phase 1
 
 Note: v1.0 phases (01-critical-setup-fixes, 02-x-platform-pipeline, 03-voice-profiling-and-content-generation) archived to .planning/milestones/v1.0-legacy/. v1.1 roadmap starts fresh.
 
@@ -87,6 +87,7 @@ Note: v1.0 phases (01-critical-setup-fixes, 02-x-platform-pipeline, 03-voice-pro
 | Phase 01 P03 | 106 | 3 tasks | 3 files |
 | Phase 01-foundation-infrastructure P01-02 | 0 | 2 tasks | 2 files |
 | Phase 01-foundation-infrastructure P01 | 59 | 3 tasks | 0 files |
+| Phase 01-foundation-infrastructure P01-04 | 1min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -264,23 +265,6 @@ Recent decisions affecting current work:
 - [Phase 12]: Idea count adapted via Math.min(requestedCount, adaptation.suggestedIdeasCount) for progressive autonomy
 - [Phase 12]: Sample posts generated only for first (top) idea for never_posted users to keep focus
 - [Phase 4-review-psn-session]: Issue categorization: 6 critical, 14 major, 10 minor issues documented from PSN session
-- [Phase 01-03]: Personal Hub migrated from config/hub.env to .hubs/personal.json for unified storage
-- [Phase 01-03]: discoverCompanyHubs loads all .json files in .hubs/, not just company-*.json
-- [Phase 01-03]: getHubConnection() unified for both Personal and Company hubs via single API
-- [Phase 01-03]: Migration is idempotent: safe to call multiple times, handles all edge cases
-- [Phase 01-03]: setup-db.ts writes to .hubs/personal.json instead of config/hub.env
-- [Phase 01-03]: Hub ID generated with crypto.randomUUID() if not present in hub.env during migration
-- [Phase 01-01]: Drizzle directory format uses timestamp-based migration directories (20260219000000_setup_rls_role) instead of flat SQL files
-- [Phase 01-01]: Pre-migration role setup with earliest timestamp ensures role exists before schema migrations reference it
-- [Phase 01-01]: Idempotent role creation pattern (IF NOT EXISTS) handles migration re-runs safely
-- [Phase 01-01]: Migration journal ordering via _journal.json controls execution sequence
-- [Phase 01]: Two-layer validation: fast prefix check + API call for actual verification
-- [Phase 01]: Graceful network failure handling: warn but don't block setup when API is unreachable
-- [Phase 01]: Actionable error messages: include both error description and step-by-step suggestion
-- [Phase 01]: Drizzle directory format uses timestamp-based migration directories (20260219000000_setup_rls_role) instead of flat SQL files
-- [Phase 01]: Pre-migration role setup with earliest timestamp ensures role exists before schema migrations reference it
-- [Phase 01]: Idempotent role creation pattern (IF NOT EXISTS) handles migration re-runs safely
-- [Phase 01]: Migration journal ordering via _journal.json controls execution sequence
 - [Phase 01-03]: Personal Hub migrated from config/hub.env to .hubs/personal.json for unified storage
 - [Phase 01-03]: discoverCompanyHubs loads all .json files in .hubs/, not just company-*.json
 - [Phase 01-03]: getHubConnection() unified for both Personal and Company hubs via single API
