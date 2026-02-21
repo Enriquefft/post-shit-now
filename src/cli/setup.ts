@@ -761,13 +761,15 @@ function parseCliArgs(args: string[]): {
 if (import.meta.main) {
 	const { subcommand, params } = parseCliArgs(process.argv.slice(2));
 
+	const isPreview = params["dry-run"] === "true" || params.preview === "true";
+
 	const run = async () => {
 		if (subcommand) {
 			const result = await runSetupSubcommand(subcommand, params);
 			if (result) return result;
 			// Fall through to default setup if subcommand not recognized
 		}
-		return runSetup();
+		return runSetup("config", isPreview);
 	};
 
 	run()
