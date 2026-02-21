@@ -1,3 +1,14 @@
+import {
+	mkdir,
+	readFile,
+	readdir,
+	rename,
+	rm,
+	stat,
+	writeFile,
+} from "node:fs/promises";
+import { join } from "node:path";
+import { z } from "zod";
 import type { ImportedContent } from "./import.ts";
 import {
 	createBlankSlateProfile,
@@ -33,6 +44,41 @@ export interface InterviewQuestion {
 	options?: string[];
 	required: boolean;
 	branchCondition?: string;
+}
+
+// ─── Directory Creation ────────────────────────────────────────────────────────
+
+/**
+ * Ensure voice profile and strategy directories exist.
+ * Creates directories with recursive: true to handle missing parent dirs.
+ *
+ * Directories created:
+ * - content/voice/profiles/ - Entity-scoped voice profiles
+ * - content/voice/strategies/ - Entity-scoped strategy configs
+ *
+ * Permissions: System default (typically 755)
+ *
+ * @throws Error if directories cannot be created (e.g., permission denied)
+ */
+export async function ensureVoiceDirectories(): Promise<void> {
+	const directories = [
+		"content/voice/profiles",
+		"content/voice/strategies",
+	];
+
+	for (const dir of directories) {
+		try {
+			await mkdir(dir, { recursive: true });
+		} catch (err) {
+			if (err instanceof Error) {
+				throw new Error(
+					`Failed to create interview directory: ${dir}\n${err.message}\n\n` +
+						`Please check that you have write permissions for the content/ directory.`,
+				);
+			}
+			throw err;
+		}
+	}
 }
 
 // ─── Starter Archetypes ─────────────────────────────────────────────────────
