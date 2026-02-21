@@ -260,6 +260,9 @@ export async function completeInterview(
 	profilePath: string;
 	strategyPath?: string;
 }> {
+	// Ensure directories exist before saving
+	await ensureVoiceDirectories();
+
 	const profile = finalizeProfile(state);
 	const profilePath = options?.profilePath ?? "content/voice/personal.yaml";
 
@@ -273,6 +276,55 @@ export async function completeInterview(
 	}
 
 	return { profile, profilePath, strategyPath };
+}
+
+// ─── Interactive Complete ───────────────────────────────────────────────────
+
+export async function completeInterviewInteractive(): Promise<{
+	profilePath: string;
+	strategyPath: string | undefined;
+}> {
+	const state = await loadInterviewState();
+	if (!state) {
+		throw new Error("No interview in progress. Run 'start' to begin.");
+	}
+
+	// Validate interview is complete
+	if (state.phase !== "review") {
+		throw new Error(
+			"Interview not complete. Run 'submit' to finish answering questions.",
+		);
+	}
+
+	const rl = readline.createInterface({ input, output });
+
+	try {
+		// Prompt for save path
+		const defaultProfilePath = "content/voice/personal.yaml";
+		console.log(`Save voice profile to [${defaultProfilePath}]:`);
+		const profilePathInput = await rl.question("> ");
+		const profilePath = profilePathInput.trim() || defaultProfilePath;
+
+		// Complete interview and save
+		const result = await completeInterview(state, { profilePath });
+
+		console.log(`\n=== Success ===`);
+		console.log(`Voice profile saved to: ${result.profilePath}`);
+		if (result.strategyPath) {
+			console.log(`Strategy saved to: ${result.strategyPath}`);
+		}
+
+		// Clean up interview state
+		await deleteInterviewState();
+		console.log("Interview state cleaned up.");
+
+		return {
+			profilePath: result.profilePath,
+			strategyPath: result.strategyPath,
+		};
+	} finally {
+		rl.close();
+	}
 }
 
 // ─── Import Content ─────────────────────────────────────────────────────────
@@ -319,6 +371,7 @@ if (import.meta.main) {
 	try {
 		switch (command) {
 			case "start": {
+				await ensureVoiceDirectories(); // Ensure dirs before starting interview
 				const recalibration = args.includes("--recalibrate");
 				const result = await startInterview({ recalibration });
 				console.log(
@@ -362,12 +415,11 @@ if (import.meta.main) {
 				break;
 			}
 			case "complete": {
-				// Will be implemented in Task 2
-				console.log(
-					JSON.stringify({
-						error: "Complete command not yet implemented. Use: start, submit, import",
-					}),
-				);
+				const result = await completeInterviewInteractive();
+				console.log(`\nProfile: ${result.profilePath}`);
+				if (result.strategyPath) {
+					console.log(`Strategy: ${result.strategyPath}`);
+				}
 				break;
 			}
 			default:
