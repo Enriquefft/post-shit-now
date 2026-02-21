@@ -270,6 +270,8 @@ Recent decisions affecting current work:
 - [Phase 01-03]: Migration is idempotent: safe to call multiple times, handles all edge cases
 - [Phase 01-03]: setup-db.ts writes to .hubs/personal.json instead of config/hub.env
 - [Phase 01-03]: Hub ID generated with crypto.randomUUID() if not present in hub.env during migration
+- [Phase 01-04]: Extensible VALIDATORS object: add new validator function and key mapping, no code changes to routing logic
+- [Phase 01-04]: Graceful degradation for unknown providers: returns valid=true instead of error
 
 ### Pending Todos
 
