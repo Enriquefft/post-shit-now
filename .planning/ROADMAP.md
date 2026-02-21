@@ -43,12 +43,20 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 **Goal:** Ensure database reliability and add recovery mechanisms
 **Estimated Duration:** 2-3 days
 
+**Plans:** 4 plans
+
 | Plan | Description | Issues Addressed |
 |------|-------------|------------------|
-| 2.1 | Fix database migration retry loop | M1 |
-| 2.2 | Add HUB_ID to hub.env | M2 |
-| 2.3 | Unify hub connection mechanisms | M5, C11, C12 |
-| 2.4 | Add setup reset and recovery flow | M14 |
+| 02-01 | Fix database migration retry loop | M1 |
+| 02-02 | Add hubId to hub connection files | M2 |
+| 02-03 | Unify hub connection mechanisms | M5, C11, C12 |
+| 02-04 | Add setup reset and recovery flow | M14 |
+
+**Plans:**
+- [ ] 02-01-PLAN.md — Migration retry logic with exponential backoff and table verification
+- [ ] 02-02-PLAN.md — Auto-generated hubId in Personal and Company hub files
+- [ ] 02-03-PLAN.md — Unified hub discovery for .hubs/*.json (Personal + Company)
+- [ ] 02-04-PLAN.md — /psn:setup reset command for cleanup and recovery
 
 **Success Criteria:**
 - Migrations handle partial failures gracefully
