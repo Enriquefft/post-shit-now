@@ -102,6 +102,8 @@ Progress: [███████████████░░░░░] 11/28 p
 | Phase 16-voice-interview-cli-completion-p1 P03 | 5 | 3 tasks | 3 files |
 | Phase 16 P04 | 2m | 2 tasks | 2 files |
 | Phase 16 P01 | 3 | 2 tasks | 1 files |
+| Phase 16 P03 | 5 | 3 tasks | 3 files |
+| Phase 16 P02 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -303,6 +305,16 @@ Recent decisions affecting current work:
 - [Phase 16]: Recursive retry on validation failure with single confirmation prompt
 - [Phase 16]: No confirmation required - keys saved immediately after validation passes
 - [Phase 16]: Graceful skip for already-configured provider keys during interactive collection
+- [Phase 16]: Masked stdin input for API keys using readline-sync with hideEchoBack and mask options
+- [Phase 16]: Recursive retry on validation failure with single confirmation prompt
+- [Phase 16]: No confirmation required - keys saved immediately after validation passes
+- [Phase 16]: Graceful skip for already-configured provider keys during interactive collection
+- [Phase 16]: Use atomic write pattern (tmp + rename) for state persistence to prevent corruption
+- [Phase 16]: Store interview state in content/voice/ directory alongside YAML profiles
+- [Phase 16]: Generate timestamp-based interview IDs for concurrent interview support
+- [Phase 16]: Clean up old interview files after 7 days automatically
+- [Phase 16]: Validate state with Zod on load to detect corruption early
+- [Phase 16]: Use human-readable CLI output (except start command which outputs JSON for integration)
 
 ### Pending Todos
 
