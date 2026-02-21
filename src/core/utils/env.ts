@@ -1,4 +1,6 @@
+import { mkdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
+import { type HubConnection, HubConnectionSchema } from "../../team/types.ts";
 
 export interface ValidationResult {
 	valid: boolean;
@@ -137,3 +139,69 @@ export async function validateNeonApiKey(apiKey: string): Promise<ValidationResu
 }
 
 export { parseEnvFile };
+
+/**
+ * Migrate Personal Hub from config/hub.env to .hubs/personal.json.
+ * One-time migration: if hub.env exists and personal.json doesn't, migrate automatically.
+ */
+export async function migratePersonalHubToHubsDir(
+	configDir = "config",
+	projectRoot = ".",
+): Promise<{ success: boolean; migrated?: boolean; error?: string }> {
+	const hubEnvPath = join(projectRoot, configDir, "hub.env");
+	const hubsDir = join(projectRoot, ".hubs");
+	const personalHubPath = join(hubsDir, "personal.json");
+
+	// Check if migration is needed
+	try {
+		await readFile(personalHubPath);
+		// personal.json exists, already migrated
+		return { success: true, migrated: false };
+	} catch {
+		// personal.json doesn't exist, check if hub.env exists
+	}
+
+	try {
+		await readFile(hubEnvPath);
+	} catch {
+		// Neither file exists, no migration needed
+		return { success: true, migrated: false };
+	}
+
+	// Migrate: read hub.env, parse, write personal.json
+	try {
+		const hubEnvContent = await readFile(hubEnvPath, "utf-8");
+		const env = parseEnvFile(hubEnvContent);
+
+		const hubConnection: HubConnection = {
+			hubId: env.HUB_ID || `hub_${crypto.randomUUID().slice(0, 12)}`,
+			slug: "personal",
+			displayName: "Personal Hub",
+			databaseUrl: env.DATABASE_URL || "",
+			triggerProjectId: env.TRIGGER_PROJECT_REF || "",
+			encryptionKey: env.HUB_ENCRYPTION_KEY || "",
+			role: "admin",
+			joinedAt: new Date().toISOString(),
+		};
+
+		// Validate with schema
+		const validated = HubConnectionSchema.parse(hubConnection);
+
+		// Ensure .hubs directory exists
+		await mkdir(hubsDir, { recursive: true });
+
+		// Write personal.json
+		await Bun.write(personalHubPath, JSON.stringify(validated, null, 2));
+
+		// Delete old hub.env
+		await rm(hubEnvPath);
+
+		return { success: true, migrated: true };
+	} catch (err) {
+		const message = err instanceof Error ? err.message : String(err);
+		return {
+			success: false,
+			error: `Failed to migrate Personal Hub: ${message}`,
+		};
+	}
+}
