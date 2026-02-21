@@ -157,7 +157,8 @@ export async function createCompanyHub(
 // ─── Hub Discovery ─────────────────────────────────────────────────────────
 
 /**
- * Scan .hubs/ directory for Company Hub connection files.
+ * Scan .hubs/ directory for all hub connection files.
+ * Returns Personal Hub (personal.json) and Company Hubs (company-*.json).
  * Returns empty array if .hubs/ doesn't exist (graceful degradation).
  */
 export async function discoverCompanyHubs(projectRoot = "."): Promise<HubConnection[]> {
@@ -173,7 +174,7 @@ export async function discoverCompanyHubs(projectRoot = "."): Promise<HubConnect
 	const connections: HubConnection[] = [];
 
 	for (const entry of entries) {
-		if (!entry.startsWith("company-") || !entry.endsWith(".json")) continue;
+		if (!entry.endsWith(".json")) continue; // Skip non-JSON files
 
 		try {
 			const content = await readFile(join(hubsDir, entry), "utf-8");
