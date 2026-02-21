@@ -54,7 +54,7 @@ export async function setupTrigger(configDir = "config"): Promise<SetupResult> {
 
 	if (!projectRef) {
 		// Run trigger.dev init to create/link project
-		const proc = Bun.spawn(["bunx", "trigger.dev@latest", "init", "--skip-install"], {
+		const proc = Bun.spawn(["bunx", "trigger.dev@latest", "init", "--skip-package-install"], {
 			stdout: "pipe",
 			stderr: "pipe",
 			env: { ...process.env, TRIGGER_SECRET_KEY: secretKey },
