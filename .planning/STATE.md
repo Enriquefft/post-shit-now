@@ -327,6 +327,9 @@ Recent decisions affecting current work:
 - [Phase 17]: Database URL masking format: postgres://***@*** (masks user, password, hostname)
 - [Phase 17]: API key masking format: prefix (3 chars) + asterisks + suffix (3 chars)
 - [Phase 17]: Masking scope: errors only, info/warn logs show raw data
+- [Phase 17-03]: Used readline-sync for confirmation prompt (already installed from Phase 16)
+- [Phase 17-03]: validateTriggerArgs checks TRIGGER_SECRET_KEY format (tr_dev_ or tr_prod_ prefix)
+- [Phase 17-03]: Both --dry-run and --preview flags accepted identically (user constraint from 17-CONTEXT.md)
 
 ### Pending Todos
 

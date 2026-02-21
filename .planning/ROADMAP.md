@@ -114,7 +114,7 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 | 17.5 | Resolve neonctl PATH issue | M13 |
 
 **Plans:**
-4/5 plans executed
+5/5 plans complete
 - [x] 17-01-PLAN.md — Add progress indicators to setup
 - [x] 17-02-PLAN.md — Mask sensitive data in error messages
 - [x] 17-03-PLAN.md — Add dry-run and preview modes
