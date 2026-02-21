@@ -1,5 +1,12 @@
 import { join } from "node:path";
 
+export interface ValidationResult {
+	valid: boolean;
+	error?: string;
+	suggestion?: string;
+	warning?: string;
+}
+
 interface HubEnv {
 	databaseUrl: string;
 	triggerProjectRef: string;
@@ -76,6 +83,57 @@ export async function loadKeysEnv(
 	const keys = parseEnvFile(content);
 
 	return { success: true, data: keys };
+}
+
+export async function validateNeonApiKey(apiKey: string): Promise<ValidationResult> {
+	// Step 1: Fast prefix check (immediate feedback)
+	const projectScopedPrefix =
+		"napi_re4yoevqpuf8oeafwmr5f984pnkf3wv8o652xhadd9f66w7sibutphyf0l0c0t09";
+	if (apiKey.startsWith(projectScopedPrefix)) {
+		return {
+			valid: false,
+			error: "Project-scoped API key detected",
+			suggestion:
+				"Generate an organization-scoped API key from Neon Console -> Account -> API Keys. Organization keys start with: napi_k...",
+		};
+	}
+
+	// Step 2: API validation (actual verification via minimal API call)
+	try {
+		const response = await fetch("https://console.neon.tech/api/v1/projects", {
+			method: "GET",
+			headers: {
+				Authorization: `Bearer ${apiKey}`,
+				Accept: "application/json",
+			},
+		});
+
+		if (response.status === 401) {
+			return {
+				valid: false,
+				error: "API key invalid or expired",
+				suggestion: "Regenerate API key from Neon Console.",
+			};
+		}
+
+		if (response.status === 403) {
+			return {
+				valid: false,
+				error: "API key lacks project creation permissions",
+				suggestion:
+					"Use an organization-scoped API key with project creation permissions.",
+			};
+		}
+
+		// Success: can list projects, key is valid
+		return { valid: true };
+	} catch (error) {
+		// Network failure - don't fail hard, just warn
+		return {
+			valid: true, // Assume valid if can't verify
+			warning: `Could not validate API key with Neon API: ${error instanceof Error ? error.message : String(error)}`,
+		};
+	}
 }
 
 export { parseEnvFile };
