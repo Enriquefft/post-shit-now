@@ -158,3 +158,13 @@ This plan completes the Database Stability & Recovery P1 phase functionality for
 3. Run `/psn:setup reset --all` to clean both
 4. See summary before any destructive action
 5. Confirm before execution (via slash command orchestrator)
+
+
+## Self-Check: PASSED
+
+- Created: src/cli/setup-reset.ts (75 lines)
+- Created: .planning/phases/15-database-stability-recovery-p1/15-04-SUMMARY.md
+- Commit 19ed91d: feat(15-04): create setup reset function with selective scope
+- Commit c3f1eeb: feat(15-04): add reset subcommand to setup.ts
+- Commit e6229da: docs(15-04): complete setup reset command plan
+
