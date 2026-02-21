@@ -103,6 +103,127 @@ export async function promptForKey(
 	return apiKey;
 }
 
+/**
+ * Collect API keys interactively via masked stdin prompts.
+ * Validates each key and saves to config/keys.env or database.
+ *
+ * @param configDir - Directory for config files (default: "config")
+ * @returns SetupResult with success/error status
+ */
+export async function collectKeysInteractively(
+	configDir = "config",
+): Promise<SetupResult> {
+	const results: { name: string; saved: boolean; error?: string }[] = [];
+
+	// Collect Phase 1 keys (NEON_API_KEY, TRIGGER_SECRET_KEY)
+	for (const keyDef of REQUIRED_KEYS_PHASE1) {
+		console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+		console.log(`Key: ${keyDef.name}`);
+		console.log(`Source: ${keyDef.source}`);
+
+		const apiKey = await promptForKey(keyDef.name, keyDef.name);
+		if (!apiKey) {
+			// User cancelled this key
+			results.push({ name: keyDef.name, saved: false, error: "User cancelled" });
+			continue;
+		}
+
+		const writeResult = await writeKey(keyDef.name, apiKey, configDir);
+		if (writeResult.status === "success") {
+			console.log(`✅ ${keyDef.name} saved to config/keys.env`);
+			results.push({ name: keyDef.name, saved: true });
+		} else {
+			console.error(`❌ Failed to save ${keyDef.name}: ${writeResult.message}`);
+			results.push({ name: keyDef.name, saved: false, error: writeResult.message });
+		}
+	}
+
+	// Collect provider keys (perplexity, openai, etc.)
+	const hubEnv = await loadHubEnv(configDir);
+	if (!hubEnv.success) {
+		// Hub not configured yet, skip provider keys
+		console.warn(
+			`\n⚠️  Hub not configured. Provider keys skipped. Run /psn:setup to configure your hub.`,
+		);
+	} else {
+		const db = createHubConnection(hubEnv.data.databaseUrl);
+		const hubId = await getHubIdForSetup(configDir);
+		const existingKeys = await listKeys(db, hubId);
+		const configuredServices = new Set(existingKeys.map((k) => k.service));
+
+		for (const provider of PROVIDER_KEYS) {
+			// Skip if already configured
+			if (configuredServices.has(provider.name)) {
+				console.log(`\n✅ ${provider.name} already configured (skipping)`);
+				continue;
+			}
+
+			console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+			console.log(`Provider: ${provider.name}`);
+			console.log(`Service: ${provider.service}`);
+
+			const apiKey = await promptForKey(provider.name, provider.service);
+			if (!apiKey) {
+				// User cancelled this key
+				results.push({ name: provider.name, saved: false, error: "User cancelled" });
+				continue;
+			}
+
+			const writeResult = await writeProviderKey(hubId, provider.name, apiKey, configDir);
+			if (writeResult.status === "success") {
+				console.log(`✅ ${provider.name} saved to database for hub ${hubId}`);
+				results.push({ name: provider.name, saved: true });
+			} else {
+				console.error(`❌ Failed to save ${provider.name}: ${writeResult.message}`);
+				results.push({ name: provider.name, saved: false, error: writeResult.message });
+			}
+		}
+	}
+
+	// Summary
+	console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+	console.log("Summary:");
+	const savedCount = results.filter((r) => r.saved).length;
+	const failedCount = results.filter((r) => !r.saved).length;
+	console.log(`  Saved: ${savedCount}`);
+	console.log(`  Failed/Skipped: ${failedCount}`);
+
+	if (failedCount > 0) {
+		console.log("\nFailed keys:");
+		for (const result of results) {
+			if (!result.saved) {
+				console.log(`  - ${result.name}: ${result.error}`);
+			}
+		}
+	}
+
+	// Return overall result
+	if (failedCount === 0) {
+		return {
+			step: "keys",
+			status: "success",
+			message: "All API keys configured successfully",
+			data: { results },
+		};
+	}
+
+	if (savedCount > 0) {
+		return {
+			step: "keys",
+			status: "success",
+			message: `Saved ${savedCount} keys, ${failedCount} failed or skipped`,
+			data: { results },
+		};
+	}
+
+	return {
+		step: "keys",
+		status: "error",
+		message: "No keys were saved",
+		data: { results },
+	};
+}
+
 // ─── Hub ID Extraction ──────────────────────────────────────────────────────
 
 async function getHubIdForSetup(configDir = "config"): Promise<string> {

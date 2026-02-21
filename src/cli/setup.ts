@@ -245,6 +245,12 @@ export async function runSetupSubcommand(
 				completed: false,
 			};
 		}
+		case "interactive": {
+			// Interactive key collection with masked stdin prompts
+			const { collectKeysInteractively } = await import("./setup-keys.ts");
+			const result = await collectKeysInteractively(configDir);
+			return { steps: [result], validation: null, completed: result.status === "success" };
+		}
 		case "keys": {
 			// Provider key management: list or add specific key
 			if (params.list === "true") {
