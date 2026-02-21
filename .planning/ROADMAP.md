@@ -163,14 +163,18 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 |------|-------------|------------------|
 | 19.1 | Add voice profile validation command | m2 |
 | 19.2 | Implement content import URL validation | m3 |
-| 19.3 | Add timezone configuration | m8 |
-| 19.4 | Design platform persona interview | m7 |
+| 19.3 | Add timezone schema and interview | m8 |
+| 19.4 | Design platform persona questions | m7 |
+| 19.5 | Add timezone strategy and CLI | m8 |
+| 19.6 | Integrate platform personas | m7 |
 
 **Plans:**
 - [ ] 19-01-PLAN.md — Add voice profile validation command
 - [ ] 19-02-PLAN.md — Implement content import URL validation
-- [ ] 19-03-PLAN.md — Add timezone configuration
-- [ ] 19-04-PLAN.md — Design platform persona interview
+- [ ] 19-03-PLAN.md — Add timezone schema and interview
+- [ ] 19-04-PLAN.md — Design platform persona questions
+- [ ] 19-05-PLAN.md — Add timezone strategy and CLI
+- [ ] 19-06-PLAN.md — Integrate platform personas
 
 **Success Criteria:**
 - Users can validate voice profile schemas
