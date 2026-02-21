@@ -1,6 +1,7 @@
 import { mkdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { type HubConnection, HubConnectionSchema } from "../../team/types.ts";
+import { nanoid } from "./nanoid.ts";
 
 export interface ValidationResult {
 	valid: boolean;
@@ -122,8 +123,7 @@ export async function validateNeonApiKey(apiKey: string): Promise<ValidationResu
 			return {
 				valid: false,
 				error: "API key lacks project creation permissions",
-				suggestion:
-					"Use an organization-scoped API key with project creation permissions.",
+				suggestion: "Use an organization-scoped API key with project creation permissions.",
 			};
 		}
 
@@ -144,7 +144,8 @@ async function validateTriggerDevApiKey(apiKey: string): Promise<ValidationResul
 		return {
 			valid: false,
 			error: "Invalid Trigger.dev API key format",
-			suggestion: "Trigger.dev API keys start with 'tr_dev_' (development) or 'tr_prod_' (production).",
+			suggestion:
+				"Trigger.dev API keys start with 'tr_dev_' (development) or 'tr_prod_' (production).",
 		};
 	}
 
@@ -277,11 +278,14 @@ export { parseEnvFile };
 /**
  * Migrate Personal Hub from config/hub.env to .hubs/personal.json.
  * One-time migration: if hub.env exists and personal.json doesn't, migrate automatically.
+ * Auto-generates nanoid-style hubId if HUB_ID is missing from legacy hub.env.
  */
 export async function migratePersonalHubToHubsDir(
 	configDir = "config",
 	projectRoot = ".",
-): Promise<{ success: boolean; migrated?: boolean; error?: string }> {
+): Promise<
+	{ success: true; migrated: boolean; hubId?: string } | { success: false; error: string }
+> {
 	const hubEnvPath = join(projectRoot, configDir, "hub.env");
 	const hubsDir = join(projectRoot, ".hubs");
 	const personalHubPath = join(hubsDir, "personal.json");
@@ -307,8 +311,11 @@ export async function migratePersonalHubToHubsDir(
 		const hubEnvContent = await readFile(hubEnvPath, "utf-8");
 		const env = parseEnvFile(hubEnvContent);
 
+		// Generate hubId if missing (legacy hub.env files)
+		const hubId = env.HUB_ID || `hub_${nanoid()}`;
+
 		const hubConnection: HubConnection = {
-			hubId: env.HUB_ID || `hub_${crypto.randomUUID().slice(0, 12)}`,
+			hubId,
 			slug: "personal",
 			displayName: "Personal Hub",
 			databaseUrl: env.DATABASE_URL || "",
@@ -318,19 +325,19 @@ export async function migratePersonalHubToHubsDir(
 			joinedAt: new Date().toISOString(),
 		};
 
-		// Validate with schema
+		// Validate with schema before writing (prevents partial state corruption)
 		const validated = HubConnectionSchema.parse(hubConnection);
 
 		// Ensure .hubs directory exists
 		await mkdir(hubsDir, { recursive: true });
 
-		// Write personal.json
+		// Write personal.json (only after validation succeeds)
 		await Bun.write(personalHubPath, JSON.stringify(validated, null, 2));
 
 		// Delete old hub.env
 		await rm(hubEnvPath);
 
-		return { success: true, migrated: true };
+		return { success: true, migrated: true, hubId };
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
 		return {
