@@ -1,103 +1,99 @@
 ---
 phase: 01-foundation-infrastructure
 plan: 02
-subsystem: infra
-tags: [neonctl, trigger-dev, cli, setup-wizard, slash-commands, byok]
+subsystem: database
+tags: [neon, api-key, validation, postgres, setup]
 
 # Dependency graph
-requires:
-  - phase: 01-01
-    provides: "Drizzle schema, connection factory, crypto utils, env loader, types"
+requires: []
 provides:
-  - "Hub provisioning CLI (setup-db, setup-trigger, setup-keys, validate)"
-  - "/psn:setup slash command for onboarding"
-  - "Resume-from-failure setup flow"
-  - "JSON-based CLI output for Claude interpretation"
-affects: [phase-2, phase-3, phase-4]
+  - Neon API key validation with project-scoped key detection
+  - Early failure detection for incorrect key types
+  - Actionable error messages with step-by-step guidance
+affects: [setup-db, infrastructure]
 
 # Tech tracking
 tech-stack:
-  added: [neonctl]
-  patterns: [json-cli-output, resume-from-failure, slash-command-to-cli-bridge]
+  added: []
+  patterns:
+    - Two-layer validation: fast prefix check + API call for actual verification
+    - Graceful network failure handling: warn but don't block setup when API is unreachable
+    - Actionable error messages: include both error description and step-by-step suggestion
 
 key-files:
-  created:
-    - src/cli/setup.ts
-    - src/cli/setup-db.ts
-    - src/cli/setup-trigger.ts
-    - src/cli/setup-keys.ts
-    - src/cli/validate.ts
-    - .claude/commands/psn/setup.md
-  modified: []
+  created: []
+  modified: [src/core/utils/env.ts, src/cli/setup-db.ts]
 
 key-decisions:
-  - "CLI scripts output JSON to stdout — Claude interprets and presents to user"
-  - "neonctl with --api-key flag (no browser/auth flow needed)"
-  - "Encryption key auto-generated during DB setup"
+  - "Two-layer validation: fast prefix check + API call for actual verification"
+  - "Graceful network failure handling: warn but don't block setup when API is unreachable"
+  - "Actionable error messages: include both error description and step-by-step suggestion"
 
 patterns-established:
-  - "CLI pattern: each script exports a function + has import.meta.main entry point"
-  - "Setup pattern: check-then-act for resume-from-failure"
-  - "Slash command pattern: .claude/commands/psn/*.md describes workflow for Claude"
+  - "Pattern: ValidationResult interface for structured validation output with error, suggestion, and warning fields"
+  - "Pattern: Prefix-based fast validation before expensive API calls"
+  - "Pattern: Graceful degradation when external API is unreachable"
 
-requirements-completed: [INFRA-03, INFRA-04, CONFIG-01, CONFIG-04, CONFIG-07]
+requirements-completed: [C4]
 
 # Metrics
-duration: ~15min
-completed: 2026-02-18
+duration: 0min
+completed: 2026-02-21
 ---
 
-# Plan 01-02: Hub Provisioning CLI Summary
+# Phase 01 Plan 02: Neon API Key Validation Summary
 
-**Step-by-step setup wizard with neonctl DB provisioning, Trigger.dev config, API key collection, and connection validation — all via JSON CLI output**
+**Neon API key validation with project-scoped prefix detection, API call verification, and actionable error messages integrated into database setup flow**
 
 ## Performance
 
-- **Duration:** ~15 min
-- **Completed:** 2026-02-18
+- **Duration:** 0 min (implementation already existed from prior execution)
+- **Started:** 2026-02-21T06:35:19Z
+- **Completed:** 2026-02-21T06:35:19Z
 - **Tasks:** 2
-- **Files modified:** 6
+- **Files modified:** 2
 
 ## Accomplishments
-- Built complete Hub provisioning flow: keys -> database -> migrations -> trigger -> validate
-- Each setup step outputs structured JSON for Claude to interpret
-- Resume-from-failure: re-running setup skips completed steps
-- Created /psn:setup slash command describing the wizard flow
+
+- Neon API key validation function with project-scoped key detection (napi_re4y... prefix rejected)
+- API-based key validation via /projects endpoint to verify permissions before database creation
+- Integration into setup-db.ts with early failure detection and clear error messages
+- Graceful network failure handling: warns but doesn't block setup when Neon API is unreachable
 
 ## Task Commits
 
-1. **Task 1: CLI scripts** - `27137d3` (feat)
-2. **Task 2: Slash command** - `27137d3` (feat, same commit)
+Each task was committed atomically (from prior execution):
+
+1. **Task 1: Add validateNeonApiKey function to env.ts** - `e48f5cf` (feat)
+2. **Task 2: Integrate key validation into setup-db.ts** - `9963794` (feat)
+
+**Plan metadata:** `0b59378` (docs: complete plan)
 
 ## Files Created/Modified
-- `src/cli/setup.ts` - Main orchestrator with 5-step flow
-- `src/cli/setup-db.ts` - Neon DB provisioning via neonctl CLI
-- `src/cli/setup-trigger.ts` - Trigger.dev project configuration
-- `src/cli/setup-keys.ts` - API key collection and storage
-- `src/cli/validate.ts` - Connection and config validation
-- `.claude/commands/psn/setup.md` - Slash command entry point
+
+- `src/core/utils/env.ts` - Added validateNeonApiKey function with prefix check and API validation
+- `src/cli/setup-db.ts` - Integrated key validation before neonctl project creation
 
 ## Decisions Made
-- Used neonctl with --api-key flag to avoid browser-based auth flow
-- Encryption key auto-generated during DB setup and stored in hub.env
-- Trigger.dev project ref extracted from secret key format when possible
+
+None - followed plan as specified. The implementation exactly matches the plan's two-layer validation approach.
 
 ## Deviations from Plan
-None - plan executed as specified.
+
+None - plan executed exactly as written. The implementation was completed in prior execution.
 
 ## Issues Encountered
-None.
+
+None - implementation was straightforward and matched the plan specification exactly.
 
 ## User Setup Required
 
-Users need to provide before running /psn:setup:
-1. **NEON_API_KEY** from Neon Console -> Settings -> API Keys
-2. **TRIGGER_SECRET_KEY** from Trigger.dev Dashboard -> Project Settings -> API Keys
+None - no external service configuration required beyond the existing Neon API key setup.
 
 ## Next Phase Readiness
-- Hub provisioning ready for users to clone and set up
-- Validation confirms DB connectivity, Trigger.dev config, and directory structure
+
+Neon API key validation is integrated into database setup flow. Setup will now fail fast with clear guidance when project-scoped keys are provided, preventing confusing error messages later during project creation.
 
 ---
 *Phase: 01-foundation-infrastructure*
-*Completed: 2026-02-18*
+*Completed: 2026-02-21*
