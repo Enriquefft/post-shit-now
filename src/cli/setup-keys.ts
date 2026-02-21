@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import readlineSync from "readline-sync";
 import { listKeys, setApiKey } from "../core/db/api-keys";
 import { createHubConnection } from "../core/db/connection.ts";
 import type { SetupResult } from "../core/types/index.ts";
@@ -28,6 +29,79 @@ const PROVIDER_KEYS = [
 	{ name: "fal", service: "fal.ai (Flux/Kling/Pika)", source: "https://fal.ai/dashboard" },
 	{ name: "runway", service: "Runway ML", source: "https://runwayml.com/console" },
 ];
+
+// ─── Masked Input Functions ──────────────────────────────────────────────────
+
+/**
+ * Prompt for API key with masked input.
+ * Validates key format and makes minimal API test before accepting.
+ *
+ * @param keyName - Name of the key (e.g., "perplexity", "openai")
+ * @param service - Display name of service (e.g., "Perplexity AI")
+ * @returns The validated API key, or null if user cancels
+ */
+export async function promptForKey(
+	keyName: string,
+	service: string,
+): Promise<string | null> {
+	// Display source info if available
+	const PROVIDER_SOURCE_MAP: Record<string, string> = {
+		perplexity: "https://www.perplexity.ai/settings/api",
+		brave: "https://api.search.brave.com",
+		tavily: "https://tavily.com/api",
+		exa: "https://exa.ai/api",
+		openai: "https://platform.openai.com/api-keys",
+		ideogram: "https://ideogram.ai/api",
+		fal: "https://fal.ai/dashboard",
+		runway: "https://runwayml.com/console",
+	};
+
+	const source = PROVIDER_SOURCE_MAP[keyName];
+	if (source) {
+		console.log(`\nGet your API key from: ${source}`);
+	}
+
+	// Prompt with masked input
+	const apiKey = readlineSync.question(
+		`\nEnter ${service} API key (input will be hidden): `,
+		{
+			hideEchoBack: true, // Hide typed characters
+			mask: "*", // Show asterisks instead of nothing
+		},
+	);
+
+	// Allow user to cancel
+	if (!apiKey || apiKey.trim() === "") {
+		console.log("Cancelled (no key provided).");
+		return null;
+	}
+
+	// Validate key with format check + minimal API test
+	console.log("Validating API key...");
+	const validation = await validateProviderKey(keyName, apiKey);
+
+	if (!validation.valid) {
+		console.error(`❌ Invalid ${service} API key: ${validation.error}`);
+		if (validation.suggestion) {
+			console.log(`   Hint: ${validation.suggestion}`);
+		}
+
+		// Reprompt once on validation failure
+		const retry = readlineSync.question("\nTry again? (y/n): ");
+		if (retry.toLowerCase() === "y") {
+			return promptForKey(keyName, service); // Recursive retry
+		}
+		return null;
+	}
+
+	if (validation.warning) {
+		console.log(`⚠️  Warning: ${validation.warning}`);
+	}
+
+	console.log(`✅ ${service} API key validated.`);
+
+	return apiKey;
+}
 
 // ─── Hub ID Extraction ──────────────────────────────────────────────────────
 
