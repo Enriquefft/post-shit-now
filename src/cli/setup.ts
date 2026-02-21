@@ -504,12 +504,78 @@ function parseResetFlags(params: Record<string, string>): {
 }
 
 /**
+ * Validate Trigger.dev arguments format
+ */
+async function validateTriggerArgs(): Promise<{ valid: boolean; error?: string }> {
+	// Check if TRIGGER_SECRET_KEY is set and has valid format
+	const secretKey = process.env.TRIGGER_SECRET_KEY;
+	if (!secretKey) {
+		return { valid: false, error: "TRIGGER_SECRET_KEY is not set" };
+	}
+	// Validate format: should start with tr_dev_ or tr_prod_
+	if (!secretKey.startsWith("tr_dev_") && !secretKey.startsWith("tr_prod_")) {
+		return {
+			valid: false,
+			error: 'TRIGGER_SECRET_KEY must start with "tr_dev_" or "tr_prod_"',
+		};
+	}
+	return { valid: true };
+}
+
+/**
  * Main setup orchestrator for /psn:setup.
  * Runs each provisioning step in order with resume-from-failure support.
  * All output is JSON to stdout for Claude to interpret.
  */
-export async function runSetup(configDir = "config"): Promise<SetupOutput> {
+export async function runSetup(configDir = "config", dryRun = false): Promise<SetupOutput> {
 	const steps: SetupResult[] = [];
+
+	// Dry-run or preview mode
+	if (dryRun) {
+		console.log("\n=== Dry Run / Preview Mode ===");
+		console.log("Validating setup configuration...\n");
+
+		// Run all validations without executing
+		// Validate NEON_API_KEY format (prefix check)
+		const keysResult = await setupKeys(configDir);
+		if (Array.isArray(keysResult)) {
+			console.log("\nValidation failed: Missing required keys");
+			keysResult.forEach((r) => console.log(`  ✗ ${r.message}`));
+			return { steps: keysResult, validation: null, completed: false };
+		}
+
+		// Validate TRIGGER_SECRET_KEY format
+		const triggerValidation = await validateTriggerArgs();
+		if (!triggerValidation.valid) {
+			console.log("\nValidation failed: Invalid Trigger.dev arguments");
+			console.log(`  ✗ ${triggerValidation.error}`);
+			return { steps: [...steps, keysResult], validation: null, completed: false };
+		}
+
+		// Show what would happen
+		console.log("\n=== What would be executed ===");
+		console.log("Step 1: Collect API keys (NEON_API_KEY, TRIGGER_SECRET_KEY)");
+		console.log("Step 2: Create Neon database project");
+		console.log("Step 3: Run database migrations");
+		console.log("Step 4: Configure Trigger.dev project");
+		console.log("Step 5: Set up platform OAuth (X, LinkedIn, Instagram, TikTok)");
+		console.log("Step 6: Validate all connections");
+
+		// Ask for confirmation
+		const prompt = await import("readline-sync");
+		const proceed = prompt.default.question("\nProceed with setup? [y/N]: ", {
+			hideEchoBack: false,
+			limit: 1,
+		});
+
+		if (proceed.toLowerCase() !== "y") {
+			console.log("Setup cancelled.");
+			return { steps: [], validation: null, completed: false };
+		}
+
+		// Fall through to actual execution
+		console.log("\n=== Executing Setup ===\n");
+	}
 
 	// Step 1: Collect API keys
 	const keysResult = await setupKeys(configDir);
