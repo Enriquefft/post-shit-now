@@ -4,6 +4,7 @@ import { runMigrationsWithRetry } from "../core/db/migrate.ts";
 import type { SetupResult } from "../core/types/index.ts";
 import { generateEncryptionKey } from "../core/utils/crypto.ts";
 import { loadKeysEnv, migratePersonalHubToHubsDir, validateNeonApiKey } from "../core/utils/env.ts";
+import { formatErrorWithMasking, maskDatabaseUrl } from "./utils/masking.ts";
 
 /**
  * Provision a Neon database for the Personal Hub.
@@ -35,7 +36,7 @@ export async function setupDatabase(configDir = "config", projectRoot = "."): Pr
 					step: "database",
 					status: "skipped",
 					message: "Database already configured",
-					data: { databaseUrl: maskUrl(parsed.databaseUrl) },
+					data: { databaseUrl: maskDatabaseUrl(parsed.databaseUrl) },
 				};
 			}
 		}
@@ -194,7 +195,7 @@ export async function setupDatabase(configDir = "config", projectRoot = "."): Pr
 			step: "database",
 			status: "error",
 			message: `Database created but migrations failed: ${migrationResult.error}. personal.json saved — re-run setup to retry migrations.`,
-			data: { projectName, databaseUrl: maskUrl(connectionUri) },
+			data: { projectName, databaseUrl: maskDatabaseUrl(connectionUri) },
 		};
 	}
 
@@ -202,16 +203,6 @@ export async function setupDatabase(configDir = "config", projectRoot = "."): Pr
 		step: "database",
 		status: "success",
 		message: `Database "${projectName}" created, migrations applied`,
-		data: { projectName, databaseUrl: maskUrl(connectionUri) },
+		data: { projectName, databaseUrl: maskDatabaseUrl(connectionUri) },
 	};
-}
-
-function maskUrl(url: string): string {
-	try {
-		const parsed = new URL(url);
-		parsed.password = "***";
-		return parsed.toString();
-	} catch {
-		return "***masked***";
-	}
 }
