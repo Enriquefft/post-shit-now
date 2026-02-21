@@ -76,7 +76,22 @@ export async function getSetupStatus(
 
 		status.entityCount = entityResults[0]?.count ?? 0;
 		status.hasEntities = status.entityCount > 0;
-		status.hasVoiceProfile = hasLegacyProfile || status.hasEntities;
+
+		// Check interview completion by querying profileData for pillars
+		let hasCompletedInterview = hasLegacyProfile;
+		if (status.entityCount > 0) {
+			const firstEntity = await db
+				.select({ profileData: voiceProfiles.profileData })
+				.from(voiceProfiles)
+				.where(eq(voiceProfiles.userId, userId))
+				.limit(1);
+
+			// Interview is complete if profile has identity pillars defined
+			hasCompletedInterview =
+				firstEntity[0]?.profileData?.identity?.pillars?.length > 0;
+		}
+
+		status.hasVoiceProfile = hasCompletedInterview;
 
 		// Query oauth_tokens -> platformList, hasPlatforms
 		const platformResults = await db
