@@ -1,6 +1,6 @@
-import { join } from "node:path";
 import { mkdir } from "node:fs/promises";
-import { runMigrations } from "../core/db/migrate.ts";
+import { join } from "node:path";
+import { runMigrationsWithRetry } from "../core/db/migrate.ts";
 import type { SetupResult } from "../core/types/index.ts";
 import { generateEncryptionKey } from "../core/utils/crypto.ts";
 import { loadKeysEnv, migratePersonalHubToHubsDir, validateNeonApiKey } from "../core/utils/env.ts";
@@ -176,12 +176,12 @@ export async function setupDatabase(configDir = "config", projectRoot = "."): Pr
 	await Bun.write(personalHubPath, JSON.stringify(connection, null, 2));
 
 	// Run migrations
-	const migrateResult = await runMigrations(connectionUri);
-	if (!migrateResult.success) {
+	const migrationResult = await runMigrationsWithRetry(connectionUri);
+	if (!migrationResult.success) {
 		return {
 			step: "database",
 			status: "error",
-			message: `Database created but migrations failed: ${migrateResult.error}. personal.json saved — re-run setup to retry migrations.`,
+			message: `Database created but migrations failed: ${migrationResult.error}. personal.json saved — re-run setup to retry migrations.`,
 			data: { projectName, databaseUrl: maskUrl(connectionUri) },
 		};
 	}

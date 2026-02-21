@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createHubConnection, type HubDb } from "../core/db/connection.ts";
-import { runMigrations } from "../core/db/migrate.ts";
+import { runMigrationsWithRetry } from "../core/db/migrate.ts";
 import * as schema from "../core/db/schema.ts";
 import { loadKeysEnv } from "../core/utils/env.ts";
 import { type HubConnection, HubConnectionSchema } from "./types.ts";
@@ -116,9 +116,9 @@ export async function createCompanyHub(
 	const databaseUrl = connStdout.trim();
 
 	// Run Drizzle migrations on the new Company Hub DB
-	const migrateResult = await runMigrations(databaseUrl);
-	if (!migrateResult.success) {
-		throw new Error(`Migrations failed on Company Hub DB: ${migrateResult.error}`);
+	const migrationResult = await runMigrationsWithRetry(databaseUrl);
+	if (!migrationResult.success) {
+		throw new Error(`Migrations failed on Company Hub DB: ${migrationResult.error}`);
 	}
 
 	// Insert creator as admin in team_members table
