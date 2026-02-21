@@ -63,8 +63,9 @@ Progress: [███████████████░░░░░] 12/28 p
 **Recent Trend:**
 - Phase 1 (Critical Setup Fixes): 4 plans completed in ~24min
 - Phase 15 (Database Stability & Recovery): 3 plans completed in ~5min
-- Phase 16 (Voice Interview CLI Completion): 1 plan completed in ~5min
-- Trend: Steady progress, ready to continue Phase 16
+- Phase 16 (Voice Interview CLI Completion): 4 plans completed in ~15min
+- Trend: Ready to continue Phase 17
+- Phase 17 (Setup UX Improvements): 1 plan completed in ~1min
 
 *Updated after each plan completion*
 | Phase 07 P01 | 2min | 2 tasks | 5 files |
@@ -104,6 +105,8 @@ Progress: [███████████████░░░░░] 12/28 p
 | Phase 16 P01 | 3 | 2 tasks | 1 files |
 | Phase 16 P03 | 5 | 3 tasks | 3 files |
 | Phase 16 P02 | 5min | 2 tasks | 2 files |
+| Phase 17 P04 | 1m | 1 tasks | 1 files |
+| Phase 17 P02 | 3 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -315,10 +318,14 @@ Recent decisions affecting current work:
 - [Phase 16]: Clean up old interview files after 7 days automatically
 - [Phase 16]: Validate state with Zod on load to detect corruption early
 - [Phase 16]: Use human-readable CLI output (except start command which outputs JSON for integration)
+- [Phase 17]: Fixed Trigger.dev CLI flag pass-through by using correct --skip-package-install flag instead of --skip-install
 - [Phase 17]: Keep simple error message while providing detailed structured data for programmatic consumption
 - [Phase 17]: Include both npm and bun installation commands to support all package managers
 - [Phase 17]: Provide troubleshooting steps for PATH issues (common source of confusion)
 - [Phase 17]: Link to official neon.tech CLI documentation for authoritative information
+- [Phase 17]: Database URL masking format: postgres://***@*** (masks user, password, hostname)
+- [Phase 17]: API key masking format: prefix (3 chars) + asterisks + suffix (3 chars)
+- [Phase 17]: Masking scope: errors only, info/warn logs show raw data
 
 ### Pending Todos
 
@@ -341,8 +348,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-21T13:41:00Z
-Stopped at: Phase 16 Plan 03 complete (masked stdin input for API keys)
+Last session: 2026-02-21T17:13:30Z
+Stopped at: Phase 17 Plan 04 complete (fix Trigger.dev CLI flag pass-through)
 Resume file: None
 
 Last session: 2026-02-21T10:35:00Z
