@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-02-20 after v1.0 milestone)
 - Phase 1 (Foundation Infrastructure): 4/4 plans complete (100%) ✓
 - Plans: Setup wizard, migration RLS, provider keys validation, Neon API key handling
 
-Last activity: 2026-02-20 - Phase 1 complete, ready to plan Phase 2
+Last activity: 2026-02-21 - Phase 1 complete, ready to plan Phase 2
 
 Progress: [██████████░░░░░░░░░░] 4/7 plans (57%) v1.1
 
-Note: Phase 02-x-platform-pipeline (from v1.0) was executed separately with 4/4 plans complete. This phase is not part of v1.1 roadmap.
+Note: v1.0 phases (01-critical-setup-fixes, 02-x-platform-pipeline, 03-voice-profiling-and-content-generation) archived to .planning/milestones/v1.0-legacy/. v1.1 roadmap starts fresh.
 
 ## Performance Metrics
 

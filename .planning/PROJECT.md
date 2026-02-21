@@ -77,6 +77,8 @@ See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for complete milestone deta
 - UX improvements (progress indicators, error messages, validation)
 - Recovery mechanisms (reset command, dry-run mode, health checks)
 
+**Note:** v1.0 legacy phases have been archived to `.planning/milestones/v1.0-legacy/`. v1.1 roadmap starts fresh with new phase structure.
+
 <details>
 <summary>v1.0 Archived Requirements</summary>
 
@@ -156,4 +158,4 @@ See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for complete milestone deta
 | Extensible VALIDATORS mapping for keys | Add new provider validators to mapping, no routing logic changes. Graceful degradation for unknown providers. | ✓ Validated Phase 1 |
 
 ---
-*Last updated: 2026-02-21 after Phase 1 (Critical Setup Fixes)*
+*Last updated: 2026-02-21 - v1.0 archived, v1.1 started*
