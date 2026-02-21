@@ -82,6 +82,8 @@ Note: v1.0 phases (01-critical-setup-fixes, 02-x-platform-pipeline, 03-voice-pro
 | Phase 01 P02 | 97 | 2 tasks | 2 files |
 | Phase 01-critical-setup-fixes P01 | 295 | 3 tasks | 4 files |
 | Phase 01 P03 | 106 | 3 tasks | 3 files |
+| Phase 01-foundation-infrastructure P01-02 | 0 | 2 tasks | 2 files |
+| Phase 01-foundation-infrastructure P01 | 59 | 3 tasks | 0 files |
 
 ## Accumulated Context
 
