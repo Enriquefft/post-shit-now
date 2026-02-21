@@ -1,4 +1,7 @@
 import { loadKeysEnv } from "../core/utils/env.ts";
+import { readFile, unlink, writeFile } from "node:fs/promises";
+import * as readline from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
 import type { ContentAnalysis } from "../voice/import.ts";
 import {
 	analyzeImportedContent,
@@ -9,6 +12,7 @@ import {
 } from "../voice/import.ts";
 import {
 	createInterviewState,
+	ensureVoiceDirectories,
 	finalizeProfile,
 	generateQuestions,
 	type InterviewQuestion,
@@ -18,12 +22,111 @@ import {
 import { generateStrategy, loadProfile, saveProfile, saveStrategy } from "../voice/profile.ts";
 import type { VoiceProfile } from "../voice/types.ts";
 
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+const INTERVIEW_STATE_FILE = ".interview.json";
+const PHASE_ORDER = ["identity", "style", "platforms", "language", "review"] as const;
+
+// ─── State Persistence ───────────────────────────────────────────────────────
+
+interface SerializedInterviewState {
+	phase: string;
+	answers: Record<string, string>;
+	detectedExperience: string | null;
+	maturityLevel: string | null;
+	languages: ("en" | "es")[];
+	isBlankSlate: boolean;
+	isRecalibration: boolean;
+}
+
+function serializeState(state: InterviewState): SerializedInterviewState {
+	return {
+		phase: state.phase,
+		answers: Object.fromEntries(state.answers),
+		detectedExperience: state.detectedExperience,
+		maturityLevel: state.maturityLevel,
+		languages: state.languages,
+		isBlankSlate: state.isBlankSlate,
+		isRecalibration: state.isRecalibration,
+	};
+}
+
+function deserializeState(serialized: SerializedInterviewState): InterviewState {
+	return {
+		phase: serialized.phase as InterviewState["phase"],
+		questionIndex: 0,
+		answers: new Map(Object.entries(serialized.answers)),
+		detectedExperience: serialized.detectedExperience,
+		maturityLevel: serialized.maturityLevel,
+		languages: serialized.languages,
+		importedContent: null,
+		isBlankSlate: serialized.isBlankSlate,
+		isRecalibration: serialized.isRecalibration,
+	};
+}
+
+async function loadInterviewState(): Promise<InterviewState | null> {
+	try {
+		const raw = await readFile(INTERVIEW_STATE_FILE, "utf-8");
+		const data = JSON.parse(raw) as SerializedInterviewState;
+		return deserializeState(data);
+	} catch {
+		return null;
+	}
+}
+
+async function saveInterviewState(state: InterviewState): Promise<void> {
+	const serialized = serializeState(state);
+	await writeFile(INTERVIEW_STATE_FILE, JSON.stringify(serialized, null, 2), "utf-8");
+}
+
+async function deleteInterviewState(): Promise<void> {
+	try {
+		await unlink(INTERVIEW_STATE_FILE);
+	} catch {
+		// File doesn't exist — ignore
+	}
+}
+
+// ─── Interactive Prompting ───────────────────────────────────────────────────
+
+async function promptForAnswer(
+	rl: readline.Interface,
+	question: InterviewQuestion,
+	phaseIndex: number,
+): Promise<string> {
+	const totalPhases = PHASE_ORDER.length;
+	const currentPhase = question.phase;
+	const phaseOrderIndex = PHASE_ORDER.indexOf(currentPhase);
+	const phaseLabel = `${phaseOrderIndex + 1}/${totalPhases}`;
+
+	let prompt = `\n${currentPhase.toUpperCase()} PHASE\n`;
+	prompt += `${question.text}`;
+
+	if (question.hint) {
+		prompt += `\n(Hint: ${question.hint})`;
+	}
+
+	if (question.options) {
+		prompt += "\nOptions:";
+		question.options.forEach((opt, idx) => {
+			prompt += `\n  ${idx + 1}. ${opt}`;
+		});
+	}
+
+	const answer = await rl.question(`${prompt}\n\n${question.text}\n> `);
+	return answer.trim();
+}
+
 // ─── Start Interview ────────────────────────────────────────────────────────
 
 export async function startInterview(options?: {
 	recalibration?: boolean;
 	profilePath?: string;
 }): Promise<{ state: InterviewState; questions: InterviewQuestion[] }> {
+	// Ensure directories exist before collecting answers
+	await ensureVoiceDirectories();
+
 	let existingProfile: VoiceProfile | undefined;
 
 	if (options?.recalibration && options?.profilePath) {
@@ -59,6 +162,92 @@ export function submitAnswers(
 	const complete = updated.phase === "review";
 
 	return { state: updated, questions, complete };
+}
+
+// ─── Interactive Submit ─────────────────────────────────────────────────────
+
+export async function submitAnswersInteractive(): Promise<{
+	complete: boolean;
+	phase: string;
+	questions: InterviewQuestion[];
+}> {
+	// Load existing state or start fresh
+	let state = await loadInterviewState();
+	if (!state) {
+		state = createInterviewState();
+	}
+
+	const rl = readline.createInterface({ input, output });
+
+	try {
+		// Loop through phases until all questions answered
+		while (state.phase !== "review") {
+			const questions = generateQuestions(state);
+			const unansweredQuestions = questions.filter((q) => !state.answers.has(q.id));
+
+			if (unansweredQuestions.length === 0) {
+				// All questions in this phase answered, auto-advance
+				const currentIndex = PHASE_ORDER.indexOf(state.phase);
+				const nextPhase = PHASE_ORDER[currentIndex + 1];
+				if (nextPhase) {
+					state = { ...state, phase: nextPhase, questionIndex: 0 };
+					await saveInterviewState(state);
+					console.log(`\n--- Moving to ${nextPhase.toUpperCase()} phase ---\n`);
+					continue;
+				}
+				break;
+			}
+
+			// Get phase info for progress display
+			const phaseOrderIndex = PHASE_ORDER.indexOf(state.phase);
+			const totalPhases = PHASE_ORDER.length;
+
+			// Prompt for each unanswered question
+			for (const question of unansweredQuestions) {
+				const phaseLabel = `${phaseOrderIndex + 1}/${totalPhases}`;
+				const questionNumber = questions.indexOf(question) + 1;
+				const totalQuestions = questions.length;
+
+				console.log(`Phase ${phaseLabel} • Question ${questionNumber}/${totalQuestions}`);
+
+				let answer: string;
+				let attempts = 0;
+				const maxAttempts = 3;
+
+				// Validation loop
+				while (attempts < maxAttempts) {
+					answer = await promptForAnswer(rl, question, phaseOrderIndex);
+
+					// Validate required answers
+					if (question.required && !answer.trim()) {
+						attempts++;
+						console.log(`This field is required. Please try again.${attempts < maxAttempts ? "" : " (Skipping question.)"}`);
+						if (attempts >= maxAttempts) {
+							answer = "";
+							break;
+						}
+						continue;
+					}
+
+					break;
+				}
+
+				state.answers.set(question.id, answer);
+
+				// Process answer (handles auto-advance logic)
+				state = processAnswer(state, question.id, answer);
+				await saveInterviewState(state);
+			}
+		}
+
+		// Get final questions for review phase
+		const finalQuestions = generateQuestions(state);
+		const complete = state.phase === "review";
+
+		return { complete, phase: state.phase, questions: finalQuestions };
+	} finally {
+		rl.close();
+	}
 }
 
 // ─── Complete Interview ─────────────────────────────────────────────────────
@@ -155,10 +344,36 @@ if (import.meta.main) {
 				);
 				break;
 			}
+			case "submit": {
+				const result = await submitAnswersInteractive();
+				if (result.complete) {
+					console.log("\n=== Interview Complete ===");
+					console.log("All questions answered. Run 'complete' to save your voice profile.");
+				} else {
+					console.log(`\n=== Current Phase: ${result.phase.toUpperCase()} ===`);
+					if (result.questions.length > 0) {
+						console.log("\nNext questions:");
+						for (const q of result.questions) {
+							console.log(`  - ${q.text}`);
+						}
+					}
+					console.log("\nRun 'submit' again to continue.");
+				}
+				break;
+			}
+			case "complete": {
+				// Will be implemented in Task 2
+				console.log(
+					JSON.stringify({
+						error: "Complete command not yet implemented. Use: start, submit, import",
+					}),
+				);
+				break;
+			}
 			default:
 				console.log(
 					JSON.stringify({
-						error: "Unknown command. Use: start, import",
+						error: "Unknown command. Use: start, submit, import, complete",
 					}),
 				);
 		}
