@@ -13,8 +13,8 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 **Status:** Executing Phase 01 - Critical Setup Fixes
 
 **Current Phase:** 01-critical-setup-fixes
-**Current Plan:** 01-01 (RLS Role Migration Setup) - COMPLETE
-**Phase Progress:** 1/4 plans complete (25%)
+**Current Plan:** 01-03 (Personal Hub Storage Unification) - COMPLETE
+**Phase Progress:** 3/4 plans complete (75%)
 
 **Milestone v1.0 Summary:** 14 phases, 54 plans, 148 requirements complete (100%)
 - Full platform support (X, LinkedIn, Instagram, TikTok)
@@ -75,6 +75,7 @@ Progress: [░░░░░░░░░░] 0% v1.1 Beginning
 | Phase 01 P01 | 5 | 3 tasks | 4 files |
 | Phase 01 P02 | 97 | 2 tasks | 2 files |
 | Phase 01-critical-setup-fixes P01 | 295 | 3 tasks | 4 files |
+| Phase 01 P03 | 106 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -263,6 +264,12 @@ Recent decisions affecting current work:
 - [Phase 01]: Pre-migration role setup with earliest timestamp ensures role exists before schema migrations reference it
 - [Phase 01]: Idempotent role creation pattern (IF NOT EXISTS) handles migration re-runs safely
 - [Phase 01]: Migration journal ordering via _journal.json controls execution sequence
+- [Phase 01-03]: Personal Hub migrated from config/hub.env to .hubs/personal.json for unified storage
+- [Phase 01-03]: discoverCompanyHubs loads all .json files in .hubs/, not just company-*.json
+- [Phase 01-03]: getHubConnection() unified for both Personal and Company hubs via single API
+- [Phase 01-03]: Migration is idempotent: safe to call multiple times, handles all edge cases
+- [Phase 01-03]: setup-db.ts writes to .hubs/personal.json instead of config/hub.env
+- [Phase 01-03]: Hub ID generated with crypto.randomUUID() if not present in hub.env during migration
 
 ### Pending Todos
 
