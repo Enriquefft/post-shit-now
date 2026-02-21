@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { listKeys, setApiKey } from "../core/db/api-keys";
 import { createHubConnection } from "../core/db/connection.ts";
 import type { SetupResult } from "../core/types/index.ts";
-import { loadHubEnv, parseEnvFile } from "../core/utils/env.ts";
+import { loadHubEnv, parseEnvFile, validateProviderKey } from "../core/utils/env.ts";
 
 const REQUIRED_KEYS_PHASE1 = [
 	{ name: "NEON_API_KEY", source: "Neon Console -> Settings -> API Keys -> Generate new key" },
@@ -90,6 +90,22 @@ export async function writeKey(
 	value: string,
 	configDir = "config",
 ): Promise<SetupResult> {
+	// Validate NEON_API_KEY specifically
+	if (key === "NEON_API_KEY") {
+		const validation = await validateProviderKey("neon", value);
+		if (!validation.valid) {
+			return {
+				step: "keys",
+				status: "error",
+				message: `NEON_API_KEY validation failed: ${validation.error}`,
+				data: {
+					error: validation.error,
+					suggestion: validation.suggestion,
+				},
+			};
+		}
+	}
+
 	const filePath = join(configDir, "keys.env");
 	const file = Bun.file(filePath);
 
@@ -176,6 +192,24 @@ export async function writeProviderKey(
 	const hubEnv = await loadHubEnv(configDir);
 	if (!hubEnv.success) {
 		return { step: "keys", status: "error", message: hubEnv.error };
+	}
+
+	// Validate provider key before saving
+	const validation = await validateProviderKey(service, value);
+	if (!validation.valid) {
+		return {
+			step: "keys",
+			status: "error",
+			message: `${service} API key validation failed: ${validation.error}`,
+			data: {
+				error: validation.error,
+				suggestion: validation.suggestion,
+			},
+		};
+	}
+
+	if (validation.warning) {
+		console.warn(`Warning: ${validation.warning}`);
 	}
 
 	const db = createHubConnection(hubEnv.data.databaseUrl);
