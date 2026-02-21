@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-21 after Phase 1 completion)
 ## Current Position
 
 **Milestone:** v1.1 (Bug Fix & Refinement)
-**Status:** Plan 02 complete
+**Status:** Plan 01 complete
 
 **Current Phase:** 15
-**Current Plan:** 02
-**Phase Progress:** 2/4 plans (50%)
+**Current Plan:** 01
+**Phase Progress:** 1/4 plans (25%)
 
 **Milestone v1.0 Summary:** 14 phases, 54 plans, 148 requirements complete (100%)
 - Full platform support (X, LinkedIn, Instagram, TikTok)
@@ -26,32 +26,32 @@ See: .planning/PROJECT.md (updated 2026-02-21 after Phase 1 completion)
 
 **Milestone v1.1 Progress:**
 - Phase 1 (Critical Setup Fixes): 4/4 plans complete (100%)
-- Phase 15 (Database Stability & Recovery): 2/4 plans complete (50%)
+- Phase 15 (Database Stability & Recovery): 1/4 plans complete (25%)
 - Phase 16 (Voice Interview CLI Completion): Not started
 - Phase 17 (Setup UX Improvements): Not started
 - Phase 18 (Provider Key & Entity Configuration): Not started
 - Phase 19 (Voice Profile & Interview Refinements): Not started
 - Phase 20 (Health Checks & Validation): Not started
 
-Last activity: 2026-02-21 - Completed Phase 15 Plan 02 (nanoid-style hubId generation)
+Last activity: 2026-02-21 - Completed Phase 15 Plan 01 (migration retry logic with table verification)
 
-Session: 2026-02-21T10:29:51Z - Completed Phase 15 Plan 02
+Session: 2026-02-21T10:35:00Z - Completed Phase 15 Plan 01
 
-Progress: [█████░░░░░░░░░░░░░░] 6/28 plans (21%) - 22/28 remaining v1.1 Milestone
+Progress: [████░░░░░░░░░░░░░░░] 5/28 plans (18%) - 23/28 remaining v1.1 Milestone
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: ~5min
-- Total execution time: ~28min
+- Total plans completed: 5
+- Average duration: ~6min
+- Total execution time: ~30min
 
 **By Phase (v1.1):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 4/4 | ~24min | ~6min |
-| 15 | 2/4 | ~5min | ~2.5min |
+| 15 | 1/4 | ~3min | ~3min |
 | 16 | 0/0 | - | - |
 | 17 | 0/0 | - | - |
 | 18 | 0/0 | - | - |
@@ -62,7 +62,8 @@ Progress: [█████░░░░░░░░░░░░░░] 6/28 plans
 
 **Recent Trend:**
 - Phase 1 (Critical Setup Fixes): 4 plans completed in ~24min
-- Trend: v1.1 just started, ready to begin Phase 15
+- Phase 15 (Database Stability & Recovery): 1 plan completed in ~3min
+- Trend: v1.1 just started, ready to continue Phase 15
 
 *Updated after each plan completion*
 | Phase 07 P01 | 2min | 2 tasks | 5 files |
@@ -94,7 +95,7 @@ Progress: [█████░░░░░░░░░░░░░░] 6/28 plans
 | Phase 01-foundation-infrastructure P01-02 | 0 | 2 tasks | 2 files |
 | Phase 01-foundation-infrastructure P01 | 59 | 3 tasks | 0 files |
 | Phase 01-foundation-infrastructure P01-04 | 1min | 2 tasks | 2 files |
-| Phase 15-database-stability-recovery-p1 P02 | 161 | 2 tasks | 2 files |
+| Phase 15-database-stability-recovery-p1 P01 | 203 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -280,10 +281,12 @@ Recent decisions affecting current work:
 - [Phase 01-03]: Hub ID generated with crypto.randomUUID() if not present in hub.env during migration
 - [Phase 01-04]: Extensible VALIDATORS object: add new validator function and key mapping, no code changes to routing logic
 - [Phase 01-04]: Graceful degradation for unknown providers: returns valid=true instead of error
-- [Phase 15-database-stability-recovery-p1]: nanoid uses Node.js crypto.randomBytes() (native, no nanoid dependency)
-- [Phase 15-database-stability-recovery-p1]: 12-character nanoid length with 62-symbol alphabet (collision probability: 1 in 3.2e21)
-- [Phase 15-database-stability-recovery-p1]: HubId format: hub_ + 12 alphanumeric chars (e.g., hub_k3M8x7nV9pZ)
-- [Phase 15-database-stability-recovery-p1]: Validation before file write prevents partial state corruption
+- [Phase 15-database-stability-recovery-p1]: Fixed 2-second delay (not exponential backoff) for transient network failures
+- [Phase 15-database-stability-recovery-p1]: Retry limit: 3 attempts with detailed progress feedback
+- [Phase 15-database-stability-recovery-p1]: Keep partial migration state on failure (user can run /psn:setup reset --db to clean)
+- [Phase 15-database-stability-recovery-p1]: Check non-retriable patterns first (permission, syntax errors) to block them before retrying
+- [Phase 15-database-stability-recovery-p1]: Table verification confirms all 22 tables exist after migration
+- [Phase 15-database-stability-recovery-p1]: Required tables: users, oauth_tokens, posts, api_keys, voice_profiles, edit_history, post_metrics, preference_model, strategy_adjustments, ideas, series, trends, weekly_plans, monitored_accounts, team_members, invite_codes, notification_preferences, notification_log, engagement_opportunities, engagement_config, engagement_log, whatsapp_sessions
 
 ### Pending Todos
 
@@ -306,6 +309,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-21
-Stopped at: Phase 1 complete (v1.1), ready to plan Phase 15 (Database Stability & Recovery)
+Last session: 2026-02-21T10:35:00Z
+Stopped at: Phase 15 Plan 01 complete (migration retry logic with table verification)
 Resume file: None
