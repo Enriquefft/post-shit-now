@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-21 after Phase 1 completion)
 ## Current Position
 
 **Milestone:** v1.1 (Bug Fix & Refinement)
-**Status:** Plan 02 complete
+**Status:** Plan 04 complete (Plan 03 completed via 15-04 implementation)
 
 **Current Phase:** 15
-**Current Plan:** 02
-**Phase Progress:** 2/4 plans (50%)
+**Current Plan:** 04
+**Phase Progress:** 3/4 plans (75%)
 
 **Milestone v1.0 Summary:** 14 phases, 54 plans, 148 requirements complete (100%)
 - Full platform support (X, LinkedIn, Instagram, TikTok)
@@ -26,32 +26,32 @@ See: .planning/PROJECT.md (updated 2026-02-21 after Phase 1 completion)
 
 **Milestone v1.1 Progress:**
 - Phase 1 (Critical Setup Fixes): 4/4 plans complete (100%)
-- Phase 15 (Database Stability & Recovery): 2/4 plans complete (50%)
+- Phase 15 (Database Stability & Recovery): 3/4 plans complete (75%)
 - Phase 16 (Voice Interview CLI Completion): Not started
 - Phase 17 (Setup UX Improvements): Not started
 - Phase 18 (Provider Key & Entity Configuration): Not started
 - Phase 19 (Voice Profile & Interview Refinements): Not started
 - Phase 20 (Health Checks & Validation): Not started
 
-Last activity: 2026-02-21 - Completed Phase 15 Plan 01 (migration retry logic with table verification)
+Last activity: 2026-02-21T10:35:46Z - Completed Phase 15 Plan 03 (unified hub discovery with strict validation)
 
-Session: 2026-02-21T10:35:00Z - Completed Phase 15 Plan 01
+Session: 2026-02-21T10:35:46Z - Completed Phase 15 Plan 03
 
-Progress: [██████░░░░░░░░░░░░░] 6/28 plans (21%) - 22/28 remaining v1.1 Milestone
+Progress: [█████████░░░░░░░░░░░] 7/28 plans (25%) - 21/28 remaining v1.1 Milestone
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: ~6min
-- Total execution time: ~30min
+- Total plans completed: 7
+- Average duration: ~5min
+- Total execution time: ~33min
 
 **By Phase (v1.1):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 4/4 | ~24min | ~6min |
-| 15 | 1/4 | ~3min | ~3min |
+| 15 | 3/4 | ~5min | ~1.7min |
 | 16 | 0/0 | - | - |
 | 17 | 0/0 | - | - |
 | 18 | 0/0 | - | - |
@@ -62,8 +62,8 @@ Progress: [██████░░░░░░░░░░░░░] 6/28 plans
 
 **Recent Trend:**
 - Phase 1 (Critical Setup Fixes): 4 plans completed in ~24min
-- Phase 15 (Database Stability & Recovery): 1 plan completed in ~3min
-- Trend: v1.1 just started, ready to continue Phase 15
+- Phase 15 (Database Stability & Recovery): 3 plans completed in ~5min
+- Trend: On track to complete Phase 15, steady progress
 
 *Updated after each plan completion*
 | Phase 07 P01 | 2min | 2 tasks | 5 files |
@@ -96,6 +96,8 @@ Progress: [██████░░░░░░░░░░░░░] 6/28 plans
 | Phase 01-foundation-infrastructure P01 | 59 | 3 tasks | 0 files |
 | Phase 01-foundation-infrastructure P01-04 | 1min | 2 tasks | 2 files |
 | Phase 15-database-stability-recovery-p1 P01 | 203 | 1 tasks | 3 files |
+| Phase 15-database-stability-recovery-p1 P04 | 141 | 2 tasks | 3 files |
+| Phase 15 P03 | 3 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -287,6 +289,11 @@ Recent decisions affecting current work:
 - [Phase 15-database-stability-recovery-p1]: Check non-retriable patterns first (permission, syntax errors) to block them before retrying
 - [Phase 15-database-stability-recovery-p1]: Table verification confirms all 22 tables exist after migration
 - [Phase 15-database-stability-recovery-p1]: Required tables: users, oauth_tokens, posts, api_keys, voice_profiles, edit_history, post_metrics, preference_model, strategy_adjustments, ideas, series, trends, weekly_plans, monitored_accounts, team_members, invite_codes, notification_preferences, notification_log, engagement_opportunities, engagement_config, engagement_log, whatsapp_sessions
+- [Phase 15]: Setup reset command requires explicit scope (--db, --files, --all) with no default destructive behavior, shows dry-run summary before execution, no automatic backup - reset is destructive by design
+- [Phase 15]: Empty .hubs/ directory errors immediately with setup prompt (no graceful degradation)
+- [Phase 15]: Corrupted hub files fail-fast on first error (continue processing is dangerous)
+- [Phase 15]: Error messages include file path, parse location, and expected format for user clarity
+- [Phase 15]: discoverCompanyHubs() delegates to discoverAllHubs() for backward compatibility
 
 ### Pending Todos
 
