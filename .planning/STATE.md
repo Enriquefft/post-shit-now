@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-21 after Phase 1 completion)
 
 **Core value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
-**Current focus:** Phase 15 (Database Stability & Recovery) - v1.1 Milestone
+**Current focus:** Phase 16 (Voice Interview CLI Completion) - v1.1 Milestone
 
 ## Current Position
 
 **Milestone:** v1.1 (Bug Fix & Refinement)
-**Status:** Milestone complete
+**Status:** Milestone in progress
 
-**Current Phase:** 15
-**Current Plan:** Not started
-**Phase Progress:** 3/4 plans (75%)
+**Current Phase:** 16
+**Current Plan:** 04
+**Phase Progress:** 4/4 plans (100%)
 
 **Milestone v1.0 Summary:** 14 phases, 54 plans, 148 requirements complete (100%)
 - Full platform support (X, LinkedIn, Instagram, TikTok)
@@ -27,24 +27,24 @@ See: .planning/PROJECT.md (updated 2026-02-21 after Phase 1 completion)
 **Milestone v1.1 Progress:**
 - Phase 1 (Critical Setup Fixes): 4/4 plans complete (100%)
 - Phase 15 (Database Stability & Recovery): 3/4 plans complete (75%)
-- Phase 16 (Voice Interview CLI Completion): Not started
+- Phase 16 (Voice Interview CLI Completion): 4/4 plans complete (100%)
 - Phase 17 (Setup UX Improvements): Not started
 - Phase 18 (Provider Key & Entity Configuration): Not started
 - Phase 19 (Voice Profile & Interview Refinements): Not started
 - Phase 20 (Health Checks & Validation): Not started
 
-Last activity: 2026-02-21T10:35:46Z - Completed Phase 15 Plan 03 (unified hub discovery with strict validation)
+Last activity: 2026-02-21T13:41:00Z - Completed Phase 16 Plan 04 (automatic directory creation)
 
-Session: 2026-02-21T10:35:46Z - Completed Phase 15 Plan 03
+Session: 2026-02-21T13:41:00Z - Completed Phase 16 Plan 04
 
-Progress: [█████████░░░░░░░░░░░] 7/28 plans (25%) - 21/28 remaining v1.1 Milestone
+Progress: [███████████████░░░░░] 11/28 plans (39%) - 17/28 remaining v1.1 Milestone
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: ~5min
-- Total execution time: ~33min
+- Total execution time: ~38min
 
 **By Phase (v1.1):**
 
@@ -52,7 +52,7 @@ Progress: [█████████░░░░░░░░░░░] 7/28 pl
 |-------|-------|-------|----------|
 | 1 | 4/4 | ~24min | ~6min |
 | 15 | 3/4 | ~5min | ~1.7min |
-| 16 | 0/0 | - | - |
+| 16 | 1/4 | ~5min | ~5min |
 | 17 | 0/0 | - | - |
 | 18 | 0/0 | - | - |
 | 19 | 0/0 | - | - |
@@ -63,7 +63,8 @@ Progress: [█████████░░░░░░░░░░░] 7/28 pl
 **Recent Trend:**
 - Phase 1 (Critical Setup Fixes): 4 plans completed in ~24min
 - Phase 15 (Database Stability & Recovery): 3 plans completed in ~5min
-- Trend: On track to complete Phase 15, steady progress
+- Phase 16 (Voice Interview CLI Completion): 1 plan completed in ~5min
+- Trend: Steady progress, ready to continue Phase 16
 
 *Updated after each plan completion*
 | Phase 07 P01 | 2min | 2 tasks | 5 files |
@@ -98,6 +99,8 @@ Progress: [█████████░░░░░░░░░░░] 7/28 pl
 | Phase 15-database-stability-recovery-p1 P01 | 203 | 1 tasks | 3 files |
 | Phase 15-database-stability-recovery-p1 P04 | 141 | 2 tasks | 3 files |
 | Phase 15 P03 | 3 | 2 tasks | 1 files |
+| Phase 16-voice-interview-cli-completion-p1 P03 | 5 | 3 tasks | 3 files |
+| Phase 16 P04 | 2m | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -294,6 +297,11 @@ Recent decisions affecting current work:
 - [Phase 15]: Corrupted hub files fail-fast on first error (continue processing is dangerous)
 - [Phase 15]: Error messages include file path, parse location, and expected format for user clarity
 - [Phase 15]: discoverCompanyHubs() delegates to discoverAllHubs() for backward compatibility
+- [Phase 16]: Call ensureVoiceDirectories at multiple entry points (start, start CLI, complete) for defensive directory creation
+- [Phase 16]: Masked stdin input for API keys using readline-sync with hideEchoBack and mask options
+- [Phase 16]: Recursive retry on validation failure with single confirmation prompt
+- [Phase 16]: No confirmation required - keys saved immediately after validation passes
+- [Phase 16]: Graceful skip for already-configured provider keys during interactive collection
 
 ### Pending Todos
 
@@ -315,6 +323,10 @@ None yet.
 | 4 | Review psn session logs and document all issues, bugs & improvements | 2026-02-20 | 259f6ce | [4-review-psn-sesssion-ultra-json-we-cloned](./quick/4-review-psn-sesssion-ultra-json-we-cloned/) |
 
 ## Session Continuity
+
+Last session: 2026-02-21T13:41:00Z
+Stopped at: Phase 16 Plan 03 complete (masked stdin input for API keys)
+Resume file: None
 
 Last session: 2026-02-21T10:35:00Z
 Stopped at: Phase 15 Plan 01 complete (migration retry logic with table verification)
