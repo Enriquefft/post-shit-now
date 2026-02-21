@@ -109,6 +109,7 @@ Progress: [████████████████░░░░] 13/28 p
 | Phase 17 P02 | 3 | 3 tasks | 3 files |
 | Phase 17 P01 | 4m | 3 tasks | 4 files |
 | Phase 18-provider-key-and-entity-config-p2 P01 | 2m | 1 tasks | 1 files |
+| Phase 18-02 P02 | 1min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -336,6 +337,8 @@ Recent decisions affecting current work:
 - [Phase 18-provider-key-and-entity-config-p2]: Documentation-first approach: created comprehensive entity creation workflow guide without code changes
 - [Phase 18]: No code changes required for entity slug collision—existing ensureUniqueSlug() implementation already handles -2, -3, -N pattern correctly
 - [Phase 18]: Documentation-first approach: Enhanced existing docs/entity-creation-workflow.md Slug Collisions section rather than creating new documentation
+- [Phase 18-02]: Interview completion detected by checking identity.pillars length > 0
+- [Phase 18-02]: hasVoiceProfile separated from hasEntities for accurate setup progress
 
 ### Pending Todos
 
