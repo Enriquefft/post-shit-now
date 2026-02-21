@@ -45,7 +45,7 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 ---
 
-#### Phase 2: Database Stability & Recovery (P1)
+#### Phase 15: Database Stability & Recovery (P1)
 **Goal:** Ensure database reliability and add recovery mechanisms
 **Estimated Duration:** 2-3 days
 
@@ -53,35 +53,45 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 | Plan | Description | Issues Addressed |
 |------|-------------|------------------|
-| 02-01 | Fix database migration retry loop | M1 |
-| 02-02 | Add hubId to hub connection files | M2 |
-| 02-03 | Unify hub connection mechanisms | M5, C11, C12 |
-| 02-04 | Add setup reset and recovery flow | M14 |
+| 15.1 | Fix database migration retry loop | M1 |
+| 15.2 | Add hubId to hub connection files | M2 |
+| 15.3 | Unify hub connection mechanisms | M5, C11, C12 |
+| 15.4 | Add setup reset and recovery flow | M14 |
 
 **Plans:**
-- [ ] 02-01-PLAN.md — Migration retry logic with exponential backoff and table verification
-- [ ] 02-02-PLAN.md — Auto-generated hubId in Personal and Company hub files
-- [ ] 02-03-PLAN.md — Unified hub discovery for .hubs/*.json (Personal + Company)
-- [ ] 02-04-PLAN.md — /psn:setup reset command for cleanup and recovery
+- [x] 15-01-PLAN.md — Migration retry logic with 3 attempts, 2s fixed delay, and table verification
+- [x] 15-02-PLAN.md — Auto-generated hubId using nanoid-style format
+- [x] 15-03-PLAN.md — Unified hub discovery with strict validation and detailed error messages
+- [x] 15-04-PLAN.md — /psn:setup reset command with --db/--files/--all flags
 
 **Success Criteria:**
-- Migrations handle partial failures gracefully
-- Hub IDs consistently available
-- Unified hub connection handling for Personal and Company hubs
-- Reset command clears partial setup state
+- Migrations retry 3 times with 2s fixed delay on transient failures
+- Table verification confirms all 14 tables exist after migration
+- Permanent errors (permission, syntax) stop retry immediately
+- HubId auto-generated for legacy hub.env files using nanoid-style format
+- Hub discovery errors immediately on empty .hubs/ directory
+- Corrupted hub files fail-fast with detailed error messages
+- Reset command requires explicit scope (--db, --files, or --all)
+- Reset shows summary and requires user confirmation before deletion
 
 ---
 
-#### Phase 3: Voice Interview CLI Completion (P1)
+#### Phase 16: Voice Interview CLI Completion (P1)
 **Goal:** Complete voice interview CLI interface with state persistence
 **Estimated Duration:** 2-3 days
 
 | Plan | Description | Issues Addressed |
 |------|-------------|------------------|
-| 3.1 | Add submit and complete CLI subcommands | C5, M10 |
-| 3.2 | Implement interview state persistence | M9 |
-| 3.3 | Fix setup-keys.ts stdin reading | C6 |
-| 3.4 | Add voice profile directory creation | M6, M4, m6 |
+| 16.1 | Add submit and complete CLI subcommands | C5, M10 |
+| 16.2 | Implement interview state persistence | M9 |
+| 16.3 | Fix setup-keys.ts stdin reading | C6 |
+| 16.4 | Add voice profile directory creation | M6, M4, m6 |
+
+**Plans:**
+- [ ] 16-01-PLAN.md — Add submit and complete CLI subcommands
+- [ ] 16-02-PLAN.md — Implement interview state persistence
+- [ ] 16-03-PLAN.md — Fix setup-keys.ts stdin reading
+- [ ] 16-04-PLAN.md — Add voice profile directory creation
 
 **Success Criteria:**
 - Users can complete interview via CLI commands
@@ -91,17 +101,24 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 ---
 
-#### Phase 4: Setup UX Improvements (P2)
+#### Phase 17: Setup UX Improvements (P2)
 **Goal:** Enhance setup experience with progress, validation, and error handling
 **Estimated Duration:** 2-3 days
 
 | Plan | Description | Issues Addressed |
 |------|-------------|------------------|
-| 4.1 | Add progress indicators to setup | m1 |
-| 4.2 | Mask sensitive data in error messages | M12 |
-| 4.3 | Add dry-run and preview modes | M11 |
-| 4.4 | Fix Trigger.dev setup CLI arguments | M3 |
-| 4.5 | Resolve neonctl PATH issue | M13 |
+| 17.1 | Add progress indicators to setup | m1 |
+| 17.2 | Mask sensitive data in error messages | M12 |
+| 17.3 | Add dry-run and preview modes | M11 |
+| 17.4 | Fix Trigger.dev setup CLI arguments | M3 |
+| 17.5 | Resolve neonctl PATH issue | M13 |
+
+**Plans:**
+- [ ] 17-01-PLAN.md — Add progress indicators to setup
+- [ ] 17-02-PLAN.md — Mask sensitive data in error messages
+- [ ] 17-03-PLAN.md — Add dry-run and preview modes
+- [ ] 17-04-PLAN.md — Fix Trigger.dev setup CLI arguments
+- [ ] 17-05-PLAN.md — Resolve neonctl PATH issue
 
 **Success Criteria:**
 - Long-running operations show progress
@@ -112,16 +129,22 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 ---
 
-#### Phase 5: Provider Key & Entity Configuration (P2)
+#### Phase 18: Provider Key & Entity Configuration (P2)
 **Goal:** Complete provider key setup and entity creation flows
 **Estimated Duration:** 2 days
 
 | Plan | Description | Issues Addressed |
 |------|-------------|------------------|
-| 5.1 | Integrate provider key configuration | M8 |
-| 5.2 | Add setup completion validation | M7 |
-| 5.3 | Document entity creation workflow | M4 |
-| 5.4 | Add entity slug collision handling | m4 |
+| 18.1 | Integrate provider key configuration | M8 |
+| 18.2 | Add setup completion validation | M7 |
+| 18.3 | Document entity creation workflow | M4 |
+| 18.4 | Add entity slug collision handling | m4 |
+
+**Plans:**
+- [ ] 18-01-PLAN.md — Integrate provider key configuration
+- [ ] 18-02-PLAN.md — Add setup completion validation
+- [ ] 18-03-PLAN.md — Document entity creation workflow
+- [ ] 18-04-PLAN.md — Add entity slug collision handling
 
 **Success Criteria:**
 - Provider keys configured through main setup flow
@@ -131,16 +154,22 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 ---
 
-#### Phase 6: Voice Profile & Interview Refinements (P3)
+#### Phase 19: Voice Profile & Interview Refinements (P3)
 **Goal:** Enhance voice profile management and interview experience
 **Estimated Duration:** 2 days
 
 | Plan | Description | Issues Addressed |
 |------|-------------|------------------|
-| 6.1 | Add voice profile validation command | m2 |
-| 6.2 | Implement content import URL validation | m3 |
-| 6.3 | Add timezone configuration | m8 |
-| 6.4 | Design platform persona interview | m7 |
+| 19.1 | Add voice profile validation command | m2 |
+| 19.2 | Implement content import URL validation | m3 |
+| 19.3 | Add timezone configuration | m8 |
+| 19.4 | Design platform persona interview | m7 |
+
+**Plans:**
+- [ ] 19-01-PLAN.md — Add voice profile validation command
+- [ ] 19-02-PLAN.md — Implement content import URL validation
+- [ ] 19-03-PLAN.md — Add timezone configuration
+- [ ] 19-04-PLAN.md — Design platform persona interview
 
 **Success Criteria:**
 - Users can validate voice profile schemas
@@ -150,15 +179,20 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 ---
 
-#### Phase 7: Health Checks & Validation (P3)
+#### Phase 20: Health Checks & Validation (P3)
 **Goal:** Add comprehensive validation and health check tools
 **Estimated Duration:** 1-2 days
 
 | Plan | Description | Issues Addressed |
 |------|-------------|------------------|
-| 7.1 | Implement setup health check command | m9 |
-| 7.2 | Add Trigger project auto-detection | m5 |
-| 7.3 | Document architecture compatibility (RLS) | m10 |
+| 20.1 | Implement setup health check command | m9 |
+| 20.2 | Add Trigger project auto-detection | m5 |
+| 20.3 | Document architecture compatibility (RLS) | m10 |
+
+**Plans:**
+- [ ] 20-01-PLAN.md — Implement setup health check command
+- [ ] 20-02-PLAN.md — Add Trigger project auto-detection
+- [ ] 20-03-PLAN.md — Document architecture compatibility (RLS)
 
 **Success Criteria:**
 - Health check verifies all components
@@ -175,37 +209,37 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 - C3: Provider keys table missing → Plan 1.3
 - C4: Neon API key permission error → Plan 1.4
 
-#### Major High Priority (P1) - Phases 2-3
-- C5: Voice interview CLI incomplete → Plan 3.1
-- C6: setup-keys.ts stdin reading → Plan 3.3
-- M1: Migration retry loop → Plan 2.1
-- M2: Hub ID missing → Plan 2.2
-- M5: Empty .hubs confusion → Plan 2.3
-- M6: Voice profile directory → Plan 3.4
-- M9: Interview state persistence → Plan 3.2
-- M10: Archetype question handling → Plan 3.1
-- M12: Database URL exposed → Plan 4.2
+#### Major High Priority (P1) - Phases 15-16
+- C5: Voice interview CLI incomplete → Plan 16.1
+- C6: setup-keys.ts stdin reading → Plan 16.3
+- M1: Migration retry loop → Plan 15.1
+- M2: Hub ID missing → Plan 15.2
+- M5: Empty .hubs confusion → Plan 15.3
+- M6: Voice profile directory → Plan 16.4
+- M9: Interview state persistence → Plan 16.2
+- M10: Archetype question handling → Plan 16.1
+- M12: Database URL exposed → Plan 17.2
 
-#### Major Medium Priority (P2) - Phases 4-5
-- M3: Trigger.dev CLI argument → Plan 4.4
-- M4: Entity creation flow → Plan 5.3
-- M7: Setup completion validation → Plan 5.2
-- M8: Provider key configuration → Plan 5.1
-- M11: Dry-run mode → Plan 4.3
-- M13: neonctl PATH issue → Plan 4.5
-- M14: Recovery flow → Plan 2.4
+#### Major Medium Priority (P2) - Phases 17-18
+- M3: Trigger.dev CLI argument → Plan 17.4
+- M4: Entity creation flow → Plan 18.3
+- M7: Setup completion validation → Plan 18.2
+- M8: Provider key configuration → Plan 18.1
+- M11: Dry-run mode → Plan 17.3
+- M13: neonctl PATH issue → Plan 17.5
+- M14: Recovery flow → Plan 15.4
 
-#### Minor (P3) - Phases 6-7
-- m1: Progress indicators → Plan 4.1
-- m2: Voice profile validation → Plan 6.1
-- m3: Content import validation → Plan 6.2
-- m4: Entity slug collision → Plan 5.4
-- m5: Trigger project auto-detect → Plan 7.2
-- m6: Content directory structure → Plan 3.4
-- m7: Platform personas → Plan 6.4
-- m8: Timezone configuration → Plan 6.3
-- m9: Health check command → Plan 7.1
-- m10: RLS compatibility docs → Plan 7.3
+#### Minor (P3) - Phases 19-20
+- m1: Progress indicators → Plan 17.1
+- m2: Voice profile validation → Plan 19.1
+- m3: Content import validation → Plan 19.2
+- m4: Entity slug collision → Plan 18.4
+- m5: Trigger project auto-detect → Plan 20.2
+- m6: Content directory structure → Plan 16.4
+- m7: Platform personas → Plan 19.4
+- m8: Timezone configuration → Plan 19.3
+- m9: Health check command → Plan 20.1
+- m10: RLS compatibility docs → Plan 20.3
 
 ---
 
@@ -268,7 +302,7 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 - Phases ordered by priority (P0 → P3) and dependency flow
 - Research documents (setup-ux-best-practices, cli-interview-patterns, error-validation-patterns) inform implementation approach
 - Each plan will include atomic commits with clear messages
-- User testing validation after Phase 4 completion
+- User testing validation after Phase 17 completion
 
 ---
 
