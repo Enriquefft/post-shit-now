@@ -160,33 +160,115 @@ export async function createCompanyHub(
  * Scan .hubs/ directory for all hub connection files.
  * Returns Personal Hub (personal.json) and Company Hubs (company-*.json).
  * Returns empty array if .hubs/ doesn't exist (graceful degradation).
+ * @deprecated Use discoverAllHubs() for strict validation with detailed error messages
  */
 export async function discoverCompanyHubs(projectRoot = "."): Promise<HubConnection[]> {
+	const result = await discoverAllHubs(projectRoot);
+	return result.hubs;
+}
+
+/**
+ * Unified hub discovery for Personal and Company hubs with strict validation.
+ * Loads all .hubs/*.json files and validates them strictly.
+ *
+ * Returns:
+ *   - hubs: Array of valid HubConnection objects
+ *   - error: Optional error object with file path and detailed reason
+ *
+ * Errors immediately on:
+ *   - Empty .hubs/ directory
+ *   - Corrupted hub connection files
+ *   - Missing required fields (hubId, slug, databaseUrl)
+ *
+ * Error messages include file path, parse error location, and expected format.
+ */
+export async function discoverAllHubs(
+	projectRoot = ".",
+): Promise<{ hubs: HubConnection[]; error?: { file: string; reason: string } }> {
 	const hubsDir = join(projectRoot, ".hubs");
 
+	// Check directory exists
 	let entries: string[];
 	try {
 		entries = await readdir(hubsDir);
 	} catch {
-		return []; // .hubs/ doesn't exist — graceful degradation
+		// Empty .hubs/ directory — error immediately (user decision)
+		return {
+			hubs: [],
+			error: {
+				file: ".hubs/",
+				reason: "Hub directory not found. Run /psn:setup to configure your Personal Hub.",
+			},
+		};
 	}
 
-	const connections: HubConnection[] = [];
+	if (entries.length === 0) {
+		return {
+			hubs: [],
+			error: {
+				file: ".hubs/",
+				reason: "No hub connection files found. Run /psn:setup to configure your Personal Hub.",
+			},
+		};
+	}
+
+	const hubs: HubConnection[] = [];
 
 	for (const entry of entries) {
-		if (!entry.endsWith(".json")) continue; // Skip non-JSON files
+		if (!entry.endsWith(".json")) continue;
+
+		const filePath = join(hubsDir, entry);
 
 		try {
-			const content = await readFile(join(hubsDir, entry), "utf-8");
+			const content = await readFile(filePath, "utf-8");
 			const parsed = JSON.parse(content);
+
+			// Strict Zod validation - fails fast on first error
 			const validated = HubConnectionSchema.parse(parsed);
-			connections.push(validated);
-		} catch {
-			// Skip invalid connection files
+
+			// Check required fields (user decision: strict validation)
+			if (!validated.hubId || !validated.slug || !validated.databaseUrl) {
+				throw new Error(`Missing required field: hubId, slug, or databaseUrl`);
+			}
+
+			hubs.push(validated);
+		} catch (err) {
+			// Fail-fast on corrupted files (user decision)
+			const reason = err instanceof Error ? err.message : String(err);
+			const parseLocation = extractParseLocation(reason);
+
+			return {
+				hubs: [],
+				error: {
+					file: entry,
+					reason:
+						`Invalid hub connection file at ${filePath}: ${reason}\n` +
+						`Location: ${parseLocation}\n` +
+						`Expected format: { "hubId": "...", "slug": "...", "displayName": "...", "databaseUrl": "...", ... }`,
+				},
+			};
 		}
 	}
 
-	return connections;
+	return { hubs, error: undefined };
+}
+
+/**
+ * Extract parse location from error message.
+ * Returns line/column info from Zod errors or position from JSON.parse errors.
+ */
+function extractParseLocation(error: string): string {
+	// Parse Zod error for line/column info
+	const match = error.match(/at "(.+)" \((\d+):(\d+)\)/);
+	if (match) {
+		return `Line ${match[2]}, column ${match[3]}`;
+	}
+	// Parse JSON.parse errors
+	const jsonMatch = error.match(/position (\d+)/);
+	if (jsonMatch) {
+		return `Position ${jsonMatch[1]}`;
+	}
+	return "Unknown location";
 }
 
 // ─── Connection Management ─────────────────────────────────────────────────
