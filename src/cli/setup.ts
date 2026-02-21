@@ -8,7 +8,7 @@ import { setupDatabase } from "./setup-db.ts";
 import { setupDisconnect } from "./setup-disconnect.ts";
 import { setupInstagramOAuth } from "./setup-instagram-oauth.ts";
 import { setupJoinHub } from "./setup-join.ts";
-import { listProviderKeys, setupKeys, setupProviderKeys } from "./setup-keys.ts";
+import { collectKeysInteractively, listProviderKeys, setupKeys, setupProviderKeys } from "./setup-keys.ts";
 import { setupLinkedInOAuth } from "./setup-linkedin-oauth.ts";
 import { setupReset } from "./setup-reset.ts";
 import { setupTikTokOAuth } from "./setup-tiktok-oauth.ts";
@@ -592,14 +592,16 @@ export async function runSetup(configDir = "config", dryRun = false): Promise<Se
 	// Step 1.5: Collect provider keys (DB-based)
 	const providerKeysResult = await setupProviderKeys(configDir);
 	if (Array.isArray(providerKeysResult)) {
-		// Missing provider keys — return them so Claude can prompt user
-		return {
-			steps: [...steps, ...providerKeysResult],
-			validation: null,
-			completed: false,
-		};
+		// Keys missing - collect interactively
+		console.log("Provider keys required:");
+		const collectResult = await collectKeysInteractively(configDir);
+		steps.push(collectResult);
+		if (collectResult.status === "error") {
+			return { steps, validation: null, completed: false };
+		}
+	} else {
+		steps.push(providerKeysResult);
 	}
-	steps.push(providerKeysResult);
 
 	// Step 2: Create database (includes Step 3: migrations)
 	const dbResult = await setupDatabase(configDir);
