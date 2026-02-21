@@ -40,6 +40,7 @@
 		"diff": "^8.0.3",
 		"drizzle-orm": "^1.0.0-beta.15-859cf75",
 		"openai": "^6.22.0",
+		"ora": "^9.3.0",
 		"pdf-lib": "^1.17.1",
 		"readline-sync": "^1.4.10",
 		"rss-parser": "^3.13.0",
