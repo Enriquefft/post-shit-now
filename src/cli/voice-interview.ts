@@ -1,5 +1,4 @@
-import { readFile, unlink, writeFile } from "node:fs/promises";
-import { stdin as input, stdout as output } from "node:process";
+import process from "node:process";
 import * as readline from "node:readline/promises";
 import { loadKeysEnv } from "../core/utils/env.ts";
 import type { ContentAnalysis } from "../voice/import.ts";
@@ -11,81 +10,48 @@ import {
 	importXHistory,
 } from "../voice/import.ts";
 import {
+	cleanupOldInterviews,
 	createInterviewState,
+	deleteInterviewState as deleteState,
 	ensureVoiceDirectories,
 	finalizeProfile,
+	generateInterviewId,
 	generateQuestions,
 	type InterviewQuestion,
 	type InterviewState,
+	listInterviews,
+	loadInterviewState as loadState,
 	processAnswer,
+	saveInterviewState as saveState,
 } from "../voice/interview.ts";
 import { generateStrategy, loadProfile, saveProfile, saveStrategy } from "../voice/profile.ts";
 import type { VoiceProfile } from "../voice/types.ts";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const INTERVIEW_STATE_FILE = ".interview.json";
 const PHASE_ORDER = ["identity", "style", "platforms", "language", "review"] as const;
 
-// ─── State Persistence ───────────────────────────────────────────────────────
+// ─── State Persistence (using interview.ts functions) ─────────────────────────────────
 
-interface SerializedInterviewState {
-	phase: string;
-	answers: Record<string, string>;
-	detectedExperience: string | null;
-	maturityLevel: string | null;
-	languages: ("en" | "es")[];
-	isBlankSlate: boolean;
-	isRecalibration: boolean;
+/**
+ * Load interview state (defaults to default interview)
+ */
+async function loadInterviewState(interviewId?: string): Promise<InterviewState | null> {
+	return await loadState(interviewId);
 }
 
-function serializeState(state: InterviewState): SerializedInterviewState {
-	return {
-		phase: state.phase,
-		answers: Object.fromEntries(state.answers),
-		detectedExperience: state.detectedExperience,
-		maturityLevel: state.maturityLevel,
-		languages: state.languages,
-		isBlankSlate: state.isBlankSlate,
-		isRecalibration: state.isRecalibration,
-	};
+/**
+ * Save interview state (defaults to default interview)
+ */
+async function saveInterviewState(state: InterviewState, interviewId?: string): Promise<void> {
+	await saveState(state, interviewId);
 }
 
-function deserializeState(serialized: SerializedInterviewState): InterviewState {
-	return {
-		phase: serialized.phase as InterviewState["phase"],
-		questionIndex: 0,
-		answers: new Map(Object.entries(serialized.answers)),
-		detectedExperience: serialized.detectedExperience,
-		maturityLevel: serialized.maturityLevel,
-		languages: serialized.languages,
-		importedContent: null,
-		isBlankSlate: serialized.isBlankSlate,
-		isRecalibration: serialized.isRecalibration,
-	};
-}
-
-async function loadInterviewState(): Promise<InterviewState | null> {
-	try {
-		const raw = await readFile(INTERVIEW_STATE_FILE, "utf-8");
-		const data = JSON.parse(raw) as SerializedInterviewState;
-		return deserializeState(data);
-	} catch {
-		return null;
-	}
-}
-
-async function saveInterviewState(state: InterviewState): Promise<void> {
-	const serialized = serializeState(state);
-	await writeFile(INTERVIEW_STATE_FILE, JSON.stringify(serialized, null, 2), "utf-8");
-}
-
-async function deleteInterviewState(): Promise<void> {
-	try {
-		await unlink(INTERVIEW_STATE_FILE);
-	} catch {
-		// File doesn't exist — ignore
-	}
+/**
+ * Delete interview state (defaults to default interview)
+ */
+async function deleteInterviewState(interviewId?: string): Promise<void> {
+	await deleteState(interviewId);
 }
 
 // ─── Interactive Prompting ───────────────────────────────────────────────────
@@ -122,7 +88,7 @@ async function promptForAnswer(
 export async function startInterview(options?: {
 	recalibration?: boolean;
 	profilePath?: string;
-}): Promise<{ state: InterviewState; questions: InterviewQuestion[] }> {
+}): Promise<{ state: InterviewState; questions: InterviewQuestion[]; interviewId: string }> {
 	// Ensure directories exist before collecting answers
 	await ensureVoiceDirectories();
 
@@ -142,7 +108,12 @@ export async function startInterview(options?: {
 	});
 
 	const questions = generateQuestions(state);
-	return { state, questions };
+
+	// Generate interview ID and save initial state
+	const interviewId = generateInterviewId();
+	await saveInterviewState(state, interviewId);
+
+	return { state, questions, interviewId };
 }
 
 // ─── Submit Answers ─────────────────────────────────────────────────────────
@@ -165,18 +136,21 @@ export function submitAnswers(
 
 // ─── Interactive Submit ─────────────────────────────────────────────────────
 
-export async function submitAnswersInteractive(): Promise<{
+export async function submitAnswersInteractive(interviewId?: string): Promise<{
 	complete: boolean;
 	phase: string;
 	questions: InterviewQuestion[];
 }> {
 	// Load existing state or start fresh
-	let state = await loadInterviewState();
+	let state = await loadInterviewState(interviewId);
 	if (!state) {
 		state = createInterviewState();
+		// Save initial state if we're creating it fresh
+		const newId = interviewId ?? generateInterviewId();
+		await saveInterviewState(state, newId);
 	}
 
-	const rl = readline.createInterface({ input, output });
+	const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
 	try {
 		// Loop through phases until all questions answered
@@ -190,7 +164,7 @@ export async function submitAnswersInteractive(): Promise<{
 				const nextPhase = PHASE_ORDER[currentIndex + 1];
 				if (nextPhase) {
 					state = { ...state, phase: nextPhase, questionIndex: 0 };
-					await saveInterviewState(state);
+					await saveInterviewState(state, interviewId);
 					console.log(`\n--- Moving to ${nextPhase.toUpperCase()} phase ---\n`);
 					continue;
 				}
@@ -237,7 +211,8 @@ export async function submitAnswersInteractive(): Promise<{
 
 				// Process answer (handles auto-advance logic)
 				state = processAnswer(state, question.id, answer);
-				await saveInterviewState(state);
+				// Save state after each answer submission
+				await saveInterviewState(state, interviewId);
 			}
 		}
 
@@ -281,11 +256,11 @@ export async function completeInterview(
 
 // ─── Interactive Complete ───────────────────────────────────────────────────
 
-export async function completeInterviewInteractive(): Promise<{
+export async function completeInterviewInteractive(interviewId?: string): Promise<{
 	profilePath: string;
 	strategyPath: string | undefined;
 }> {
-	const state = await loadInterviewState();
+	const state = await loadInterviewState(interviewId);
 	if (!state) {
 		throw new Error("No interview in progress. Run 'start' to begin.");
 	}
@@ -295,7 +270,7 @@ export async function completeInterviewInteractive(): Promise<{
 		throw new Error("Interview not complete. Run 'submit' to finish answering questions.");
 	}
 
-	const rl = readline.createInterface({ input, output });
+	const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
 	try {
 		// Prompt for save path
@@ -314,7 +289,7 @@ export async function completeInterviewInteractive(): Promise<{
 		}
 
 		// Clean up interview state
-		await deleteInterviewState();
+		await deleteInterviewState(interviewId);
 		console.log("Interview state cleaned up.");
 
 		return {
@@ -370,7 +345,7 @@ if (import.meta.main) {
 	try {
 		switch (command) {
 			case "start": {
-				await ensureVoiceDirectories(); // Ensure dirs before starting interview
+				await ensureVoiceDirectories();
 				const recalibration = args.includes("--recalibrate");
 				const result = await startInterview({ recalibration });
 				console.log(
@@ -378,6 +353,7 @@ if (import.meta.main) {
 						phase: result.state.phase,
 						questions: result.questions,
 						isBlankSlate: result.state.isBlankSlate,
+						interviewId: result.interviewId,
 					}),
 				);
 				break;
@@ -414,17 +390,79 @@ if (import.meta.main) {
 				break;
 			}
 			case "complete": {
-				const result = await completeInterviewInteractive();
+				// Check if there are multiple interviews
+				const interviews = await listInterviews();
+				let interviewId: string | undefined;
+
+				if (interviews.length === 0) {
+					throw new Error("No interview in progress. Run 'start' to begin.");
+				}
+
+				if (interviews.length > 1) {
+					console.log("\nMultiple interviews in progress:");
+					interviews.forEach((interview, idx) => {
+						const ageHours = interview.ageMs / 1000 / 60 / 60;
+						const idDisplay = interview.id === "default" ? "default" : interview.id;
+						console.log(`  ${idx + 1}. ${idDisplay} (${ageHours.toFixed(1)}h old)`);
+					});
+
+					const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+					try {
+						const selectionInput = await rl.question("\nWhich interview to complete? [id or number]: ");
+						rl.close();
+
+						const trimmed = selectionInput.trim();
+						// Check if it's a number
+						const num = Number.parseInt(trimmed, 10);
+						if (!Number.isNaN(num) && num >= 1 && num <= interviews.length) {
+							const selected = interviews[num - 1];
+							interviewId = selected.id === "default" ? undefined : selected.id;
+						} else {
+							// Use as ID
+							const selected = interviews.find((interview) => interview.id === trimmed);
+							if (!selected) {
+								throw new Error(`Invalid interview ID: ${trimmed}`);
+							}
+							interviewId = selected.id === "default" ? undefined : selected.id;
+						}
+					} finally {
+						rl.close();
+					}
+				}
+
+				const result = await completeInterviewInteractive(interviewId);
 				console.log(`\nProfile: ${result.profilePath}`);
 				if (result.strategyPath) {
 					console.log(`Strategy: ${result.strategyPath}`);
 				}
 				break;
 			}
+			case "cleanup": {
+				console.log("Cleaning up old interview files (older than 7 days)...");
+				await cleanupOldInterviews();
+				console.log("Cleanup complete.");
+				break;
+			}
+			case "list": {
+				const interviews = await listInterviews();
+				if (interviews.length === 0) {
+					console.log("No interviews in progress.");
+				} else {
+					console.log(`\n${interviews.length} interview(s) in progress:\n`);
+					interviews.forEach((interview) => {
+						const ageHours = interview.ageMs / 1000 / 60 / 60;
+						const ageDays = ageHours / 24;
+						const ageDisplay = ageDays >= 1 ? `${ageDays.toFixed(1)}d` : `${ageHours.toFixed(1)}h`;
+						const idDisplay = interview.id === "default" ? "default" : interview.id;
+						console.log(`  • ${idDisplay}: ${interview.path} (${ageDisplay} old)`);
+					});
+				}
+				break;
+			}
 			default:
 				console.log(
 					JSON.stringify({
-						error: "Unknown command. Use: start, submit, import, complete",
+						error: "Unknown command. Use: start, submit, import, complete, cleanup, list",
 					}),
 				);
 		}
