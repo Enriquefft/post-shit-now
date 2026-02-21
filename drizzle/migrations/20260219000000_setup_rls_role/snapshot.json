@@ -1,0 +1,16 @@
+{
+  "id": "a00da3dc-fe79-45bb-a277-9df695fe08c5",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
+  "version": "8",
+  "dialect": "postgres",
+  "ddl": [],
+  "enums": [],
+  "schemas": {},
+  "_meta": {
+    "columns": {},
+    "enums": {},
+    "schemas": {}
+  }
+}
