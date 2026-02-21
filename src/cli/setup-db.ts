@@ -91,7 +91,19 @@ export async function setupDatabase(configDir = "config", projectRoot = "."): Pr
 		return {
 			step: "database",
 			status: "error",
-			message: "neonctl CLI not found. Install it: npm i -g neonctl (or bun add -g neonctl)",
+			message: "neonctl CLI not found in PATH",
+			data: {
+				suggestion: "Install neonctl to continue with database setup:",
+				commands: [
+					"npm install -g neonctl",
+					"bun add -g neonctl",
+				],
+				docs: "https://neon.tech/docs/reference/cli-reference",
+				troubleshooting: [
+					"After installation, restart your terminal or run: source ~/.bashrc (or ~/.zshrc)",
+					"Verify installation with: neonctl version",
+				],
+			},
 		};
 	}
 
