@@ -31,6 +31,12 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 | 1.3 | Add provider keys table validation | C3 |
 | 1.4 | Fix Neon API key permission handling | C4 |
 
+**Plans:**
+- [ ] 01-01-PLAN.md — RLS role creation before schema migration
+- [ ] 01-02-PLAN.md — Neon API key validation with prefix check and API verification
+- [ ] 01-03-PLAN.md — Hub unification (personal.json + unified getHubConnection)
+- [ ] 01-04-PLAN.md — Provider key validation framework (Trigger, Perplexity, Anthropic)
+
 **Success Criteria:**
 - Users can complete hub setup without manual intervention
 - Database migrations run successfully on Neon
