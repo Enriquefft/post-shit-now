@@ -10,6 +10,7 @@ import { setupInstagramOAuth } from "./setup-instagram-oauth.ts";
 import { setupJoinHub } from "./setup-join.ts";
 import { listProviderKeys, setupKeys, setupProviderKeys } from "./setup-keys.ts";
 import { setupLinkedInOAuth } from "./setup-linkedin-oauth.ts";
+import { setupReset } from "./setup-reset.ts";
 import { setupTikTokOAuth } from "./setup-tiktok-oauth.ts";
 import { setupTrigger } from "./setup-trigger.ts";
 import { getSetupStatus, setupVoice } from "./setup-voice.ts";
@@ -439,9 +440,61 @@ export async function runSetupSubcommand(
 				completed: status.incompleteSteps.length === 0,
 			};
 		}
+		case "reset": {
+			const flags = parseResetFlags(params);
+
+			// Show summary first (dry-run)
+			const summary = await setupReset(configDir, projectRoot, flags, true);
+			if (summary.error) {
+				return {
+					steps: [{ step: "reset", status: "error", message: summary.error }],
+					validation: null,
+					completed: false,
+				};
+			}
+
+			// Display summary to user
+			const summaryOutput: string[] = [];
+			summaryOutput.push("\nReset Summary:");
+			summaryOutput.push("=".repeat(50));
+			for (const result of summary.results) {
+				summaryOutput.push(`${result.action}: ${result.description}`);
+				if (result.path) summaryOutput.push(`  Path: ${result.path}`);
+			}
+
+			// Return summary with need_input status for user confirmation
+			return {
+				steps: [
+					{
+						step: "reset",
+						status: "need_input",
+						message: "Reset pending confirmation",
+						data: {
+							summary: summaryOutput.join("\n"),
+							flags: flags,
+							instructions: "Type 'y' to confirm or 'n' to cancel",
+						},
+					},
+				],
+				validation: null,
+				completed: false,
+			};
+		}
 		default:
 			return null; // Not a recognized subcommand — fall through to default setup
 	}
+}
+
+/**
+ * Parse reset flags from CLI parameters
+ */
+function parseResetFlags(params: Record<string, string>): {
+	db: boolean;
+	files: boolean;
+} {
+	const db = params.db === "true" || params.all === "true";
+	const files = params.files === "true" || params.all === "true";
+	return { db, files };
 }
 
 /**
@@ -613,6 +666,13 @@ function parseCliArgs(args: string[]): {
 
 	// Handle --entity flag for voice subcommand
 	// params.entity is already set from command line args, no action needed
+
+	// Handle reset flags
+	if (subcommand === "reset") {
+		if (flagArgs.includes("--db")) params.db = "true";
+		if (flagArgs.includes("--files")) params.files = "true";
+		if (flagArgs.includes("--all")) params.all = "true";
+	}
 
 	return { subcommand, params };
 }
