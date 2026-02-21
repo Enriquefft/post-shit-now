@@ -10,7 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 **Milestone:** v1.1 (Bug Fix & Refinement)
-**Status:** Defining requirements
+**Status:** Executing Phase 01 - Critical Setup Fixes
+
+**Current Phase:** 01-critical-setup-fixes
+**Current Plan:** 01-01 (RLS Role Migration Setup) - COMPLETE
+**Phase Progress:** 1/4 plans complete (25%)
 
 **Milestone v1.0 Summary:** 14 phases, 54 plans, 148 requirements complete (100%)
 - Full platform support (X, LinkedIn, Instagram, TikTok)
@@ -68,7 +72,9 @@ Progress: [░░░░░░░░░░] 0% v1.1 Beginning
 | Phase 12 P01 | 5min | 4 tasks | 5 files |
 | Phase 12 P02 | 7min | 4 tasks | 4 files |
 | Phase 4-review-psn-session P01 | 3 | 1 tasks | 1 files |
+| Phase 01 P01 | 5 | 3 tasks | 4 files |
 | Phase 01 P02 | 97 | 2 tasks | 2 files |
+| Phase 01-critical-setup-fixes P01 | 295 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -246,9 +252,17 @@ Recent decisions affecting current work:
 - [Phase 12]: Idea count adapted via Math.min(requestedCount, adaptation.suggestedIdeasCount) for progressive autonomy
 - [Phase 12]: Sample posts generated only for first (top) idea for never_posted users to keep focus
 - [Phase 4-review-psn-session]: Issue categorization: 6 critical, 14 major, 10 minor issues documented from PSN session
+- [Phase 01-01]: Drizzle directory format uses timestamp-based migration directories (20260219000000_setup_rls_role) instead of flat SQL files
+- [Phase 01-01]: Pre-migration role setup with earliest timestamp ensures role exists before schema migrations reference it
+- [Phase 01-01]: Idempotent role creation pattern (IF NOT EXISTS) handles migration re-runs safely
+- [Phase 01-01]: Migration journal ordering via _journal.json controls execution sequence
 - [Phase 01]: Two-layer validation: fast prefix check + API call for actual verification
 - [Phase 01]: Graceful network failure handling: warn but don't block setup when API is unreachable
 - [Phase 01]: Actionable error messages: include both error description and step-by-step suggestion
+- [Phase 01]: Drizzle directory format uses timestamp-based migration directories (20260219000000_setup_rls_role) instead of flat SQL files
+- [Phase 01]: Pre-migration role setup with earliest timestamp ensures role exists before schema migrations reference it
+- [Phase 01]: Idempotent role creation pattern (IF NOT EXISTS) handles migration re-runs safely
+- [Phase 01]: Migration journal ordering via _journal.json controls execution sequence
 
 ### Pending Todos
 
