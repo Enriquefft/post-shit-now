@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-21 after Phase 1 completion)
 ## Current Position
 
 **Milestone:** v1.1 (Bug Fix & Refinement)
-**Status:** Ready to plan
+**Status:** In progress
 
 **Current Phase:** 17
-**Current Plan:** Not started
-**Phase Progress:** 4/4 plans (100%)
+**Current Plan:** 04 (completed)
+**Phase Progress:** 1/5 plans (20%)
 
 **Milestone v1.0 Summary:** 14 phases, 54 plans, 148 requirements complete (100%)
 - Full platform support (X, LinkedIn, Instagram, TikTok)
@@ -28,23 +28,23 @@ See: .planning/PROJECT.md (updated 2026-02-21 after Phase 1 completion)
 - Phase 1 (Critical Setup Fixes): 4/4 plans complete (100%)
 - Phase 15 (Database Stability & Recovery): 3/4 plans complete (75%)
 - Phase 16 (Voice Interview CLI Completion): 4/4 plans complete (100%)
-- Phase 17 (Setup UX Improvements): Not started
+- Phase 17 (Setup UX Improvements): 1/5 plans complete (20%)
 - Phase 18 (Provider Key & Entity Configuration): Not started
 - Phase 19 (Voice Profile & Interview Refinements): Not started
 - Phase 20 (Health Checks & Validation): Not started
 
-Last activity: 2026-02-21T13:41:00Z - Completed Phase 16 Plan 04 (automatic directory creation)
+Last activity: 2026-02-21T17:13:30Z - Completed Phase 17 Plan 04 (fix Trigger.dev CLI flag pass-through)
 
-Session: 2026-02-21T13:41:00Z - Completed Phase 16 Plan 04
+Session: 2026-02-21T17:13:30Z - Completed Phase 17 Plan 04
 
-Progress: [███████████████░░░░░] 11/28 plans (39%) - 17/28 remaining v1.1 Milestone
+Progress: [███████████████░░░░░] 12/28 plans (43%) - 16/28 remaining v1.1 Milestone
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: ~5min
-- Total execution time: ~38min
+- Total plans completed: 9
+- Average duration: ~4min
+- Total execution time: ~42min
 
 **By Phase (v1.1):**
 
@@ -53,7 +53,7 @@ Progress: [███████████████░░░░░] 11/28 p
 | 1 | 4/4 | ~24min | ~6min |
 | 15 | 3/4 | ~5min | ~1.7min |
 | 16 | 1/4 | ~5min | ~5min |
-| 17 | 0/0 | - | - |
+| 17 | 1/5 | ~1min | ~1min |
 | 18 | 0/0 | - | - |
 | 19 | 0/0 | - | - |
 | 20 | 0/0 | - | - |
@@ -315,6 +315,10 @@ Recent decisions affecting current work:
 - [Phase 16]: Clean up old interview files after 7 days automatically
 - [Phase 16]: Validate state with Zod on load to detect corruption early
 - [Phase 16]: Use human-readable CLI output (except start command which outputs JSON for integration)
+- [Phase 17]: Keep simple error message while providing detailed structured data for programmatic consumption
+- [Phase 17]: Include both npm and bun installation commands to support all package managers
+- [Phase 17]: Provide troubleshooting steps for PATH issues (common source of confusion)
+- [Phase 17]: Link to official neon.tech CLI documentation for authoritative information
 
 ### Pending Todos
 
