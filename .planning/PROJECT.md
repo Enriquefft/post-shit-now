@@ -150,6 +150,10 @@ See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for complete milestone deta
 | fal.ai as unified gateway for media gen | One API for Ideogram, Flux, Kling, Pika. Direct SDK for GPT Image and Runway. | ✓ Validated v1.0 |
 | Content-hint keyword scoring for provider selection | Deterministic, no ML needed. Lets Claude pick best tool per content. | ✓ Validated v1.0 |
 | Edit distance for calibration convergence | 10 consecutive posts below 15% edit ratio = calibrated. Dual signals (edits + explicit). | ✓ Validated v1.0 |
+| Pre-migration RLS role creation | RLS policies reference roles that must exist. Create role in migration 0000 before schema migration. | ✓ Validated Phase 1 |
+| Dual-layer API key validation | Fast prefix check for immediate feedback + API call for actual verification. Catch errors early. | ✓ Validated Phase 1 |
+| Unified hub storage (.hubs/*.json) | Personal Hub and Company Hubs use same storage format and API. Eliminates dual-API confusion. | ✓ Validated Phase 1 |
+| Extensible VALIDATORS mapping for keys | Add new provider validators to mapping, no routing logic changes. Graceful degradation for unknown providers. | ✓ Validated Phase 1 |
 
 ---
-*Last updated: 2026-02-20 (v1.1 milestone started)*
+*Last updated: 2026-02-21 after Phase 1 (Critical Setup Fixes)*
