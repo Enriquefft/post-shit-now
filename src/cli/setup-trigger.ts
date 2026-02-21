@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import type { SetupResult } from "../core/types/index.ts";
 import { loadKeysEnv } from "../core/utils/env.ts";
 import { formatErrorWithMasking, maskApiKey } from "./utils/masking.ts";
+import { createProgressStep, runStep } from "./utils/progress.ts";
 
 const TRIGGER_CONFIG_PATH = "trigger.config.ts";
 const PLACEHOLDER_REF = "<your-project-ref>";
@@ -12,6 +13,9 @@ const PLACEHOLDER_REF = "<your-project-ref>";
  * Resumes from failure: skips if config already has a real project ref.
  */
 export async function setupTrigger(configDir = "config"): Promise<SetupResult> {
+	// Display step list upfront
+	createProgressStep(["Detecting project ref", "Initializing Trigger.dev project (if needed)", "Updating trigger.config.ts"]);
+
 	// Check if trigger.config.ts already has a real project ref
 	const configContent = readFileSync(TRIGGER_CONFIG_PATH, "utf-8");
 	if (!configContent.includes(PLACEHOLDER_REF)) {
@@ -54,41 +58,34 @@ export async function setupTrigger(configDir = "config"): Promise<SetupResult> {
 	}
 
 	if (!projectRef) {
-		// Run trigger.dev init to create/link project
-		const proc = Bun.spawn(["bunx", "trigger.dev@latest", "init", "--skip-package-install"], {
-			stdout: "pipe",
-			stderr: "pipe",
-			env: { ...process.env, TRIGGER_SECRET_KEY: secretKey },
-		});
+		// Run trigger.dev init to create/link project (long-running operation)
+		await runStep("Initializing Trigger.dev project", async () => {
+			const proc = Bun.spawn(["bunx", "trigger.dev@latest", "init", "--skip-package-install"], {
+				stdout: "pipe",
+				stderr: "pipe",
+				env: { ...process.env, TRIGGER_SECRET_KEY: secretKey },
+			});
 
-		const exitCode = await proc.exited;
-		const stderr = await new Response(proc.stderr).text();
+			const exitCode = await proc.exited;
+			const stderr = await new Response(proc.stderr).text();
 
-		if (exitCode !== 0) {
-			return {
-				step: "trigger",
-				status: "error",
-				message: formatErrorWithMasking(
-					`trigger.dev init failed: ${stderr.trim()}. You can manually set TRIGGER_PROJECT_REF in keys.env.`,
-					{ apiKey: secretKey },
-				),
-			};
-		}
+			if (exitCode !== 0) {
+				throw new Error(
+					formatErrorWithMasking(
+						`trigger.dev init failed: ${stderr.trim()}. You can manually set TRIGGER_PROJECT_REF in keys.env.`,
+						{ apiKey: secretKey },
+					),
+				);
+			}
 
-		// Re-read config to check if init updated it
-		const updatedConfig = readFileSync(TRIGGER_CONFIG_PATH, "utf-8");
-		if (updatedConfig.includes(PLACEHOLDER_REF)) {
-			return {
-				step: "trigger",
-				status: "need_input",
-				message:
+			// Re-read config to check if init updated it
+			const updatedConfig = readFileSync(TRIGGER_CONFIG_PATH, "utf-8");
+			if (updatedConfig.includes(PLACEHOLDER_REF)) {
+				throw new Error(
 					"Could not auto-detect project ref. Please provide your Trigger.dev project ref (starts with proj_).",
-				data: {
-					key: "TRIGGER_PROJECT_REF",
-					source: "Trigger.dev Dashboard -> Project Settings -> General",
-				},
-			};
-		}
+				);
+			}
+		});
 
 		return {
 			step: "trigger",
