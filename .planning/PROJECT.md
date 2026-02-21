@@ -158,4 +158,4 @@ See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for complete milestone deta
 | Extensible VALIDATORS mapping for keys | Add new provider validators to mapping, no routing logic changes. Graceful degradation for unknown providers. | ✓ Validated Phase 1 |
 
 ---
-*Last updated: 2026-02-21 - v1.0 archived, v1.1 started*
+*Last updated: 2026-02-21 after Phase 1 completion*
