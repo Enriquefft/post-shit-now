@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { runMigrations } from "../core/db/migrate.ts";
 import type { SetupResult } from "../core/types/index.ts";
 import { generateEncryptionKey } from "../core/utils/crypto.ts";
-import { loadKeysEnv, parseEnvFile } from "../core/utils/env.ts";
+import { loadKeysEnv, parseEnvFile, validateNeonApiKey } from "../core/utils/env.ts";
 
 /**
  * Provision a Neon database for the Personal Hub.
@@ -44,6 +44,24 @@ export async function setupDatabase(configDir = "config"): Promise<SetupResult> 
 			status: "error",
 			message: "NEON_API_KEY not found in keys.env. Run key setup first.",
 		};
+	}
+
+	// Validate API key before attempting database creation
+	const keyValidation = await validateNeonApiKey(neonApiKey);
+	if (!keyValidation.valid) {
+		return {
+			step: "database",
+			status: "error",
+			message: `API key validation failed: ${keyValidation.error}`,
+			data: {
+				error: keyValidation.error,
+				suggestion: keyValidation.suggestion,
+			},
+		};
+	}
+
+	if (keyValidation.warning) {
+		console.warn(`Warning: ${keyValidation.warning}`);
 	}
 
 	// Check neonctl is installed
