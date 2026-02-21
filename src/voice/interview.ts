@@ -46,6 +46,20 @@ export interface InterviewQuestion {
 	branchCondition?: string;
 }
 
+// Zod schema for InterviewState validation (answers stored as object, not Map)
+const interviewStateSchema = z.object({
+	phase: z.enum(["identity", "style", "platforms", "language", "review"]),
+	questionIndex: z.number().int().min(0),
+	answers: z.record(z.string()),
+	detectedExperience: z.enum(["beginner", "intermediate", "advanced"]).nullable(),
+	maturityLevel: z.enum(["never_posted", "sporadic", "consistent", "very_active"]).nullable(),
+	languages: z.array(z.enum(["en", "es"])),
+	importedContent: z.array(z.any()).nullable(), // ImportedContent is complex, accept any for now
+	isBlankSlate: z.boolean(),
+	isRecalibration: z.boolean(),
+	existingProfile: voiceProfileSchema.optional(),
+});
+
 // ─── Directory Creation ────────────────────────────────────────────────────────
 
 /**
@@ -638,4 +652,178 @@ export function finalizeProfile(state: InterviewState): VoiceProfile {
 	}
 
 	return result.data;
+}
+
+// ─── State Persistence ─────────────────────────────────────────────────────────
+
+/**
+ * Generate a unique interview ID based on timestamp.
+ * Used for concurrent interview support.
+ *
+ * @returns Timestamp-based ID (e.g., "lw8f9j2k")
+ */
+export function generateInterviewId(): string {
+	return Date.now().toString(36);
+}
+
+/**
+ * Get the file path for interview state.
+ *
+ * @param interviewId - Optional interview ID for concurrent interviews
+ * @returns Path to interview state JSON file
+ */
+export function getInterviewStatePath(interviewId?: string): string {
+	if (interviewId) {
+		return `content/voice/.interview-${interviewId}.json`;
+	}
+	return "content/voice/.interview.json";
+}
+
+/**
+ * Save interview state to JSON file with atomic write pattern.
+ * Converts Map to object for JSON serialization, validates before writing.
+ *
+ * @param state - Interview state to save
+ * @param interviewId - Optional interview ID for concurrent interviews
+ * @throws Error if state validation fails
+ */
+export async function saveInterviewState(
+	state: InterviewState,
+	interviewId?: string,
+): Promise<void> {
+	const path = getInterviewStatePath(interviewId);
+
+	// Convert Map to object for JSON serialization
+	const stateForJson = {
+		...state,
+		answers: Object.fromEntries(state.answers),
+	};
+
+	// Validate state before writing
+	const result = interviewStateSchema.safeParse(stateForJson);
+	if (!result.success) {
+		const issues = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+		throw new Error(`Invalid interview state: ${issues}`);
+	}
+
+	const content = JSON.stringify(result.data, null, 2);
+	const tmpPath = `${path}.tmp`;
+
+	// Atomic write: write to temp file, then rename
+	await writeFile(tmpPath, content, "utf-8");
+	await rename(tmpPath, path);
+}
+
+/**
+ * Load interview state from JSON file with validation.
+ *
+ * @param interviewId - Optional interview ID for concurrent interviews
+ * @returns Interview state or null if file doesn't exist
+ * @throws Error if state is corrupted (validation fails)
+ */
+export async function loadInterviewState(
+	interviewId?: string,
+): Promise<InterviewState | null> {
+	const path = getInterviewStatePath(interviewId);
+
+	try {
+		const content = await readFile(path, "utf-8");
+		const parsed = JSON.parse(content);
+
+		// Validate loaded state
+		const result = interviewStateSchema.safeParse(parsed);
+		if (!result.success) {
+			const issues = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+			throw new Error(
+				`Corrupted interview state at ${path}\nValidation errors: ${issues}\n\n` +
+					`To fix: Delete the file and restart the interview.\nCommand: rm ${path}`,
+			);
+		}
+
+		// Convert answers back to Map
+		return {
+			...result.data,
+			answers: new Map(Object.entries(result.data.answers)),
+		};
+	} catch (err) {
+		const error = err as { code?: string };
+		if (error.code === "ENOENT") {
+			return null; // File doesn't exist, return null (not an error)
+		}
+		throw err; // Re-throw other errors
+	}
+}
+
+/**
+ * List all interview state files with metadata.
+ *
+ * @returns Array of interview metadata (id, path, age in milliseconds)
+ */
+export async function listInterviews(): Promise<
+	{ id: string; path: string; ageMs: number }[]
+> {
+	const voiceDir = "content/voice";
+	try {
+		const files = await readdir(voiceDir);
+		const interviews: { id: string; path: string; ageMs: number }[] = [];
+
+		for (const file of files) {
+			const match = file.match(/^\.interview-(.+)\.json$/) ||
+				file === ".interview.json";
+			if (match) {
+				const fullPath = join(voiceDir, file);
+				const stats = await stat(fullPath);
+				const ageMs = Date.now() - stats.mtimeMs;
+
+				if (file === ".interview.json") {
+					interviews.push({ id: "default", path: fullPath, ageMs });
+				} else {
+					interviews.push({ id: match[1]!, path: fullPath, ageMs });
+				}
+			}
+		}
+
+		// Sort by age (newest first)
+		interviews.sort((a, b) => a.ageMs - b.ageMs);
+		return interviews;
+	} catch (err) {
+		const error = err as { code?: string };
+		if (error.code === "ENOENT") {
+			return []; // Directory doesn't exist yet
+		}
+		throw err;
+	}
+}
+
+/**
+ * Clean up old interview state files.
+ *
+ * @param maxAgeMs - Maximum age in milliseconds before cleanup (default: 7 days)
+ */
+export async function cleanupOldInterviews(maxAgeMs: number = 7 * 24 * 60 * 60 * 1000): Promise<void> {
+	const interviews = await listInterviews();
+	let cleaned = 0;
+
+	for (const interview of interviews) {
+		if (interview.ageMs > maxAgeMs) {
+			await rm(interview.path);
+			cleaned++;
+			console.log(`Cleaned up old interview: ${interview.path} (${(interview.ageMs / 1000 / 60 / 60 / 24).toFixed(1)} days old)`);
+		}
+	}
+
+	if (cleaned > 0) {
+		console.log(`Cleaned up ${cleaned} old interview file(s)`);
+	}
+}
+
+/**
+ * Delete a specific interview state file.
+ * Used after completing an interview.
+ *
+ * @param interviewId - Interview ID (undefined for default interview)
+ */
+export async function deleteInterviewState(interviewId?: string): Promise<void> {
+	const path = getInterviewStatePath(interviewId);
+	await rm(path);
 }
