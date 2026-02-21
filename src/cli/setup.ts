@@ -680,6 +680,14 @@ function parseCliArgs(args: string[]): {
 		if (flagArgs.includes("--all")) params.all = "true";
 	}
 
+	// Handle --dry-run and --preview flags
+	if (flagArgs.includes("--dry-run")) {
+		params["dry-run"] = "true";
+	}
+	if (flagArgs.includes("--preview")) {
+		params.preview = "true";
+	}
+
 	return { subcommand, params };
 }
 
