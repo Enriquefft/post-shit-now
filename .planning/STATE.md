@@ -68,6 +68,7 @@ Progress: [░░░░░░░░░░] 0% v1.1 Beginning
 | Phase 12 P01 | 5min | 4 tasks | 5 files |
 | Phase 12 P02 | 7min | 4 tasks | 4 files |
 | Phase 4-review-psn-session P01 | 3 | 1 tasks | 1 files |
+| Phase 01 P02 | 97 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -245,6 +246,9 @@ Recent decisions affecting current work:
 - [Phase 12]: Idea count adapted via Math.min(requestedCount, adaptation.suggestedIdeasCount) for progressive autonomy
 - [Phase 12]: Sample posts generated only for first (top) idea for never_posted users to keep focus
 - [Phase 4-review-psn-session]: Issue categorization: 6 critical, 14 major, 10 minor issues documented from PSN session
+- [Phase 01]: Two-layer validation: fast prefix check + API call for actual verification
+- [Phase 01]: Graceful network failure handling: warn but don't block setup when API is unreachable
+- [Phase 01]: Actionable error messages: include both error description and step-by-step suggestion
 
 ### Pending Todos
 
