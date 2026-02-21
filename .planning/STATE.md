@@ -108,7 +108,7 @@ Progress: [████████████████░░░░] 13/28 p
 | Phase 17 P04 | 1m | 1 tasks | 1 files |
 | Phase 17 P02 | 3 | 3 tasks | 3 files |
 | Phase 17 P01 | 4m | 3 tasks | 4 files |
-| Phase 18-provider-key-and-entity-config-p2 P03 | 1m | 1 tasks | 1 files |
+| Phase 18-provider-key-and-entity-config-p2 P01 | 2m | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -331,7 +331,11 @@ Recent decisions affecting current work:
 - [Phase 17-03]: Used readline-sync for confirmation prompt (already installed from Phase 16)
 - [Phase 17-03]: validateTriggerArgs checks TRIGGER_SECRET_KEY format (tr_dev_ or tr_prod_ prefix)
 - [Phase 17-03]: Both --dry-run and --preview flags accepted identically (user constraint from 17-CONTEXT.md)
+- [Phase 18-01]: Integrated collectKeysInteractively into main setup flow, replacing early return pattern with interactive key collection
+- [Phase 18-01]: Setup continuation pattern: when provider keys missing, collect interactively and continue instead of returning early
 - [Phase 18-provider-key-and-entity-config-p2]: Documentation-first approach: created comprehensive entity creation workflow guide without code changes
+- [Phase 18]: No code changes required for entity slug collision—existing ensureUniqueSlug() implementation already handles -2, -3, -N pattern correctly
+- [Phase 18]: Documentation-first approach: Enhanced existing docs/entity-creation-workflow.md Slug Collisions section rather than creating new documentation
 
 ### Pending Todos
 
