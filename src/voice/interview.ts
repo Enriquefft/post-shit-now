@@ -530,6 +530,27 @@ export function generateQuestions(state: InterviewState): InterviewQuestion[] {
 				? STYLE_QUESTIONS_ADVANCED
 				: STYLE_QUESTIONS_BEGINNER;
 		case "platforms":
+			// Filter platform questions based on platform_select answer
+			const platformSelectAnswer = state.answers.get("platform_select");
+			if (platformSelectAnswer) {
+				// Always include platform_select question
+				const questions: InterviewQuestion[] = [PLATFORM_SELECT_QUESTION];
+
+				// Add platform-specific questions based on selected platforms
+				if (platformSelectAnswer.toLowerCase().includes("x") || platformSelectAnswer.toLowerCase().includes("twitter")) {
+					questions.push(...PLATFORM_X_QUESTIONS);
+				}
+				if (platformSelectAnswer.toLowerCase().includes("linkedin")) {
+					questions.push(...PLATFORM_LINKEDIN_QUESTIONS);
+				}
+				if (platformSelectAnswer.toLowerCase().includes("instagram")) {
+					questions.push(...PLATFORM_INSTAGRAM_QUESTIONS);
+				}
+				if (platformSelectAnswer.toLowerCase().includes("tiktok")) {
+					questions.push(...PLATFORM_TIKTOK_QUESTIONS);
+				}
+				return questions;
+			}
 			return PLATFORM_QUESTIONS;
 		case "language":
 			return LANGUAGE_QUESTIONS;
