@@ -8,6 +8,8 @@ import {
 	importBlogContent,
 	importRawText,
 	importXHistory,
+	type ValidationResult,
+	validateUrl,
 } from "../voice/import.ts";
 import {
 	cleanupOldInterviews,
@@ -360,14 +362,50 @@ if (import.meta.main) {
 			}
 			case "import": {
 				const blogUrls = args.filter((a) => a.startsWith("http"));
+
+				// Validate URLs before processing
+				const validationErrors: string[] = [];
+				const validUrls: string[] = [];
+
+				for (const url of blogUrls) {
+					const result: ValidationResult = validateUrl(url);
+					if (result.valid) {
+						validUrls.push(url);
+					} else {
+						validationErrors.push(`Invalid URL '${url}'\nReason: ${result.error}`);
+					}
+				}
+
+				// Report validation errors
+				if (validationErrors.length > 0) {
+					for (const error of validationErrors) {
+						console.error(
+							JSON.stringify({
+								error,
+							}),
+						);
+					}
+				}
+
+				if (validUrls.length === 0) {
+					console.error(
+						JSON.stringify({
+							error: "No valid URLs to import. Please check your URLs and try again.",
+						}),
+					);
+					process.exit(1);
+				}
+
 				const result = await importContent({
 					xHistory: args.includes("--x"),
-					blogUrls: blogUrls.length > 0 ? blogUrls : undefined,
+					blogUrls: validUrls.length > 0 ? validUrls : undefined,
 				});
 				console.log(
 					JSON.stringify({
 						importedCount: result.imported.length,
 						analysis: result.analysis,
+						validatedUrls: validUrls.length,
+						totalUrls: blogUrls.length,
 					}),
 				);
 				break;
