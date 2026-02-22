@@ -779,13 +779,6 @@ function parseCliArgs(args: string[]): {
 	}
 
 	return { subcommand, params };
-		params["dry-run"] = "true";
-	}
-	if (flagArgs.includes("--preview")) {
-		params.preview = "true";
-	}
-
-	return { subcommand, params };
 }
 
 // Entry point when run directly
