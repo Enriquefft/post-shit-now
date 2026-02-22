@@ -12,7 +12,7 @@ import { collectKeysInteractively, listProviderKeys, setupKeys, setupProviderKey
 import { setupLinkedInOAuth } from "./setup-linkedin-oauth.ts";
 import { setupReset } from "./setup-reset.ts";
 import { setupTikTokOAuth } from "./setup-tiktok-oauth.ts";
-import { setupTrigger } from "./setup-trigger.ts";
+import { setupTrigger, verifyTriggerSetup } from "./setup-trigger.ts";
 import { getSetupStatus, setupVoice } from "./setup-voice.ts";
 import { setupXOAuth } from "./setup-x-oauth.ts";
 import { validateAll } from "./validate.ts";
@@ -503,6 +503,18 @@ export async function runSetupSubcommand(
 				completed: result.allPassed,
 			};
 		}
+		case "trigger": {
+			if (params.verify === "true") {
+				const result = await verifyTriggerSetup(configDir);
+				return {
+					steps: [result],
+					validation: null,
+					completed: result.status === "success",
+				};
+			}
+			// Fall through to default trigger setup if not verify
+			return null;
+		}
 		default:
 			return null; // Not a recognized subcommand — fall through to default setup
 	}
@@ -776,6 +788,11 @@ function parseCliArgs(args: string[]): {
 	// Handle --json flag for health subcommand
 	if (flagArgs.includes("--json")) {
 		params.json = "true";
+	}
+
+	// Handle --verify flag for trigger subcommand
+	if (flagArgs.includes("--verify")) {
+		params.verify = "true";
 	}
 
 	return { subcommand, params };
