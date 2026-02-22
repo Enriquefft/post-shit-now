@@ -98,6 +98,8 @@ export const voiceProfileSchema = z.object({
 	entityDisplayName: z.string().optional(),
 	entityDescription: z.string().optional(),
 	maturityLevel: z.enum(["never_posted", "sporadic", "consistent", "very_active"]).optional(),
+	// User's preferred timezone for scheduling and analytics (IANA timezone format)
+	timezone: z.string().optional(),
 });
 
 export type VoiceProfile = z.infer<typeof voiceProfileSchema>;
