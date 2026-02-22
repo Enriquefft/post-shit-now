@@ -112,6 +112,8 @@ Progress: [██████████████████░░] 15/28 p
 | Phase 18-02 P02 | 1min | 1 tasks | 1 files |
 | Phase 19-voice-profile-and-interview-refinements-p3 P04 | 2 | 2 tasks | 1 files |
 | Phase 19 P02 | 133 | 2 tasks | 1 files |
+| Phase 19 P01 | 4min | 2 tasks | 6 files |
+| Phase 19-voice-profile-and-interview-refinements-p3 P03 | 3min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -344,6 +346,8 @@ Recent decisions affecting current work:
 - [Phase 19-voice-profile-and-interview-refinements-p3]: Platform selection stored as natural language answer string, parsed via keyword matching
 - [Phase 19-voice-profile-and-interview-refinements-p3]: Each platform has dedicated question array for platform-specific configuration
 - [Phase 19-voice-profile-and-interview-refinements-p3]: Helper functions map free-form answers to enum values for robustness
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Timezone marked as optional for backward compatibility with existing profiles
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Common timezone options provided with 'Other' placeholder for future manual input
 
 ### Pending Todos
 
