@@ -110,6 +110,7 @@ Progress: [████████████████░░░░] 13/28 p
 | Phase 17 P01 | 4m | 3 tasks | 4 files |
 | Phase 18-provider-key-and-entity-config-p2 P01 | 2m | 1 tasks | 1 files |
 | Phase 18-02 P02 | 1min | 1 tasks | 1 files |
+| Phase 19-voice-profile-and-interview-refinements-p3 P04 | 2 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -339,6 +340,9 @@ Recent decisions affecting current work:
 - [Phase 18]: Documentation-first approach: Enhanced existing docs/entity-creation-workflow.md Slug Collisions section rather than creating new documentation
 - [Phase 18-02]: Interview completion detected by checking identity.pillars length > 0
 - [Phase 18-02]: hasVoiceProfile separated from hasEntities for accurate setup progress
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Platform selection stored as natural language answer string, parsed via keyword matching
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Each platform has dedicated question array for platform-specific configuration
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Helper functions map free-form answers to enum values for robustness
 
 ### Pending Todos
 
