@@ -1,7 +1,10 @@
+import { readFile } from "node:fs/promises";
+import { parse } from "yaml";
 import { z } from "zod/v4";
 import type { Platform } from "../core/types/index.ts";
-import { applyTweak, loadProfile } from "../voice/profile.ts";
+import { applyTweak, loadProfile, validateProfile } from "../voice/profile.ts";
 import type { VoiceProfile, VoiceTweak } from "../voice/types.ts";
+import { voiceProfileSchema } from "../voice/types.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -196,14 +199,79 @@ if (import.meta.main) {
 				break;
 			}
 
+			case "validate": {
+				const profilePath =
+					args.find((a) => a.startsWith("--profile-path="))?.split("=")[1] ??
+					"content/voice/personal.yaml";
+
+				// Check if profile file exists
+				let profileData: unknown;
+				try {
+					const raw = await readFile(profilePath, "utf-8");
+					profileData = parse(raw);
+				} catch (err) {
+					if (err instanceof Error && "code" in err && (err as NodeJS.ErrnoException).code === "ENOENT") {
+						console.log(
+							JSON.stringify({
+								valid: false,
+								errors: [`Voice profile not found at: ${profilePath}`],
+							}),
+						);
+						process.exit(1);
+					}
+					console.log(
+						JSON.stringify({
+							valid: false,
+							errors: [`Failed to read profile: ${String(err)}`],
+						}),
+					);
+					process.exit(1);
+				}
+
+				// Validate against schema
+				const result = validateProfile(profileData);
+
+				if (result.valid) {
+					console.log(
+						JSON.stringify({
+							valid: true,
+							message: `Voice profile at ${profilePath} conforms to schema`,
+						}),
+					);
+					process.exit(0);
+				} else {
+					// Format errors in a user-friendly way
+					const formattedErrors = result.errors.map((err) => {
+						// Parse Zod error format "path: message"
+						const parts = err.split(":");
+						if (parts.length >= 2) {
+							const path = parts[0] || "root";
+							const message = parts.slice(1).join(":").trim();
+							return { path, message };
+						}
+						return { path: "unknown", message: err };
+					});
+
+					console.log(
+						JSON.stringify({
+							valid: false,
+							profile: profilePath,
+							errors: formattedErrors,
+						}),
+					);
+					process.exit(1);
+				}
+			}
+
 			default:
 				console.log(
 					JSON.stringify({
-						error: "Unknown command. Use: apply, show",
+						error: "Unknown command. Use: apply, show, validate",
 						examples: [
 							"apply formality:8 add-pillar:AI",
 							"apply add-banned:slang remove-pillar:crypto",
 							"show --profile=content/voice/personal.yaml",
+							"validate --profile-path=content/voice/personal.yaml",
 						],
 					}),
 				);
