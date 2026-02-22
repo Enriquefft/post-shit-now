@@ -102,6 +102,7 @@ This returns the interview state and initial questions.
 4. Get the next question(s) based on the answer
 5. The user can stop anytime — whatever has been captured so far becomes their profile
 6. Blank-slate users (never posted before) get starter archetypes to choose from
+7. **Platform personas**: After basic interview, you'll configure unique voices for each platform. This ensures content fits platform norms (hashtags, emojis, tone).
 
 **When the interview is complete (or user stops):**
 ```
@@ -183,6 +184,11 @@ bun run src/cli/voice-config.ts show --profile=content/voice/personal.yaml
 3. **Platform personas**
    - For each configured platform: tone, format preferences, hashtag style, emoji usage
    - Option to add new platform personas
+   - **Platform persona interview**: The interview guides you through configuring platform-specific voices:
+     - Platform selection: Choose which platforms to post on
+     - For each platform: Configure tone, format preferences, hashtag style, emoji usage
+     - Platform-specific guidance provided with examples
+     - Skip platforms you don't use — can add later via edit
 
 4. **Language settings**
    - For each configured language: vocabulary, sentence patterns, opening/closing styles, idioms
