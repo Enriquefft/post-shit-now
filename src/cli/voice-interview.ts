@@ -28,6 +28,7 @@ import {
 } from "../voice/interview.ts";
 import { generateStrategy, loadProfile, saveProfile, saveStrategy } from "../voice/profile.ts";
 import type { VoiceProfile } from "../voice/types.ts";
+import { isValidTimezone } from "../core/utils/timezone.ts";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -497,10 +498,33 @@ if (import.meta.main) {
 				}
 				break;
 			}
+			case "timezone": {
+				const tz = args[1];
+				if (!tz) {
+					console.log(JSON.stringify({ error: "Missing timezone argument" }));
+					process.exit(1);
+				}
+				if (!isValidTimezone(tz)) {
+					console.log(
+						JSON.stringify({
+							error: `Invalid timezone: ${tz}`,
+							hint: "Use IANA timezone format (e.g., America/New_York)",
+						}),
+					);
+					process.exit(1);
+				}
+				console.log(
+					JSON.stringify({
+						valid: true,
+						timezone: tz,
+					}),
+				);
+				break;
+			}
 			default:
 				console.log(
 					JSON.stringify({
-						error: "Unknown command. Use: start, submit, import, complete, cleanup, list",
+						error: "Unknown command. Use: start, submit, import, complete, cleanup, list, timezone",
 					}),
 				);
 		}
