@@ -2,6 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { createHubConnection } from "../core/db/connection.ts";
 import type { ValidationResult, ValidationSummary } from "../core/types/index.ts";
 import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
+import { verifyTriggerProject } from "./setup-trigger.ts";
+import { maskApiKey } from "./utils/masking.ts";
 
 /**
  * Validate all Hub connections and configuration.
@@ -66,7 +68,8 @@ async function checkTrigger(configDir: string): Promise<ValidationResult> {
 		};
 	}
 
-	if (!keysResult.data.TRIGGER_SECRET_KEY) {
+	const secretKey = keysResult.data.TRIGGER_SECRET_KEY;
+	if (!secretKey) {
 		return {
 			check: "trigger",
 			status: "fail",
@@ -75,6 +78,7 @@ async function checkTrigger(configDir: string): Promise<ValidationResult> {
 	}
 
 	// Check trigger.config.ts has a real project ref
+	let projectRef: string | null = null;
 	try {
 		const config = readFileSync("trigger.config.ts", "utf-8");
 		if (config.includes("<your-project-ref>")) {
@@ -84,11 +88,12 @@ async function checkTrigger(configDir: string): Promise<ValidationResult> {
 				message: "trigger.config.ts still has placeholder project ref",
 			};
 		}
-		return {
-			check: "trigger",
-			status: "pass",
-			message: "Trigger.dev configured with secret key and project ref",
-		};
+
+		// Extract project ref from config
+		const refMatch = config.match(/projectId:\s*["']([^"']+)["']/);
+		if (refMatch?.[1]) {
+			projectRef = refMatch[1];
+		}
 	} catch {
 		return {
 			check: "trigger",
@@ -96,6 +101,25 @@ async function checkTrigger(configDir: string): Promise<ValidationResult> {
 			message: "trigger.config.ts not found",
 		};
 	}
+
+	// Verify project via Trigger.dev API
+	if (projectRef) {
+		const verification = await verifyTriggerProject(projectRef, secretKey);
+		if (!verification.valid) {
+			return {
+				check: "trigger",
+				status: "fail",
+				message: verification.error || "Trigger.dev project verification failed",
+				suggestedAction: verification.suggestedAction,
+			};
+		}
+	}
+
+	return {
+		check: "trigger",
+		status: "pass",
+		message: "Trigger.dev configured and verified",
+	};
 }
 
 function checkConfigStructure(configDir: string): ValidationResult {
