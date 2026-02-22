@@ -16,6 +16,7 @@ import { setupTrigger } from "./setup-trigger.ts";
 import { getSetupStatus, setupVoice } from "./setup-voice.ts";
 import { setupXOAuth } from "./setup-x-oauth.ts";
 import { validateAll } from "./validate.ts";
+import { runHealthCheck } from "./setup-health.ts";
 
 interface SetupOutput {
 	steps: SetupResult[];
@@ -486,6 +487,22 @@ export async function runSetupSubcommand(
 				completed: false,
 			};
 		}
+		case "health": {
+			const jsonOutput = params.json === "true";
+			const result = await runHealthCheck(configDir, jsonOutput, projectRoot);
+			return {
+				steps: [
+					{
+						step: "health",
+						status: result.allPassed ? "success" : "error",
+						message: result.allPassed ? "All health checks passed" : `${result.results.filter((r) => r.status !== "pass").length} checks failed`,
+						data: result,
+					},
+				],
+				validation: null,
+				completed: result.allPassed,
+			};
+		}
 		default:
 			return null; // Not a recognized subcommand — fall through to default setup
 	}
@@ -750,6 +767,18 @@ function parseCliArgs(args: string[]): {
 
 	// Handle --dry-run and --preview flags
 	if (flagArgs.includes("--dry-run")) {
+		params["dry-run"] = "true";
+	}
+	if (flagArgs.includes("--preview")) {
+		params.preview = "true";
+	}
+
+	// Handle --json flag for health subcommand
+	if (flagArgs.includes("--json")) {
+		params.json = "true";
+	}
+
+	return { subcommand, params };
 		params["dry-run"] = "true";
 	}
 	if (flagArgs.includes("--preview")) {
