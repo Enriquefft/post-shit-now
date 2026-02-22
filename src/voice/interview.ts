@@ -269,43 +269,184 @@ const STYLE_QUESTIONS_ADVANCED: InterviewQuestion[] = [
 	},
 ];
 
+const PLATFORM_SELECT_QUESTION: InterviewQuestion = {
+	id: "platform_select",
+	phase: "platforms",
+	text: "Which platforms do you want to post on?",
+	hint: "You can add more platforms later via /psn:voice edit",
+	type: "multi-choice",
+	required: true,
+	options: ["X (Twitter)", "LinkedIn", "Instagram", "TikTok"],
+};
+
+const PLATFORM_X_QUESTIONS: InterviewQuestion[] = [
+	{
+		id: "x_tone",
+		phase: "platforms",
+		text: "What's your X persona?",
+		hint: "E.g., 'Thread-heavy, concise, uses threads for deep dives'",
+		type: "choice",
+		options: ["Casual", "Professional", "Newsy", "Opinionated"],
+		required: false,
+		branchCondition: "platform_x_selected",
+	},
+	{
+		id: "x_hashtag",
+		phase: "platforms",
+		text: "How do you use hashtags on X?",
+		hint: "E.g., 'Minimal' or 'Strategic (1-3 per post)'",
+		type: "choice",
+		options: ["Minimal", "Strategic (1-3 per post)", "Heavy (5-10)"],
+		required: false,
+		branchCondition: "platform_x_selected",
+	},
+	{
+		id: "x_emoji",
+		phase: "platforms",
+		text: "How do you feel about emojis on X?",
+		hint: "X tends to use fewer emojis than other platforms",
+		type: "choice",
+		options: ["None", "Rare", "Moderate", "Heavy"],
+		required: false,
+		branchCondition: "platform_x_selected",
+	},
+];
+
+const PLATFORM_LINKEDIN_QUESTIONS: InterviewQuestion[] = [
+	{
+		id: "linkedin_tone",
+		phase: "platforms",
+		text: "What's your LinkedIn persona?",
+		hint: "E.g., 'Professional but accessible, uses carousels for frameworks'",
+		type: "choice",
+		options: ["Professional", "Thought Leader", "Educational", "Storyteller"],
+		required: false,
+		branchCondition: "platform_linkedin_selected",
+	},
+	{
+		id: "linkedin_format",
+		phase: "platforms",
+		text: "What content formats do you prefer on LinkedIn?",
+		hint: "LinkedIn supports text, image, carousel, and document posts",
+		type: "multi-choice",
+		options: ["Text-only", "Image", "Carousel", "Document"],
+		required: false,
+		branchCondition: "platform_linkedin_selected",
+	},
+	{
+		id: "linkedin_hashtag",
+		phase: "platforms",
+		text: "How do you use hashtags on LinkedIn?",
+		hint: "E.g., 'Strategic (3-5)' or 'None'",
+		type: "choice",
+		options: ["Strategic (3-5)", "None"],
+		required: false,
+		branchCondition: "platform_linkedin_selected",
+	},
+	{
+		id: "linkedin_emoji",
+		phase: "platforms",
+		text: "How do you feel about emojis on LinkedIn?",
+		hint: "LinkedIn tends to be more conservative with emojis",
+		type: "choice",
+		options: ["None", "Rare (for emphasis only)"],
+		required: false,
+		branchCondition: "platform_linkedin_selected",
+	},
+];
+
+const PLATFORM_INSTAGRAM_QUESTIONS: InterviewQuestion[] = [
+	{
+		id: "instagram_tone",
+		phase: "platforms",
+		text: "What's your Instagram persona?",
+		hint: "E.g., 'Visual-first, uses Reels for dynamic content, strategic hashtags'",
+		type: "choice",
+		options: ["Visual", "Lifestyle", "Educational", "Behind-the-scenes"],
+		required: false,
+		branchCondition: "platform_instagram_selected",
+	},
+	{
+		id: "instagram_format",
+		phase: "platforms",
+		text: "What content formats do you prefer on Instagram?",
+		hint: "Instagram supports photo, carousel, and reel posts",
+		type: "multi-choice",
+		options: ["Photo", "Carousel", "Reel"],
+		required: false,
+		branchCondition: "platform_instagram_selected",
+	},
+	{
+		id: "instagram_hashtag",
+		phase: "platforms",
+		text: "How do you use hashtags on Instagram?",
+		hint: "E.g., 'Strategic (5-10)' or 'Heavy (15-30 max)'",
+		type: "choice",
+		options: ["Strategic (5-10)", "Heavy (15-30 max)"],
+		required: false,
+		branchCondition: "platform_instagram_selected",
+	},
+	{
+		id: "instagram_emoji",
+		phase: "platforms",
+		text: "How do you feel about emojis on Instagram?",
+		hint: "Instagram culture uses emojis heavily",
+		type: "choice",
+		options: ["Moderate", "Heavy (Instagram norm)"],
+		required: false,
+		branchCondition: "platform_instagram_selected",
+	},
+];
+
+const PLATFORM_TIKTOK_QUESTIONS: InterviewQuestion[] = [
+	{
+		id: "tiktok_tone",
+		phase: "platforms",
+		text: "What's your TikTok persona?",
+		hint: "E.g., 'Authentic and casual, jumps on trends, heavy emoji usage'",
+		type: "choice",
+		options: ["Entertaining", "Educational", "Trend-focused", "Authentic"],
+		required: false,
+		branchCondition: "platform_tiktok_selected",
+	},
+	{
+		id: "tiktok_format",
+		phase: "platforms",
+		text: "What video length do you prefer on TikTok?",
+		hint: "TikTok supports both short and long video formats",
+		type: "choice",
+		options: ["Short video (15-30s)", "Long video (30-60s)"],
+		required: false,
+		branchCondition: "platform_tiktok_selected",
+	},
+	{
+		id: "tiktok_hashtag",
+		phase: "platforms",
+		text: "How do you use hashtags on TikTok?",
+		hint: "E.g., 'Strategic (3-5)' or 'Heavy (trending tags)'",
+		type: "choice",
+		options: ["Strategic (3-5)", "Heavy (trending tags)"],
+		required: false,
+		branchCondition: "platform_tiktok_selected",
+	},
+	{
+		id: "tiktok_emoji",
+		phase: "platforms",
+		text: "How do you feel about emojis on TikTok?",
+		hint: "TikTok culture uses emojis heavily in comments and descriptions",
+		type: "choice",
+		options: ["Moderate", "Heavy (TikTok culture)"],
+		required: false,
+		branchCondition: "platform_tiktok_selected",
+	},
+];
+
 const PLATFORM_QUESTIONS: InterviewQuestion[] = [
-	{
-		id: "platform_x",
-		phase: "platforms",
-		text: "How do you want to show up on X/Twitter?",
-		hint: "Tone, thread style, hashtag approach, etc.",
-		type: "open",
-		required: false,
-		branchCondition: "platform_x_enabled",
-	},
-	{
-		id: "platform_linkedin",
-		phase: "platforms",
-		text: "How do you want to show up on LinkedIn?",
-		hint: "LinkedIn tends to reward a more professional, insight-driven tone",
-		type: "open",
-		required: false,
-		branchCondition: "platform_linkedin_enabled",
-	},
-	{
-		id: "platform_instagram",
-		phase: "platforms",
-		text: "How do you want to show up on Instagram?",
-		hint: "Visual content, story style, caption tone",
-		type: "open",
-		required: false,
-		branchCondition: "platform_instagram_enabled",
-	},
-	{
-		id: "platform_tiktok",
-		phase: "platforms",
-		text: "How do you want to show up on TikTok?",
-		hint: "Script style, energy level, content format preferences",
-		type: "open",
-		required: false,
-		branchCondition: "platform_tiktok_enabled",
-	},
+	PLATFORM_SELECT_QUESTION,
+	...PLATFORM_X_QUESTIONS,
+	...PLATFORM_LINKEDIN_QUESTIONS,
+	...PLATFORM_INSTAGRAM_QUESTIONS,
+	...PLATFORM_TIKTOK_QUESTIONS,
 ];
 
 const LANGUAGE_QUESTIONS: InterviewQuestion[] = [
@@ -603,24 +744,112 @@ export function finalizeProfile(state: InterviewState): VoiceProfile {
 		}
 	}
 
-	// Platform personas
-	const platformToneMap: Record<string, string> = {
-		platform_x: "x",
-		platform_linkedin: "linkedin",
-		platform_instagram: "instagram",
-		platform_tiktok: "tiktok",
+	// Platform personas - check which platforms are selected
+	const platformSelectAnswer = state.answers.get("platform_select") ?? "";
+	const selectedPlatforms: Set<string> = new Set();
+
+	if (platformSelectAnswer.toLowerCase().includes("x") || platformSelectAnswer.toLowerCase().includes("twitter")) {
+		selectedPlatforms.add("x");
+	}
+	if (platformSelectAnswer.toLowerCase().includes("linkedin")) {
+		selectedPlatforms.add("linkedin");
+	}
+	if (platformSelectAnswer.toLowerCase().includes("instagram")) {
+		selectedPlatforms.add("instagram");
+	}
+	if (platformSelectAnswer.toLowerCase().includes("tiktok")) {
+		selectedPlatforms.add("tiktok");
+	}
+
+	// Helper function to map hashtag style answer to enum
+	const mapHashtagStyle = (answer: string): "none" | "minimal" | "strategic" | "heavy" => {
+		const lower = answer.toLowerCase();
+		if (lower.includes("none") || lower.includes("no")) return "none";
+		if (lower.includes("minimal")) return "minimal";
+		if (lower.includes("strategic")) return "strategic";
+		if (lower.includes("heavy")) return "heavy";
+		return "minimal";
 	};
 
-	for (const [qId, platformKey] of Object.entries(platformToneMap)) {
-		const answer = state.answers.get(qId);
-		if (answer && platformKey in base.platforms) {
-			base.platforms[platformKey as keyof typeof base.platforms] = {
-				tone: answer.slice(0, 100),
-				formatPreferences: [],
-				hashtagStyle: "minimal",
-				emojiUsage: "rare",
-			};
-		}
+	// Helper function to map emoji usage answer to enum
+	const mapEmojiUsage = (answer: string): "none" | "rare" | "moderate" | "heavy" => {
+		const lower = answer.toLowerCase();
+		if (lower.includes("none") || lower.includes("no")) return "none";
+		if (lower.includes("rare") || lower.includes("sparingly") || lower.includes("for emphasis")) return "rare";
+		if (lower.includes("moderate")) return "moderate";
+		if (lower.includes("heavy") || lower.includes("love") || lower.includes("norm") || lower.includes("culture")) return "heavy";
+		return "rare";
+	};
+
+	// X platform persona
+	if (selectedPlatforms.has("x")) {
+		const tone = state.answers.get("x_tone") ?? "casual";
+		const hashtagStyle = mapHashtagStyle(state.answers.get("x_hashtag") ?? "minimal");
+		const emojiUsage = mapEmojiUsage(state.answers.get("x_emoji") ?? "rare");
+
+		base.platforms.x = {
+			tone,
+			formatPreferences: [],
+			hashtagStyle,
+			emojiUsage,
+		};
+	}
+
+	// LinkedIn platform persona
+	if (selectedPlatforms.has("linkedin")) {
+		const tone = state.answers.get("linkedin_tone") ?? "professional";
+		const formatRaw = state.answers.get("linkedin_format") ?? "";
+		const formatPreferences = formatRaw
+			.split(",")
+			.map((f) => f.trim().toLowerCase())
+			.filter(Boolean);
+		const hashtagStyle = mapHashtagStyle(state.answers.get("linkedin_hashtag") ?? "strategic");
+		const emojiUsage = mapEmojiUsage(state.answers.get("linkedin_emoji") ?? "rare");
+
+		base.platforms.linkedin = {
+			tone,
+			formatPreferences,
+			hashtagStyle,
+			emojiUsage,
+		};
+	}
+
+	// Instagram platform persona
+	if (selectedPlatforms.has("instagram")) {
+		const tone = state.answers.get("instagram_tone") ?? "visual";
+		const formatRaw = state.answers.get("instagram_format") ?? "";
+		const formatPreferences = formatRaw
+			.split(",")
+			.map((f) => f.trim().toLowerCase())
+			.filter(Boolean);
+		const hashtagStyle = mapHashtagStyle(state.answers.get("instagram_hashtag") ?? "strategic");
+		const emojiUsage = mapEmojiUsage(state.answers.get("instagram_emoji") ?? "moderate");
+
+		base.platforms.instagram = {
+			tone,
+			formatPreferences,
+			hashtagStyle,
+			emojiUsage,
+		};
+	}
+
+	// TikTok platform persona
+	if (selectedPlatforms.has("tiktok")) {
+		const tone = state.answers.get("tiktok_tone") ?? "authentic";
+		const formatRaw = state.answers.get("tiktok_format") ?? "";
+		const formatPreferences = formatRaw
+			.split(",")
+			.map((f) => f.trim().toLowerCase())
+			.filter(Boolean);
+		const hashtagStyle = mapHashtagStyle(state.answers.get("tiktok_hashtag") ?? "strategic");
+		const emojiUsage = mapEmojiUsage(state.answers.get("tiktok_emoji") ?? "heavy");
+
+		base.platforms.tiktok = {
+			tone,
+			formatPreferences,
+			hashtagStyle,
+			emojiUsage,
+		};
 	}
 
 	// Calibration state
