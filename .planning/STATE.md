@@ -351,6 +351,14 @@ Recent decisions affecting current work:
 - [Phase 19-voice-profile-and-interview-refinements-p3]: Timezone marked as optional for backward compatibility with existing profiles
 - [Phase 19-voice-profile-and-interview-refinements-p3]: Common timezone options provided with 'Other' placeholder for future manual input
 - [Phase 19-voice-profile-and-interview-refinements-p3]: Invalid timezone values skipped gracefully (don't fail profile creation)
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Used JSON output format for validation results to enable Claude integration
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Exit codes (0/1) support automation and CI/CD pipelines
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Error format includes field paths and descriptions for easy debugging
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Each platform has dedicated question array for platform-specific configuration
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Helper functions map free-form answers to enum values for robustness
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Timezone marked as optional for backward compatibility with existing profiles
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Common timezone options provided with 'Other' placeholder for future manual input
+- [Phase 19-voice-profile-and-interview-refinements-p3]: Invalid timezone values skipped gracefully (don't fail profile creation)
 
 ### Pending Todos
 
