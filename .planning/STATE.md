@@ -119,6 +119,7 @@ Progress: [██████████████░░░░░░░] 15/2
 | Phase 19 P06 | 3min | 2 tasks | 2 files|
 | Phase 19-05 P05 | 2min | 2 tasks | 3 files |
 | Phase 20-03 P03 | 1m | 2 tasks | 2 files |
+| Phase 20-health-checks-and-validation-p3 P20-01 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -368,6 +369,10 @@ Recent decisions affecting current work:
 - [Phase 19-05]: CLI timezone subcommand returns JSON for programmatic consumption by Claude
 - [Phase 20-03]: Documentation-first approach: Creating comprehensive RLS architecture decision to address lack of Phase 1 documentation
 - [Phase 20-03]: docs/index.md structure: Organized by Getting Started, Architecture, Configuration, Platform Integration, Team & Collaboration, Advanced Features, API Reference
+- [Phase 20-health-checks-and-validation-p3]: Health checks use parallel execution for faster results (no dependencies between checks)
+- [Phase 20-health-checks-and-validation-p3]: Sensitive data (database URLs, API keys) masked in all error messages using existing masking utilities
+- [Phase 20-health-checks-and-validation-p3]: Health check returns both human-readable and JSON output for flexibility
+- [Phase 20-health-checks-and-validation-p3]: Warning status used for non-critical issues (no provider keys) vs fail for critical issues
 
 ### Pending Todos
 
