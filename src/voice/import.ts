@@ -240,6 +240,107 @@ export async function importXHistory(accessToken: string): Promise<ImportedConte
 	return allTweets;
 }
 
+// ─── URL Validation ───────────────────────────────────────────────────────────
+
+export interface ValidationResult {
+	valid: boolean;
+	error: string | null;
+}
+
+/**
+ * Validate a URL before attempting to fetch content.
+ *
+ * Checks:
+ * - Must use http:// or https:// protocol (no file://, javascript:, data:)
+ * - Must have a valid hostname (no empty or whitespace)
+ * - Must not be localhost or 127.0.0.1 (security check for remote execution)
+ * - Must be parseable by the URL constructor
+ *
+ * @param url - URL string to validate
+ * @returns ValidationResult with valid flag and error message if invalid
+ */
+export function validateUrl(url: string): ValidationResult {
+	if (!url || typeof url !== "string") {
+		return {
+			valid: false,
+			error: "Invalid URL format. URL must be a non-empty string.",
+		};
+	}
+
+	const trimmedUrl = url.trim();
+	if (trimmedUrl !== url) {
+		return {
+			valid: false,
+			error: "Invalid URL format. URL should not have leading/trailing whitespace.",
+		};
+	}
+
+	// Check for dangerous protocols before parsing
+	if (trimmedUrl.startsWith("file://")) {
+		return {
+			valid: false,
+			error: "Invalid URL protocol. URL must start with http:// or https://",
+		};
+	}
+
+	if (trimmedUrl.startsWith("javascript:")) {
+		return {
+			valid: false,
+			error: "Invalid URL protocol. JavaScript URLs are not allowed.",
+		};
+	}
+
+	if (trimmedUrl.startsWith("data:")) {
+		return {
+			valid: false,
+			error: "Invalid URL protocol. Data URLs are not allowed.",
+		};
+	}
+
+	let parsed: URL;
+	try {
+		parsed = new URL(trimmedUrl);
+	} catch {
+		return {
+			valid: false,
+			error: "Invalid URL format. Could not parse hostname.",
+		};
+	}
+
+	// Validate protocol
+	if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+		return {
+			valid: false,
+			error: "Invalid URL protocol. URL must start with http:// or https://",
+		};
+	}
+
+	// Validate hostname exists
+	if (!parsed.hostname || parsed.hostname.trim() === "") {
+		return {
+			valid: false,
+			error: "Invalid URL format. Hostname is required.",
+		};
+	}
+
+	// Security check: block localhost and loopback addresses
+	const hostnameLower = parsed.hostname.toLowerCase();
+	if (
+		hostnameLower === "localhost" ||
+		hostnameLower === "127.0.0.1" ||
+		hostnameLower === "::1" ||
+		hostnameLower.startsWith("127.") ||
+		hostnameLower.startsWith("0.")
+	) {
+		return {
+			valid: false,
+			error: "Localhost URLs are not allowed. Use a publicly accessible URL.",
+		};
+	}
+
+	return { valid: true, error: null };
+}
+
 // ─── Import from Blog ───────────────────────────────────────────────────────
 
 export async function importBlogContent(urls: string[]): Promise<ImportedContent[]> {
