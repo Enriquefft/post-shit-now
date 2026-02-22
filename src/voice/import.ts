@@ -347,7 +347,17 @@ export async function importBlogContent(urls: string[]): Promise<ImportedContent
 	const allContent: ImportedContent[] = [];
 	const MAX_CHUNKS_PER_URL = 50;
 
+	// Track validation errors for better error reporting
+	const validationErrors: { url: string; error: string }[] = [];
+
 	for (const url of urls) {
+		// Validate URL before attempting to fetch
+		const validation = validateUrl(url);
+		if (!validation.valid) {
+			validationErrors.push({ url, error: validation.error ?? "Unknown error" });
+			continue;
+		}
+
 		try {
 			const response = await fetch(url);
 			if (!response.ok) continue;
@@ -384,6 +394,14 @@ export async function importBlogContent(urls: string[]): Promise<ImportedContent
 				});
 			}
 		} catch {}
+	}
+
+	// If all URLs failed validation, throw a descriptive error with all errors
+	if (allContent.length === 0 && validationErrors.length > 0) {
+		const errorMessage = validationErrors
+			.map(({ url, error }) => `Invalid URL '${url}': ${error}`)
+			.join("\n");
+		throw new Error(`All URLs failed validation:\n${errorMessage}`);
 	}
 
 	return allContent;
