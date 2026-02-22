@@ -113,6 +113,8 @@ bun run src/cli/voice-interview.ts import --x
 bun run src/cli/voice-interview.ts import https://example.com/blog1 https://example.com/blog2
 ```
 
+**Note:** URLs are validated before processing. Only http:// and https:// URLs are accepted. Invalid URLs will show clear error messages describing the issue.
+
 **For raw text:**
 Ask the user to paste their content samples. Save to a temp file and run:
 ```
