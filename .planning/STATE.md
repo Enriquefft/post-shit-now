@@ -116,6 +116,7 @@ Progress: [██████████████░░░░░░░] 14/2
 | Phase 19 P02 | 133 | 2 tasks | 1 files |
 | Phase 19 P01 | 4min | 2 tasks | 6 files |
 | Phase 19-voice-profile-and-interview-refinements-p3 P03 | 3min | 3 tasks | 2 files |
+| Phase 19-05 P05 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -359,6 +360,8 @@ Recent decisions affecting current work:
 - [Phase 19-voice-profile-and-interview-refinements-p3]: Timezone marked as optional for backward compatibility with existing profiles
 - [Phase 19-voice-profile-and-interview-refinements-p3]: Common timezone options provided with 'Other' placeholder for future manual input
 - [Phase 19-voice-profile-and-interview-refinements-p3]: Invalid timezone values skipped gracefully (don't fail profile creation)
+- [Phase 19-05]: Timezone kept optional in StrategyConfig for backward compatibility with existing profiles
+- [Phase 19-05]: CLI timezone subcommand returns JSON for programmatic consumption by Claude
 
 ### Pending Todos
 
