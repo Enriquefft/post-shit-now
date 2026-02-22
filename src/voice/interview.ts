@@ -17,6 +17,7 @@ import {
 	type VoiceProfile,
 	voiceProfileSchema,
 } from "./types.ts";
+import { isValidTimezone } from "../core/utils/timezone.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -702,6 +703,15 @@ export function finalizeProfile(state: InterviewState): VoiceProfile {
 			.map((r) => r.trim())
 			.filter(Boolean)
 			.map((r) => ({ name: r, platform: "unknown", whatToEmulate: "" }));
+	}
+
+	// Timezone (validate and include if provided)
+	const timezoneAnswer = state.answers.get("timezone");
+	if (timezoneAnswer && timezoneAnswer !== "Other (I'll specify)") {
+		// Only include if valid IANA timezone
+		if (isValidTimezone(timezoneAnswer)) {
+			base.timezone = timezoneAnswer;
+		}
 	}
 
 	// Archetypes (blank-slate path)
