@@ -25,7 +25,7 @@ Parse $ARGUMENTS to determine which workflow to run. If no arguments provided, s
 Show the current voice profile status:
 
 ```
-bun run src/voice/profile.ts validate
+bun run src/cli/voice-config.ts show --profile=content/voice/personal.yaml
 ```
 
 If a profile exists, display:
@@ -45,6 +45,30 @@ bun run src/voice/calibration.ts list-profiles
 Show each profile with its type (personal, brand-operator, brand-ambassador) and path.
 
 If no profile exists, suggest: "Run `/psn:setup voice` to create your voice profile."
+
+---
+
+### /psn:voice validate — Validate voice profile
+
+Validates voice profile YAML files against the schema to detect corruption or manual editing errors.
+
+Usage:
+```
+/psn:voice validate [--profile-path path/to/profile.yaml]
+```
+
+If no --profile-path provided, validates content/voice/personal.yaml
+
+Output:
+- **Valid:** Profile conforms to schema
+- **Invalid:** Lists all validation errors with field paths and descriptions
+
+Use after manually editing profile files or importing from external sources.
+
+Example:
+```
+bun run src/cli/voice-config.ts validate --profile-path=content/voice/personal.yaml
+```
 
 ---
 
@@ -139,7 +163,7 @@ Walk through the voice profile section by section, allowing targeted edits.
 
 **Load the profile:**
 ```
-bun run src/voice/profile.ts validate
+bun run src/cli/voice-config.ts show --profile=content/voice/personal.yaml
 ```
 
 **For each section, show current values and ask if the user wants to change:**
