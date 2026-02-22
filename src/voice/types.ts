@@ -129,6 +129,7 @@ export const strategyConfigSchema = z.object({
 		min: z.number().int().min(0),
 		max: z.number().int().min(0),
 	}),
+	timezone: z.string().optional(),
 });
 
 export type StrategyConfig = z.infer<typeof strategyConfigSchema>;

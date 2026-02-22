@@ -218,6 +218,7 @@ export function generateStrategy(profile: VoiceProfile): StrategyConfig {
 			min: Math.max(1, Math.floor(totalFrequency * 0.7)),
 			max: totalFrequency,
 		},
+		timezone: profile.timezone,
 	};
 }
 
