@@ -64,31 +64,31 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARCH-01 | Phase 1 | Pending |
-| ARCH-02 | Phase 1 | Pending |
-| ARCH-03 | Phase 1 | Pending |
-| ARCH-04 | Phase 1 | Pending |
-| ARCH-05 | Phase 1 | Pending |
-| DOC-01 | Phase 2 | Pending |
-| DOC-02 | Phase 2 | Pending |
-| DOC-03 | Phase 3 | Pending |
-| ARCH-06 | Phase 2 | Pending |
-| ARCH-07 | Phase 2 | Pending |
-| ARCH-08 | Phase 2 | Pending |
-| ARCH-09 | Phase 2 | Pending |
-| ARCH-10 | Phase 2 | Pending |
-| TEST-01 | Phase 3 | Pending |
-| TEST-02 | Phase 3 | Pending |
-| TEST-03 | Phase 3 | Pending |
-| TEST-04 | Phase 3 | Pending |
-| CTX-01 | Phase 4 | Pending |
-| CTX-02 | Phase 4 | Pending |
-| CTX-03 | Phase 4 | Pending |
-| CTX-04 | Phase 4 | Pending |
-| TOOL-01 | Phase 1 | Pending |
-| TOOL-02 | Phase 1 | Pending |
-| TOOL-03 | Phase 1 | Pending |
-| TOOL-04 | Phase 4 | Pending |
+| ARCH-01 | Phase 21 | Pending |
+| ARCH-02 | Phase 21 | Pending |
+| ARCH-03 | Phase 21 | Pending |
+| ARCH-04 | Phase 21 | Pending |
+| ARCH-05 | Phase 21 | Pending |
+| DOC-01 | Phase 22 | Pending |
+| DOC-02 | Phase 22 | Pending |
+| DOC-03 | Phase 23 | Pending |
+| ARCH-06 | Phase 22 | Pending |
+| ARCH-07 | Phase 22 | Pending |
+| ARCH-08 | Phase 22 | Pending |
+| ARCH-09 | Phase 22 | Pending |
+| ARCH-10 | Phase 22 | Pending |
+| TEST-01 | Phase 23 | Pending |
+| TEST-02 | Phase 23 | Pending |
+| TEST-03 | Phase 23 | Pending |
+| TEST-04 | Phase 23 | Pending |
+| CTX-01 | Phase 24 | Pending |
+| CTX-02 | Phase 24 | Pending |
+| CTX-03 | Phase 24 | Pending |
+| CTX-04 | Phase 24 | Pending |
+| TOOL-01 | Phase 21 | Pending |
+| TOOL-02 | Phase 21 | Pending |
+| TOOL-03 | Phase 21 | Pending |
+| TOOL-04 | Phase 24 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 23 total
@@ -97,4 +97,4 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 
 ---
 *Requirements defined: 2026-02-25*
-*Last updated: 2026-02-25 after requirements definition*
+*Last updated: 2026-02-25 after roadmap creation*
