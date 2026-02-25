@@ -1,41 +1,100 @@
 # Requirements: Post Shit Now
 
-**Defined:** 2026-02-18
+**Defined:** 2026-02-25
 **Core Value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
 
-## v2 Requirements
+## v1.2 Requirements
 
-*This file has been reset for the next milestone. See `.planning/milestones/v1.0-REQUIREMENTS.md` for the complete v1.0 requirements record.*
+Requirements for agentic architecture improvements. Each maps to roadmap phases.
 
-### Placeholder for v2
+### Code Splitting
 
-Use `/gsd:new-milestone` to begin defining v2 requirements after completing the v1.0 milestone closure.
+- [ ] **ARCH-01**: Extract PlatformPublisher interface with behavioral contracts
+- [ ] **ARCH-02**: Split publish-post.ts into platform-specific handlers (<200 lines each)
+- [ ] **ARCH-03**: Create handler factory for platform selection
+- [ ] **ARCH-04**: Refactor orchestration layer to use interface-based handlers
+- [ ] **ARCH-05**: Move platform clients to use interface pattern
 
-## v1.0 Archive
+### Documentation
 
-All 148 v1.0 requirements have been completed and archived to `.planning/milestones/v1.0-REQUIREMENTS.md`.
+- [ ] **DOC-01**: Create root CLAUDE.md (100-200 lines) for project guidance
+- [ ] **ARCH-06**: Add CLAUDE.md files at module boundaries (platforms/, core/)
+- [ ] **DOC-02**: Document architecture overview with component relationships
+- [ ] **DOC-03**: Add JSDoc with behavioral contracts (preconditions, postconditions)
 
-**Completion Date:** 2026-02-20
-**Status:** ✅ MILESTONE COMPLETE
+### Module Boundaries
+
+- [ ] **ARCH-07**: Configure TypeScript path aliases (@psn/platforms, @psn/core)
+- [ ] **ARCH-08**: Create barrel exports (index.ts) at directory boundaries
+- [ ] **ARCH-09**: Define explicit public APIs vs internal modules
+- [ ] **ARCH-10**: Enforce file size limits (<200 lines) for AI context
+
+### Testing Infrastructure
+
+- [ ] **TEST-01**: Add Vitest for interface compliance testing
+- [ ] **TEST-02**: Create mock infrastructure for external APIs
+- [ ] **TEST-03**: Write interface compliance tests (error handling, state updates)
+- [ ] **TEST-04**: Add integration tests for end-to-end flows
+
+### Context Management
+
+- [ ] **CTX-01**: Consolidate state access patterns
+- [ ] **CTX-02**: Implement ProjectContext manager
+- [ ] **CTX-03**: Add circular dependency detection
+- [ ] **CTX-04**: Pre-commit hooks for doc validation
+
+### Tooling
+
+- [ ] **TOOL-01**: Configure TypeScript (noUnusedLocals, noUnusedParameters)
+- [ ] **TOOL-02**: Set up circular dependency checker (madge)
+- [ ] **TOOL-03**: Configure Biome linting for file size enforcement
+- [ ] **TOOL-04**: Add pre-commit hooks for doc compliance
 
 ## Out of Scope
 
-Explicitly excluded. Documented to prevent scope creep.
-
 | Feature | Reason |
 |---------|--------|
-| Web dashboard / visual calendar | Competes on competitors' home turf (Buffer, Hootsuite). CLI-first by design. Always inferior to purpose-built web tools. |
-| Social inbox / unified DM management | Different product category (customer support, not growth). API access heavily restricted. |
-| Fully automated posting (no human review) | AI slop is actively suppressed by all platforms in 2026. One bad auto-post can damage a brand permanently. |
-| Paid ad management / boosting | Entirely different domain requiring budget management, audience targeting, conversion tracking. |
-| Social listening / brand monitoring at scale | Enterprise feature ($1000+/mo category). Narrow competitive intelligence (5-10 accounts) is sufficient. |
-| Real-time collaboration / shared editing | Requires CRDT/OT engineering. Sequential approval workflow handles the use case. |
-| Content library / asset management (DAM) | Scope creep into a different product. Git-based media + external tools suffice. |
-| Platform-native preview rendering | Each platform's rendering changes constantly. Character counts + media specs are sufficient. |
-| Engagement pods / reciprocal liking | Violates every platform's TOS. Accounts get shadowbanned. |
-| Languages beyond English and Spanish | Two is enough for v1. Additional languages add complexity to every feature. |
-| Offline/degraded mode | Managed services have 99.9%+ uptime. Local fallback/sync layer not worth the complexity. |
-| Self-hosted Trigger.dev | Cloud-only for simplicity and features (warm starts, auto-scaling, checkpoints). |
+| Monorepo with packages/ | Requires pnpm/yarn workspaces, adds complexity not needed for single-repo CLI tool |
+| Database schema changes | Current schema works; refactoring should not require migration |
+| External API changes | Platform APIs stable; focus on internal architecture |
+| Feature flags for rollout | Gradual rollout not needed for agentic development improvements |
+| Performance optimization | Refactoring may improve performance; not primary goal |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| ARCH-01 | Phase 1 | Pending |
+| ARCH-02 | Phase 1 | Pending |
+| ARCH-03 | Phase 1 | Pending |
+| ARCH-04 | Phase 1 | Pending |
+| ARCH-05 | Phase 1 | Pending |
+| DOC-01 | Phase 2 | Pending |
+| DOC-02 | Phase 2 | Pending |
+| DOC-03 | Phase 3 | Pending |
+| ARCH-06 | Phase 2 | Pending |
+| ARCH-07 | Phase 2 | Pending |
+| ARCH-08 | Phase 2 | Pending |
+| ARCH-09 | Phase 2 | Pending |
+| ARCH-10 | Phase 2 | Pending |
+| TEST-01 | Phase 3 | Pending |
+| TEST-02 | Phase 3 | Pending |
+| TEST-03 | Phase 3 | Pending |
+| TEST-04 | Phase 3 | Pending |
+| CTX-01 | Phase 4 | Pending |
+| CTX-02 | Phase 4 | Pending |
+| CTX-03 | Phase 4 | Pending |
+| CTX-04 | Phase 4 | Pending |
+| TOOL-01 | Phase 1 | Pending |
+| TOOL-02 | Phase 1 | Pending |
+| TOOL-03 | Phase 1 | Pending |
+| TOOL-04 | Phase 4 | Pending |
+
+**Coverage:**
+- v1.2 requirements: 23 total
+- Mapped to phases: 23
+- Unmapped: 0 ✓
 
 ---
-*Last updated: 2026-02-20 (v1.0 milestone archived)*
+*Requirements defined: 2026-02-25*
+*Last updated: 2026-02-25 after requirements definition*
