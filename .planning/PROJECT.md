@@ -64,20 +64,20 @@ Post Shit Now v1.0 is production-ready with comprehensive feature coverage:
 
 See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for complete milestone details
 
-## Current Milestone: v1.1 (Bug Fix & Refinement)
+## Current Milestone: v1.2 (Agentic Architecture Improvements)
 
-**Goal:** Fix bugs, improve setup experience, and validate through early user testing
+**Goal:** Improve agentic coding accuracy through code splitting, interface boundaries, and documentation
 
-**Context:** Trial run identified 30 issues across setup, database, voice interview, and UX. Milestone will address all prioritized issues while incorporating early user feedback.
+**Context:** v1.1 completed critical setup fixes (Phase 1). Remaining phases deferred due to pivot toward agentic development improvements. Research identified `publish-post.ts` (1,239 lines) as primary coupling hotspot - all platform clients imported directly, no interface contracts, difficult for AI assistants to understand scope.
 
 **Focus areas:**
-- Critical setup blockers (hub detection, migration errors, API key configuration)
-- Database stability (RLS policies, missing tables, state management)
-- Voice interview completeness (CLI commands, state persistence)
-- UX improvements (progress indicators, error messages, validation)
-- Recovery mechanisms (reset command, dry-run mode, health checks)
+- Code splitting - Extract platform handlers, define interfaces
+- Module boundaries - Create clear contracts between components
+- Context management - Consolidate state access patterns
+- Documentation - Assistant guides, architecture overview
+- Context rot prevention - Keep docs synchronized with code
 
-**Note:** v1.0 legacy phases have been archived to `.planning/milestones/v1.0-legacy/`. v1.1 roadmap starts fresh with new phase structure.
+**Note:** v1.1 incomplete phases archived. v1.2 starts fresh with agentic development focus.
 
 <details>
 <summary>v1.0 Archived Requirements</summary>
