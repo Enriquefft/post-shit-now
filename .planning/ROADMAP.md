@@ -1,10 +1,13 @@
 # Roadmap: Post Shit Now
 
-## v1.1 Milestone (In Progress)
+## v1.1 Milestone (Complete)
 
 **Goal:** Fix bugs, improve setup experience, and validate through early user testing
-**Timeline:** 2026-02-20 to TBD
+**Timeline:** 2026-02-20 to 2026-02-25
 **Source Issues:** 30 documented issues from trial run (6 critical, 14 major, 10 minor)
+**Status:** Phase 1 complete, remaining phases deferred to v1.2
+
+**Note:** v1.1 milestone architected to fix critical setup blockers. With Phase 1 complete and remaining issues deferred, transitioning to v1.2 focused on agentic architecture improvements.
 
 ### Overview
 
@@ -33,9 +36,9 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 **Plans:**
 4/4 plans complete
-- [ ] 01-02-PLAN.md — Neon API key validation with prefix check and API verification
-- [ ] 01-03-PLAN.md — Hub unification (personal.json + unified getHubConnection)
-- [ ] 01-04-PLAN.md — Provider key validation framework (Trigger, Perplexity, Anthropic)
+- [x] 01-02-PLAN.md — Neon API key validation with prefix check and API verification
+- [x] 01-03-PLAN.md — Hub unification (personal.json + unified getHubConnection)
+- [x] 01-04-PLAN.md — Provider key validation framework (Trigger, Perplexity, Anthropic)
 
 **Success Criteria:**
 - Users can complete hub setup without manual intervention
@@ -211,11 +214,11 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 ### Requirements Coverage
 
-#### Critical (P0) - Phase 1
-- C1: Setup wizard hub detection bug → Plan 1.1
-- C2: Migration RLS policy error → Plan 1.2
-- C3: Provider keys table missing → Plan 1.3
-- C4: Neon API key permission error → Plan 1.4
+#### Critical (P0) - Phase 1 ✓ COMPLETE
+- C1: Setup wizard hub detection bug → Plan 1.1 ✓
+- C2: Migration RLS policy error → Plan 1.2 ✓
+- C3: Provider keys table missing → Plan 1.3 ✓
+- C4: Neon API key permission error → Plan 1.4 ✓
 
 #### Major High Priority (P1) - Phases 15-16
 - C5: Voice interview CLI incomplete → Plan 16.1
@@ -321,9 +324,27 @@ See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for full details
 
 Completed: 2026-02-20
 
-## v2 Milestone
+## v1.2 Milestone (In Progress)
 
-*Planning has not yet begun. Use `/gsd:new-milestone` to start the next milestone cycle.*
+**Goal:** Improve agentic coding accuracy through code splitting and documentation enhancements
+**Timeline:** 2026-02-25 to TBD
+**Focus:** Address coupling issues, create clear module boundaries, add AI assistant guidance
+
+### Overview
+
+This milestone addresses code organization issues that impact agentic development accuracy:
+
+1. **Code splitting** - Extract platform handlers, define interfaces, refactor orchestration
+2. **Module boundaries** - Create clear contracts between components
+3. **Context management** - Consolidate state access patterns
+4. **Documentation** - Create assistant guides, architecture overview, decision trees
+5. **Context rot prevention** - Keep documentation synchronized with code
+
+**Primary targets:**
+- `publish-post.ts` (1,239 lines) - split into platform-specific handlers
+- Platform clients - extract to handler pattern with interfaces
+- CLI orchestration - reduce coupling to trigger tasks
+- Create assistant guide for AI development patterns
 
 ---
 
