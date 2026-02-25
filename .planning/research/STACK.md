@@ -1,286 +1,74 @@
-# Stack Research
+# Stack Research: Agentic Architecture Improvements
 
-**Domain:** CLI-first social media automation system
-**Researched:** 2026-02-18
-**Confidence:** HIGH (core stack verified via official docs and npm; platform APIs verified via official developer portals)
+**Domain:** TypeScript/Node.js codebase enhancements for AI-assisted development
+**Researched:** 2026-02-25
+**Confidence:** HIGH (core stack verified via official docs; agentic patterns verified from 2026 best practices)
 
 ## Recommended Stack
 
 ### Core Runtime & Build
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| TypeScript | 5.7+ | Language | Type safety across CLI commands, Trigger.dev tasks, and Drizzle schema. Non-negotiable for a system with this many API integrations. |
-| Node.js | 22 LTS | Runtime | Current LTS. Required by Trigger.dev v4 (supports 21.7.3, 22.16.0, Bun 1.3.3). Use 22 for long-term support. |
-| pnpm | 9+ | Package manager | Workspace support for monorepo. Faster, stricter than npm. Trigger.dev docs use pnpm. |
-| tsx | latest | Script runner | Run TypeScript CLI scripts directly without build step. Used for local utility commands. |
+| Technology | Version | Purpose | Why Recommended for Agentic Development |
+|------------|---------|---------|--------------------------------------|
+| TypeScript | 5.9.3 | Language | Strict typing with `noUncheckedIndexedAccess`, `noImplicitOverride`, `noUnusedLocals: false` for AI agents. Enables interface-based contracts that AI assistants can reason about. |
+| Bun | latest | Runtime | Faster than Node.js for local development. Type checking via `bun run typecheck`. Already in use. |
+| tsx | latest | Script runner | Run TypeScript directly without build step. Used for CLI scripts that Claude commands invoke. |
+| Biome | 2.4.2 | Lint + Format | Single tool replacing ESLint + Prettier. Runs 10-100x faster. Auto-fixable rules help AI assistants conform to standards. |
 
-### Database
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| Neon Postgres | - | Managed Postgres | Serverless driver for edge/serverless. Free tier for personal hubs. Branching for dev/staging. Native RLS support. **Decision already made.** |
-| `@neondatabase/serverless` | 1.0.2 | Neon driver | Official serverless driver. WebSocket-based connection pooling. Works in Node.js and serverless. |
-| `drizzle-orm` | 0.45.x | ORM | SQL-like API, zero overhead, first-class RLS support via `crudPolicy()` helper with Neon roles. Schema-as-code with TypeScript. **Decision already made.** |
-| `drizzle-kit` | latest | Migrations | Generate and run migrations from Drizzle schema. Bundled with repo, runs during `/psn:setup`. |
-
-**Drizzle + Neon RLS pattern:** Drizzle provides `pgPolicy()`, `pgRole()`, and `crudPolicy()` (from `drizzle-orm/neon`) for declarative RLS. Neon exposes `authenticated` and `anonymous` roles. Policies are defined alongside schema, not in raw SQL. This is the officially recommended approach per both Neon and Drizzle docs.
-
-### Background Tasks & Scheduling
+### Testing
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| `@trigger.dev/sdk` | 4.1.x | Task SDK | v4 is GA. Warm starts (100-300ms). Waitpoints for approval workflows. Priority runs. Middleware system. **Decision already made.** |
-| `trigger.dev` (CLI) | 4.3.x | Dev/deploy CLI | `npx trigger dev` for local development, `npx trigger deploy` for cloud. |
+| Vitest | 4.0.18 | Unit testing | Native TypeScript support, Jest API compatible. Smart re-runs only affected tests. AI-friendly: can generate tests that pass reliably. |
+| @vitest/coverage-v8 | latest | Code coverage | Integrated coverage reporting. Helps AI agents identify untested surface area. |
 
-**Key Trigger.dev v4 patterns for this project:**
-- **Delayed runs**: `task.trigger({ ... }, { delay: "2h" })` for scheduled posts. Store `runId` in DB to cancel/reschedule.
-- **Cron tasks**: `schedules.task({ cron: "0 */6 * * *" })` for analytics collection, trend gathering, token refresh.
-- **Waitpoints (wait-for-token)**: Human-in-the-loop approval for company posts. Create token, send to WhatsApp, wait for response.
-- **Priority**: `task.trigger({ ... }, { priority: 100 })` for time-sensitive posts.
-- **Middleware + locals**: Share hub connection context across all tasks.
+### TypeScript Configuration
 
-**Breaking change from v3:** Import from `@trigger.dev/sdk` (not `@trigger.dev/sdk/v3`). Queues must be predefined with `queue()`. Lifecycle hooks use single object params.
+| Setting | Value | Why for AI Assistants |
+|---------|--------|----------------------|
+| `strict: true` | - | Catches errors before runtime. AI agents produce more reliable code with strict mode. |
+| `noUncheckedIndexedAccess: true` | - | Forces explicit undefined checks. Prevents AI from making unsafe assumptions about array/object access. |
+| `noImplicitOverride: true` | - | Requires `override` keyword when extending methods. Helps AI understand inheritance hierarchies. |
+| `noUnusedLocals: false` | - | **Critical for AI**: AI often declares temporary variables during exploration. Auto-cleanup can block exploration. |
+| `noUnusedParameters: false` | - | **Critical for AI**: Similar to locals, AI may reference parameters incrementally. |
+| `moduleResolution: "bundler"` | - | Modern resolution compatible with Bun/Trigger.dev bundling. |
+| `paths: { "@psn/*": ["./src/*"] }` | - | Path aliases enable clear module boundaries. AI can reason about imports more easily. |
 
-### Validation
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `zod` | 4.x | Schema validation | Validate API payloads, config files, command inputs. Drizzle has native Zod integration (now built into drizzle-orm, no separate drizzle-zod package needed). Trigger.dev `schemaTask` uses Zod. |
-
-### OAuth & Token Management
+### Interface-Based Architecture
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| `arctic` | 3.x | OAuth 2.0 clients | Lightweight, typed OAuth clients. Supports **LinkedIn, Twitter/X, TikTok, Facebook** (Instagram uses Facebook OAuth). No heavy auth framework needed since we store tokens in DB, not sessions. |
+| TypeScript interfaces | native | Contracts | Define clear boundaries between modules. AI assistants can read interfaces to understand component contracts without implementation details. |
+| Export patterns | - | Module organization | Barrel exports (`index.ts`) at module boundaries. AI discovers public API surface through single entry point. |
 
-**OAuth flow per platform:**
-- **X/Twitter**: OAuth 2.0 PKCE. Arctic `Twitter` provider. Tokens don't expire (revoke-only).
-- **LinkedIn**: OAuth 2.0 authorization code. Arctic `LinkedIn` provider. Tokens expire in 60 days. Cron task for refresh.
-- **Instagram**: OAuth 2.0 via **Facebook Login** (Instagram Graph API requires Facebook Business Login). Arctic `Facebook` provider. Short-lived token (1hr) exchanged for long-lived (60 days). Cron task for refresh.
-- **TikTok**: OAuth 2.0. Arctic `TikTok` provider. Tokens expire, refresh via cron.
+### Code Organization Patterns
 
-**Token storage:** Encrypted in `oauth_tokens` DB table. Trigger.dev `token-refresher` cron task checks expiry daily and refreshes proactively.
+| Pattern | Purpose | Implementation |
+|---------|---------|----------------|
+| **Interface segregation** | One interface per responsibility | Separate files: `types/platform.ts`, `types/post.ts`, `types/hub.ts` |
+| **Module boundaries** | Clear import restrictions | Path aliases (`@psn/platforms/*`, `@psn/core/db/*`) enforce boundaries conceptually |
+| **Barrel exports** | Single public API per module | `src/platforms/x/index.ts` exports only public interface, not internals |
+| **Domain-based splitting** | Logical code grouping | `src/platforms/x/`, `src/platforms/linkedin/`, `src/core/db/`, `src/core/types/` |
 
-**Instagram note:** Arctic does not have a dedicated Instagram provider because Instagram OAuth goes through Facebook. Use the `Facebook` provider with `instagram_basic`, `instagram_content_publish`, `pages_show_list` scopes.
+### Documentation for AI Assistants
 
----
-
-## Platform API SDKs
-
-### X (Twitter)
-
-| Library | Version | Purpose | Confidence |
-|---------|---------|---------|------------|
-| `twitter-api-v2` | 1.29.x | Full X API v2 client | HIGH - actively maintained, 4k+ GitHub stars, official X docs list it |
-
-**Usage:** Post tweets, upload media (images/video), read analytics, manage threads. Supports OAuth 2.0 and OAuth 1.0a. Pay-per-use pricing: $0.01/post, $0.005/read.
-
-```typescript
-import { TwitterApi } from 'twitter-api-v2';
-const client = new TwitterApi(accessToken);
-await client.v2.tweet({ text: 'Hello world' });
-```
-
-### LinkedIn
-
-| Library | Version | Purpose | Confidence |
-|---------|---------|---------|------------|
-| Direct REST API calls | - | LinkedIn Marketing API | HIGH - no good SDK exists; raw fetch is the standard approach |
-
-**Why no SDK:** LinkedIn's Marketing API is versioned (currently `202602`). Community SDKs are stale or incomplete. The API is REST + JSON; a thin typed wrapper over `fetch` is all you need. Build a `linkedin-client.ts` module.
-
-**Key endpoints:**
-- `POST /rest/posts` - Create posts (text, articles, images, carousels)
-- `POST /rest/images` - Upload images (register + upload flow)
-- `GET /rest/organizationalEntityShareStatistics` - Analytics
-
-**Partner approval required:** Takes days to weeks. Apply early. Tokens expire 60 days.
-
-### Instagram
-
-| Library | Version | Purpose | Confidence |
-|---------|---------|---------|------------|
-| Direct REST API calls | - | Instagram Graph API (via Facebook) | HIGH - same situation as LinkedIn, thin wrapper is best |
-
-**Why no SDK:** The `instagram-graph-api` npm package exists but is thin and low-adoption. Better to build a typed client. Instagram Graph API endpoints are stable and well-documented.
-
-**Key endpoints:**
-- `POST /{ig-user-id}/media` - Create media container (image_url/video_url + caption)
-- `POST /{ig-user-id}/media_publish` - Publish container
-- `GET /{ig-user-id}/insights` - Analytics
-
-**Rate limit:** 200 requests/hour. Business/Creator account required. No personal accounts.
-
-### TikTok
-
-| Library | Version | Purpose | Confidence |
-|---------|---------|---------|------------|
-| Direct REST API calls | - | TikTok Content Posting API | HIGH - official REST API, no maintained SDK |
-| `ensembledata` | latest | TikTok analytics scraping | MEDIUM - third-party service, ~$100/mo |
-
-**Content Posting API:** REST endpoint at `https://open.tiktokapis.com/v2/post/publish/`. Supports Direct Post and Inbox (Draft) modes. **Audit required** for public posting access.
-
-**Analytics:** TikTok's official API has limited analytics. EnsembleData provides real-time scraping for engagement metrics, trending content, hashtag monitoring. Fallback: TikTok Creative Center (free, manual).
-
----
-
-## Intelligence & Search APIs
-
-| Library | Version | Purpose | Pricing | Confidence |
-|---------|---------|---------|---------|------------|
-| `@tavily/core` | latest | Search API for trend research | ~$0.005/search (1000 free/mo) | HIGH - official SDK, Vercel AI SDK compatible |
-| `@exalabs/ai-sdk` | latest | Semantic search, content discovery | $0.001/search (1000 free/mo) | HIGH - official SDK |
-| Perplexity API (via `openai` SDK) | - | Deep research, trend analysis | $5/1000 searches (Sonar), $1/1000 (Sonar Pro for citations) | HIGH - OpenAI-compatible API |
-| Brave Search API (raw fetch) | - | Web search, news monitoring | $5/1000 requests ($5 free credit/mo) | HIGH - independent index, less SEO spam |
-
-**Perplexity integration:** Uses OpenAI-compatible API format. Use the `openai` package with `baseURL: 'https://api.perplexity.ai'`. Models: `sonar` (fast), `sonar-pro` (deeper retrieval). Citation tokens now free.
-
-**Strategy:** Use Tavily for quick searches (cheap, fast). Exa for semantic/neural search (finding similar content). Perplexity for deep research queries. Brave for news monitoring.
-
----
-
-## Image & Video Generation
-
-| Library | Version | Purpose | Pricing | Confidence |
-|---------|---------|---------|---------|------------|
-| `openai` | 6.22.x | GPT Image (gpt-image-1, gpt-image-1.5) | ~$0.02-0.08/image | HIGH - official SDK |
-| `@fal-ai/client` | 1.9.x | FLUX.2 (photorealistic images) | $0.012-0.03/megapixel | HIGH - official SDK |
-| Ideogram API (raw fetch) | - | Ideogram 3.0 (best text in images) | $0.04-0.10/image | MEDIUM - no official Node SDK, REST API |
-
-**GPT Image:** Use `openai` SDK. `client.images.generate({ model: "gpt-image-1" })`. Returns base64. Supports up to 4096x4096. Streaming supported. Best for versatile, instruction-following images.
-
-**FLUX.2:** Use `@fal-ai/client`. FLUX.2 [pro] for production quality (no parameter tuning needed), FLUX.2 [dev] for fast prototyping. Sub-2-second generation on fal.ai. Best for photorealistic images.
-
-**Ideogram 3.0:** REST API at `https://api.ideogram.ai`. No official Node SDK -- build thin typed client. Best for images with text (logos, social cards, infographics). Style references (up to 3 images).
-
-**Alternative for FLUX.2:** `replicate` (1.4.x) if you want a single SDK for multiple models. fal.ai is faster and cheaper for FLUX specifically.
-
----
-
-## WhatsApp Notifications
-
-| Technology | Version | Purpose | Confidence |
-|------------|---------|---------|------------|
-| WAHA (Docker) | latest | Self-hosted WhatsApp HTTP API | MEDIUM - unofficial WhatsApp client, ToS risk |
-
-**Setup:** `docker run -p 3000:3000 devlikeapro/waha`. REST API at `localhost:3000`. Dashboard at `localhost:3000/dashboard`. Scan QR code to link WhatsApp account.
-
-**Engines:** WEBJS (browser-based), NOWEB (WebSocket, lighter), GOWS (Go WebSocket, fastest). Use NOWEB for server deployment.
-
-**Core free tier** covers sending/receiving text, images, video. No message limits.
-
-**Alternative:** Twilio WhatsApp API for production reliability (official WhatsApp Business API partner). Higher cost but no ToS risk.
-
----
-
-## Supporting Libraries
-
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `dotenv` | latest | Environment variable loading | Loading hub.env and connections/*.env files |
-| `yaml` | latest | YAML parsing | Parsing strategy.yaml, voice profiles, series config |
-| `sharp` | latest | Image processing | Resize, crop, format convert before upload. Platform-specific sizing. |
-| `nanoid` | latest | ID generation | Post IDs, invite codes, idempotency keys |
-| `date-fns` | latest | Date manipulation | Scheduling, analytics time ranges, timezone handling |
-| `date-fns-tz` | latest | Timezone support | Converting schedule times to platform-native UTC |
-| `chalk` | latest | CLI output coloring | Command output formatting (if running outside Claude Code) |
-| `ora` | latest | CLI spinners | Loading indicators for long operations |
-| `p-limit` | latest | Concurrency control | Rate limiting API calls per platform |
-| `encrypt` / `node:crypto` | built-in | Token encryption | Encrypting OAuth tokens at rest in DB. Use Node.js built-in crypto, no external package needed. |
-
-### Development Tools
-
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| `vitest` | Testing | Fast, TypeScript-native. Use for unit testing API clients and Trigger.dev task logic. |
-| `biome` | Lint + format | Single tool replacing ESLint + Prettier. Faster. Less config. |
-| `drizzle-kit` | DB migrations | `drizzle-kit generate` for SQL, `drizzle-kit migrate` to apply. |
-| `trigger.dev` CLI | Task dev/deploy | `npx trigger dev` for local, `npx trigger deploy` for cloud. |
-
----
-
-## Project Structure
-
-```
-post-shit-now/
-  config/                    # User config (git-tracked, .env gitignored)
-    hub.env                  # Personal hub credentials (gitignored)
-    connections/             # Company hub connections (gitignored)
-    strategy.yaml            # Personal strategy config
-    voice-profiles/          # Voice profile YAML files
-    series/                  # Content series config
-  content/                   # Content workspace
-    drafts/                  # Post drafts (auto-pruned 14d after publish)
-    media/                   # Generated media (auto-pruned 7d after posting)
-  src/
-    db/
-      schema/                # Drizzle schema files (tables, RLS policies)
-      migrations/            # Generated migration SQL
-      index.ts               # DB client factory (personal + company hubs)
-    clients/                 # Platform API clients
-      x.ts                   # Twitter/X client (twitter-api-v2 wrapper)
-      linkedin.ts            # LinkedIn REST client
-      instagram.ts           # Instagram Graph API client
-      tiktok.ts              # TikTok Content Posting client
-      whatsapp.ts            # WAHA REST client
-    intelligence/            # Search/research API clients
-      tavily.ts
-      exa.ts
-      perplexity.ts
-      brave.ts
-    media/                   # Image/video generation clients
-      gpt-image.ts
-      flux.ts
-      ideogram.ts
-    trigger/                 # Trigger.dev task definitions
-      queues.ts              # Predefined queues (per-platform, per-hub)
-      middleware.ts          # Hub context middleware
-      tasks/
-        post-publisher.ts    # Scheduled post execution
-        analytics-collector.ts  # Cron: collect platform analytics
-        trend-gatherer.ts    # Cron: intelligence gathering
-        token-refresher.ts   # Cron: OAuth token refresh
-        notification-sender.ts  # WhatsApp notification dispatch
-    lib/                     # Shared utilities
-      crypto.ts              # Token encryption/decryption
-      config.ts              # YAML/env config loaders
-      validation.ts          # Zod schemas
-  .claude/
-    commands/                # Slash command .md files
-  trigger.config.ts          # Trigger.dev project config
-  drizzle.config.ts          # Drizzle Kit config
-  package.json
-  tsconfig.json
-```
-
-**Not a monorepo.** This is a single package. Trigger.dev v4 bundles tasks from the same project. No need for pnpm workspaces or turborepo -- it adds complexity without benefit for a repo-as-workspace distribution model where users clone and run.
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| CLAUDE.md | - | Project instructions | Automatically included in Claude's context. Keep concise (100-200 lines root, 50-100 subdirs). |
+| Directory-level docs | - | Module-specific context | `src/platforms/x/CLAUDE.md` for platform-specific patterns. Progressive disclosure. |
+| JSDoc comments | - | Inline documentation | AI reads JSDoc to understand function purpose, parameters, return types. Focus on "why" not "what". |
+| README.md per module | - | Overview and usage | High-level module description, key patterns, examples. AI reads this before diving into code. |
 
 ---
 
 ## Installation
 
 ```bash
-# Core
-npm install @trigger.dev/sdk drizzle-orm @neondatabase/serverless zod
+# Already installed in project
+bun install @biomejs/biome vitest @vitest/coverage-v8
 
-# Platform clients
-npm install twitter-api-v2 arctic
-
-# Intelligence
-npm install @tavily/core @exalabs/ai-sdk
-
-# Image generation
-npm install openai @fal-ai/client
-
-# TikTok analytics (optional, ~$100/mo)
-npm install ensembledata
-
-# Utilities
-npm install yaml sharp nanoid date-fns date-fns-tz dotenv p-limit
-
-# Dev dependencies
-npm install -D typescript @types/node vitest @biomejs/biome drizzle-kit trigger.dev tsx
+# Dev dependencies (already in package.json)
+bun install -D @types/bun @types/diff @types/readline-sync @types/ws
 ```
 
 ---
@@ -289,68 +77,438 @@ npm install -D typescript @types/node vitest @biomejs/biome drizzle-kit trigger.
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| `drizzle-orm` | Prisma | Never for this project. Prisma's query engine adds latency in serverless. Drizzle is SQL-native with zero overhead. Prisma also lacks first-class RLS support. |
-| `arctic` (OAuth) | `passport.js` | Never. Passport is session-based, designed for web apps. We have no web server. Arctic is stateless OAuth 2.0 flows only. |
-| `@fal-ai/client` (FLUX) | `replicate` | If you want one SDK for many models (Stable Diffusion, etc). fal.ai is faster and cheaper specifically for FLUX.2. |
-| `twitter-api-v2` | Raw fetch | If you only need tweet posting. But the SDK handles media upload, pagination, rate limiting -- worth the dependency. |
-| `biome` (lint/format) | ESLint + Prettier | If you need ESLint plugins for specific rules. Biome covers 95% of cases, runs 10-100x faster, and is a single dependency. |
-| `vitest` | Jest | If you have existing Jest config. Vitest is faster, native TypeScript, same API as Jest. No reason to use Jest for a new project. |
-| WAHA (WhatsApp) | Twilio WhatsApp | For production/enterprise where ToS compliance matters. Twilio is an official WhatsApp Business API partner. Higher cost but zero ban risk. |
-| Single package | pnpm monorepo | Never for this project. Users clone this repo as a workspace. A monorepo adds `pnpm-workspace.yaml`, `turbo.json`, cross-package imports -- all complexity for a single deployable unit. |
+| Vitest | Jest | Never for new TypeScript projects. Vitest is faster, native TS support, Jest-compatible API. |
+| Biome | ESLint + Prettier | Only if you need ESLint plugins for specific rules not in Biome. Biome covers 95% of cases. |
+| Path aliases | Relative imports | Only for small scripts. Path aliases provide clearer boundaries and easier refactoring for AI assistants. |
+| `noUnusedLocals: false` | `noUnusedLocals: true` | Only for human-only codebases where unused variables indicate bugs. For AI-assisted code, false enables exploration without blocking. |
+
+---
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `node-linkedin` npm | Abandoned (last update 2019), uses deprecated LinkedIn v1 API | Raw fetch with typed client |
-| `instagram-private-api` | Uses undocumented private API, guaranteed to break, ban risk | Instagram Graph API (official) |
-| `@trigger.dev/sdk/v3` import path | v4 breaking change -- this path is removed | `@trigger.dev/sdk` (no /v3) |
-| `drizzle-zod` (separate package) | Merged into `drizzle-orm` core as of v1.0-beta. Separate package is deprecated. | `import { createSelectSchema } from 'drizzle-orm'` |
-| `@fal-ai/serverless-client` | Deprecated, renamed to `@fal-ai/client` | `@fal-ai/client` |
-| Prisma | Query engine overhead in serverless, no RLS support, generates client code | `drizzle-orm` |
-| `passport.js` | Session-based auth middleware for web apps; we have no web server | `arctic` for OAuth flows |
-| `cron` / `node-cron` npm | Running cron in a long-lived process is fragile and doesn't scale | Trigger.dev cron schedules (managed, reliable, observable) |
-| Bull / BullMQ | Requires self-hosted Redis, operational burden | Trigger.dev Cloud (managed, no infrastructure) |
+| `drizzle-kit push` | Silently deletes RLS policies. | `drizzle-kit generate` + `drizzle-kit migrate` |
+| CommonJS (`require`) | Mixed module systems confuse AI assistants. | ES modules (`import/export`) exclusively |
+| Any exports | Explicit imports easier for AI to reason about. | Named exports with explicit imports |
+| Inline types in complex functions | Scatters type information. | Extract to `types/` directory |
+| God files (500+ lines) | Exceeds AI context window for deep understanding. | Split into focused modules (<200 lines) |
+| Deeply nested directories (>5 levels) | AI navigation becomes difficult. | Flat structures or shallow nesting (max 3-4 levels) |
+| Generated file patterns | AI may try to modify generated code. | Clearly mark with `// DO NOT EDIT` headers or use separate output directory |
+
+---
+
+## Stack Patterns by Variant
+
+**If modifying `publish-post.ts` (1,239 lines):**
+- Extract platform-specific logic into `src/platforms/*/publisher.ts` modules
+- Define `PlatformPublisher` interface with `publish()` method
+- Implement per-platform publishers: `XPublisher`, `LinkedInPublisher`, `InstagramPublisher`, `TikTokPublisher`
+- Use strategy pattern: `publish-post.ts` delegates to appropriate publisher based on platform
+- Benefits: AI can understand one platform at a time, modify without affecting others
+
+**If creating new platform integrations:**
+- Create `src/platforms/<platform>/` directory with: `client.ts`, `oauth.ts`, `media.ts`, `types.ts`, `publisher.ts`
+- Define platform-specific types in `types.ts`
+- Implement OAuth flow in `oauth.ts`
+- Implement API client in `client.ts`
+- Implement media upload in `media.ts`
+- Implement publishing logic in `publisher.ts` (implements `PlatformPublisher` interface)
+- Add barrel export `index.ts` for public API
+- Create `CLAUDE.md` with platform-specific patterns
+- Benefits: Consistent structure, AI can copy-paste pattern across platforms
+
+**If refactoring core types:**
+- Keep all shared types in `src/core/types/`
+- Split by domain: `types/platform.ts`, `types/post.ts`, `types/hub.ts`, `types/analytics.ts`
+- Use barrel exports in each domain file
+- Benefits: Single source of truth, AI finds types via clear import paths
+
+**If adding CLAUDE.md documentation:**
+- Root `CLAUDE.md`: 100-200 lines, project-level rules, common commands
+- Directory `CLAUDE.md`: 50-100 lines, module-specific patterns
+- Focus on "weird rules" not general TypeScript knowledge
+- Include examples for common operations
+- Evolve organically: add rules after 2nd-3rd correction from AI
+- Benefits: AI avoids repeating mistakes, stays within project conventions
+
+---
 
 ## Version Compatibility
 
 | Package A | Compatible With | Notes |
 |-----------|-----------------|-------|
-| `drizzle-orm` 0.45.x | `@neondatabase/serverless` 1.0.x | Drizzle has first-class Neon integration. Use `drizzle(neon(url))` pattern. |
-| `@trigger.dev/sdk` 4.1.x | Node.js 22 LTS | v4 requires Node 21.7.3+. Node 22 is the recommended runtime. |
-| `zod` 4.x | `drizzle-orm` 0.45.x | Zod schemas generated from Drizzle tables. Built-in since drizzle-orm v1.0-beta. |
-| `zod` 4.x | `@trigger.dev/sdk` 4.x | Used in `schemaTask()` for typed task payloads. |
-| `arctic` 3.x | Node.js 20+ | Requires Web Crypto API (native in Node 20+). |
+| TypeScript 5.9.3 | Bun latest | Bun uses TypeScript 5.9.3 (peer dependency). Must match. |
+| Vitest 4.0.18 | TypeScript 5.x | Native TS support, no extra configuration needed. |
+| Biome 2.4.2 | TypeScript 5.x | Linter and formatter work with strict mode. |
+
+---
+
+## Code Splitting Strategy for AI Assistants
+
+### Principle 1: Interface-First Design
+```typescript
+// Define contract first
+interface PlatformPublisher {
+  publish(content: PostContent, token: OAuthToken): Promise<PublishResult>;
+}
+
+// Implementation per platform
+class XPublisher implements PlatformPublisher {
+  async publish(content: PostContent, token: OAuthToken) {
+    // X-specific logic
+  }
+}
+
+// Consumer knows contract, not implementation
+const publisher: PlatformPublisher = getPublisher(platform);
+await publisher.publish(content, token);
+```
+
+**Benefits for AI:**
+- Can reason about behavior without reading implementation
+- Can modify one platform without understanding others
+- Interface serves as documentation of contract
+
+### Principle 2: Barrel Exports at Boundaries
+```typescript
+// src/platforms/x/index.ts
+export { XPublisher } from './publisher.js';
+export { createXOAuthClient } from './oauth.js';
+export type { XPostContent } from './types.js';
+// Internal files NOT exported (client.ts internals, etc.)
+```
+
+**Benefits for AI:**
+- Clear public API surface
+- Discovers module capabilities from single file
+- Internal implementation hidden, reducing confusion
+
+### Principle 3: Domain-Based Directories
+```
+src/
+  core/
+    db/          # Database access, schemas, migrations
+    types/        # Shared type definitions
+    utils/        # General utilities
+  platforms/
+    x/            # X platform (client, oauth, media, types, publisher)
+    linkedin/     # LinkedIn platform
+    instagram/    # Instagram platform
+    tiktok/       # TikTok platform
+  trigger/
+    tasks/        # Trigger.dev task definitions
+    middleware/    # Shared middleware for tasks
+```
+
+**Benefits for AI:**
+- Logical grouping by business domain
+- Clear separation of concerns
+- Easy to navigate and understand
+
+### Principle 4: File Size Limits (<200 lines)
+
+**Why:**
+- AI context window can hold entire file
+- Deep understanding without chunking
+- Easier for AI to reason about complete function/class
+
+**When to split:**
+- Function >50 lines → extract helper functions
+- Class >200 lines → split into multiple focused classes
+- File >200 lines → split by responsibility
+- Module >5 files → consider subdirectories
+
+### Principle 5: Explicit Dependencies
+
+```typescript
+// Bad: implicit dependencies through globals
+const db = getGlobalDb(); // Where does this come from?
+
+// Good: explicit constructor injection
+class PostPublisher {
+  constructor(
+    private readonly db: Database,
+    private readonly tokenManager: TokenManager
+  ) {}
+
+  async publish(postId: string) {
+    // Dependencies are explicit and typed
+    const token = await this.tokenManager.getToken(postId);
+    await this.db.update(postId, { status: 'published' });
+  }
+}
+```
+
+**Benefits for AI:**
+- Clear dependency graph
+- Easier to test with mocks
+- Understands what a class needs to function
+
+---
+
+## Documentation Patterns for AI Assistants
+
+### CLAUDE.md Template (Root)
+```markdown
+# Post Shit Now - Claude Code Project Instructions
+
+## Project Overview
+[2-3 sentence description]
+
+## Common Commands
+- `bun run typecheck`: Verify TypeScript types
+- `bun run lint`: Run Biome linter
+- `bun run test`: Run Vitest tests
+- `bun run lint:fix`: Auto-fix lint issues
+
+## Code Style
+- Use ES modules (import/export), not CommonJS (require)
+- Prefer named exports over default exports
+- Keep files under 200 lines
+- Use path aliases: `@psn/core/db/*`, `@psn/platforms/x/*`
+
+## Platform Integration Pattern
+When adding a new platform:
+1. Create `src/platforms/<platform>/` directory
+2. Implement `PlatformPublisher` interface
+3. Create `CLAUDE.md` with platform-specific notes
+4. Add barrel export in `index.ts`
+
+## Prohibited Actions
+- Never modify `drizzle/` directory directly (use `bun run db:generate`)
+- Never use CommonJS `require()` statements
+- Never mix platform logic in `publish-post.ts` (extract to platform-specific publisher)
+
+## Testing
+- Run `bun run test` after changes
+- Use Vitest for unit tests
+- Mock external API calls (X, LinkedIn, etc.)
+```
+
+### Directory CLAUDE.md Template
+```markdown
+# X Platform Integration
+
+## Purpose
+X (Twitter) API client, OAuth flow, media upload, and publishing logic.
+
+## Key Files
+- `client.ts`: Twitter API client wrapper using `twitter-api-v2`
+- `oauth.ts`: OAuth 2.0 PKCE flow via `arctic`
+- `media.ts`: Media upload with chunking
+- `publisher.ts`: Implements `PlatformPublisher` interface
+- `types.ts`: X-specific type definitions
+
+## Common Patterns
+- X API uses access tokens (no refresh needed)
+- Media upload: call `uploadMedia()` first, then attach media ID to tweet
+- Rate limit: `RateLimitError` thrown on 429, use exponential backoff
+
+## X-Specific Notes
+- API is pay-per-use as of Jan 2026 ($0.01/post)
+- Supports threads via `client.v2.thread()`
+- OAuth tokens don't expire (revoke-only)
+```
+
+### JSDoc Comment Template
+```typescript
+/**
+ * Publish a post to X (Twitter).
+ *
+ * Creates a tweet with optional media attachment. If media is provided,
+ * it must be uploaded first via `uploadMedia()` to get media ID.
+ *
+ * @param content - Post content including text and optional media IDs
+ * @param token - OAuth access token (from `oauth_tokens` table)
+ * @returns Promise resolving to published tweet data with ID and URL
+ * @throws {RateLimitError} When X API rate limit is exceeded (429)
+ * @throws {AuthenticationError} When token is invalid or expired
+ *
+ * @example
+ * ```typescript
+ * const result = await publishTweet(
+ *   { text: "Hello world", mediaIds: ["1234567890"] },
+ *   accessToken
+ * );
+ * console.log(result.tweetId); // "12345678901234567890"
+ * ```
+ */
+async function publishTweet(
+  content: TweetContent,
+  token: string
+): Promise<TweetResult> {
+  // Implementation
+}
+```
+
+**Benefits for AI:**
+- Explains function purpose, parameters, return type
+- Documents exceptions for error handling
+- Provides usage examples
+- AI can generate correct calls without reading implementation
+
+---
+
+## Testing Strategies for AI-Assisted Code
+
+### Test Organization
+```
+src/
+  platforms/
+    x/
+      publisher.test.ts      # Unit tests for XPublisher
+      oauth.test.ts         # OAuth flow tests
+      media.test.ts         # Media upload tests
+  core/
+    db/
+      connection.test.ts     # DB connection tests
+    types/
+      post.test.ts         # Type validation tests
+```
+
+### Test Patterns for AI
+
+**1. Interface Compliance Tests**
+```typescript
+import { describe, it, expect } from 'vitest';
+import { XPublisher } from '../publisher.js';
+import type { PlatformPublisher } from '@psn/core/types/index.js';
+
+describe('XPublisher', () => {
+  it('implements PlatformPublisher interface', () => {
+    const publisher = new XPublisher(/* deps */);
+    expect(publisher).toMatchObject<PlatformPublisher>({
+      publish: expect.any(Function),
+    });
+  });
+});
+```
+
+**2. External API Mocking**
+```typescript
+import { vi, describe, it, expect } from 'vitest';
+import { XPublisher } from '../publisher.js';
+import { TwitterApi } from 'twitter-api-v2';
+
+// Mock external dependency
+vi.mock('twitter-api-v2', () => ({
+  TwitterApi: vi.fn(),
+}));
+
+describe('XPublisher', () => {
+  it('publishes tweet via Twitter API', async () => {
+    const mockClient = {
+      v2: {
+        tweet: vi.fn().mockResolvedValue({ data: { id: '123' } }),
+      },
+    };
+    vi.mocked(TwitterApi).mockReturnValue(mockClient);
+
+    const publisher = new XPublisher();
+    const result = await publisher.publish({ text: 'test' }, 'token');
+
+    expect(result.tweetId).toBe('123');
+    expect(mockClient.v2.tweet).toHaveBeenCalledWith({ text: 'test' });
+  });
+});
+```
+
+**3. Error Scenario Tests**
+```typescript
+describe('XPublisher error handling', () => {
+  it('throws RateLimitError on 429 response', async () => {
+    const mockClient = {
+      v2: {
+        tweet: vi.fn().mockRejectedValue({ code: 429 }),
+      },
+    };
+    vi.mocked(TwitterApi).mockReturnValue(mockClient);
+
+    const publisher = new XPublisher();
+
+    await expect(
+      publisher.publish({ text: 'test' }, 'token')
+    ).rejects.toThrow('RateLimitError');
+  });
+});
+```
+
+**Benefits for AI:**
+- Clear test patterns to follow
+- Interface compliance tests ensure contracts are honored
+- Mocking isolates unit tests from external dependencies
+- Error scenario tests help AI understand edge cases
+
+---
+
+## Monorepo Structure (Future Enhancement)
+
+**Current state:** Single package in root.
+
+**Future state (if monorepo needed):**
+```
+post-shit-now/
+  packages/
+    core/          # @psn/core - shared library
+      package.json
+      tsconfig.json
+      src/
+        db/
+        types/
+        platforms/  # Platform clients moved here
+    trigger/       # @psn/trigger - Trigger.dev tasks
+      package.json
+      tsconfig.json
+      src/
+        tasks/
+        middleware/
+    cli/           # @psn/cli - CLI scripts
+      package.json
+      tsconfig.json
+      src/
+        commands/
+  apps/
+    root/          # Root application (commands trigger CLI)
+      package.json
+  pnpm-workspace.yaml
+```
+
+**When to adopt monorepo:**
+- When `src/` exceeds 200 files
+- When circular dependencies become common
+- When multiple deployable units emerge (CLI vs Trigger.dev tasks)
+- When teams work on separate packages
+
+**Path alias strategy:**
+```json
+// tsconfig.json (root)
+{
+  "compilerOptions": {
+    "paths": {
+      "@psn/core/*": ["./packages/core/src/*"],
+      "@psn/trigger/*": ["./packages/trigger/src/*"],
+      "@psn/cli/*": ["./packages/cli/src/*"]
+    }
+  }
+}
+```
 
 ---
 
 ## Sources
 
-- [Trigger.dev v4 GA announcement](https://trigger.dev/changelog/trigger-v4-ga) -- v4 features, waitpoints, warm starts
-- [Trigger.dev v3 to v4 migration guide](https://trigger.dev/docs/migrating-from-v3) -- breaking changes, new import paths
-- [Trigger.dev scheduled tasks docs](https://trigger.dev/docs/tasks/scheduled) -- cron syntax, declarative cron
-- [Drizzle ORM RLS docs](https://orm.drizzle.team/docs/rls) -- pgPolicy, pgRole, crudPolicy
-- [Neon + Drizzle RLS guide](https://neon.com/docs/guides/rls-drizzle) -- authenticated/anonymous roles, crudPolicy helper
-- [Drizzle + Neon connection docs](https://orm.drizzle.team/docs/connect-neon) -- serverless driver setup
-- [twitter-api-v2 npm](https://www.npmjs.com/package/twitter-api-v2) -- v1.29.x, actively maintained
-- [X API tools and libraries](https://docs.x.com/x-api/tools-and-libraries/overview) -- official SDK listing
-- [LinkedIn Marketing API overview](https://learn.microsoft.com/en-us/linkedin/marketing/overview?view=li-lms-2026-02) -- current API version, endpoints
-- [Instagram Graph API developer guide](https://elfsight.com/blog/instagram-graph-api-complete-developer-guide-for-2026/) -- 2026 guide
-- [TikTok Content Posting API reference](https://developers.tiktok.com/doc/content-posting-api-reference-direct-post) -- direct post endpoint
-- [Arctic v3 docs](https://arcticjs.dev/) -- supported providers (LinkedIn, Twitter, TikTok, Facebook; no Instagram)
-- [WAHA GitHub](https://github.com/devlikeapro/waha) -- Docker setup, engines, capabilities
-- [@fal-ai/client npm](https://www.npmjs.com/package/@fal-ai/client) -- v1.9.x, FLUX.2 integration
-- [OpenAI image generation docs](https://platform.openai.com/docs/guides/image-generation) -- gpt-image-1, gpt-image-1.5
-- [Ideogram API overview](https://developer.ideogram.ai/ideogram-api/api-overview) -- REST API, pricing tiers
-- [FLUX.2 on fal.ai](https://fal.ai/flux-2) -- model variants, pricing
-- [Tavily SDK reference](https://docs.tavily.com/sdk/javascript/reference) -- @tavily/core
-- [Exa API docs](https://docs.exa.ai/reference/getting-started) -- @exalabs/ai-sdk
-- [Perplexity API changelog](https://docs.perplexity.ai/changelog/changelog) -- sonar models, deprecations
-- [Brave Search API](https://brave.com/search/api/) -- pricing, LLM Context API
-- [EnsembleData TikTok API](https://ensembledata.com/tiktok-api) -- scraping, analytics
-- [OpenAI npm](https://www.npmjs.com/package/openai) -- v6.22.x
-- [Replicate npm](https://www.npmjs.com/package/replicate) -- v1.4.x (alternative to fal.ai)
+- [Claude Code最佳实践：官方心法](https://m.toutiao.com/w/1857885021073411/) — CLAUDE.md patterns, project-specific context
+- [Claude Code最佳实践指南](https://m.blog.csdn.net/xixiluo99/article/details/157723100) — AI development workflows, context management
+- [Agentic coding architecture patterns](https://openai.com/zh-Hans-CN/index/harness-engineering/) — Codex architecture, layered domain design
+- [Claude Code Plugin Architecture](https://www.jdon.com/82382-wshobson-agents-CC-plugin.html) — Multi-agent orchestration, plugin boundaries
+- [TypeScript dependency injection patterns](https://dev.to/vad3x/typesafe-almost-zero-cost-dependency-injection-in-typescript-112) — Interface-based DI patterns
+- [AI 时代的前端自动化测试](https://juejin.cn/post/7588745319401406464) — AI-driven testing with Vitest
+- [Vitest unit testing framework](https://juejin.im/entry/7578811288819908651) — Vitest advantages for TypeScript
+- [TypeScript monorepo configuration](https://juejin.cn/entry/7583970267132821510) — pnpm workspaces, path aliases
+- [Context engineering for AI assistants](https://github.com/coleam00/context-engineering-intro) — Code structure for AI coding
+- [Nuxt UI rules for AI assistants](https://github.com/HugoRCD/nuxt-ui-rules) — Optimized guidelines for Cursor/Windsurf/Claude Code
 
 ---
-*Stack research for: Post Shit Now -- CLI-first social media automation*
-*Researched: 2026-02-18*
+*Stack research for: Agentic Architecture Improvements - Post Shit Now v1.2*
+*Researched: 2026-02-25*
