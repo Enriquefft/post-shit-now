@@ -17,7 +17,8 @@
 		"test:watch": "vitest",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio"
+		"db:studio": "drizzle-kit studio",
+		"check:circular": "madge --circular src/"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.2",
@@ -26,6 +27,7 @@
 		"@types/readline-sync": "^1.4.8",
 		"@types/ws": "8.18.1",
 		"drizzle-kit": "^1.0.0-beta.15-859cf75",
+		"madge": "^8.0.0",
 		"vitest": "4.0.18"
 	},
 	"peerDependencies": {
