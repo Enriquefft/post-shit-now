@@ -467,7 +467,11 @@ Zero database migrations. All schema exists -- fixes complete incomplete write p
   1. Running `bunx trigger.dev deploy` syncs DATABASE_URL, HUB_ENCRYPTION_KEY, and platform credentials to Trigger.dev Cloud
   2. A task started with missing env vars logs an actionable error listing each missing variable by name
   3. The syncEnvVars extension reads credentials from local hub config files -- no manual .env file creation required
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 25-01-PLAN.md — Install @trigger.dev/build, create env-validation.ts, wire syncEnvVars into trigger.config.ts
+- [ ] 25-02-PLAN.md — Update all 12 trigger tasks to use shared requireEnvVars() utility
 
 #### Phase 26: Tweet Validation
 **Goal**: Tweets are validated with accurate character counting before submission, producing clear error messages instead of misleading 403s
@@ -589,7 +593,7 @@ Phases execute in numeric order: 21 → 22 → 22.1 → 25 → 26 → 27 → 28 
 | 22.1. Tech Debt Cleanup | v1.2 | 1/1 | Complete | 2026-02-27 |
 | 23. Testing Infrastructure | v1.2 | - | Carried to v1.3 Phase 29 | - |
 | 24. Context Management | v1.2 | - | Carried to v1.3 Phase 30 | - |
-| 25. Trigger.dev Env Var Delivery | v1.3 | 0/0 | Not started | - |
+| 25. Trigger.dev Env Var Delivery | v1.3 | 0/2 | Planned | - |
 | 26. Tweet Validation | v1.3 | 0/0 | Not started | - |
 | 27. X OAuth Callback Server | v1.3 | 0/0 | Not started | - |
 | 28. Thread Publishing Resilience | v1.3 | 0/0 | Not started | - |
