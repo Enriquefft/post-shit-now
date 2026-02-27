@@ -1,305 +1,237 @@
-# Feature Research: Agentic Development Improvements for Post Shit Now
+# Feature Research: v1.3 Real-World Reliability
 
-**Domain:** TypeScript/Node.js codebase architecture for AI-assisted development
-**Researched:** 2026-02-25
-**Confidence:** HIGH (verified via official docs, 2026 best practices, and analysis of existing codebase)
+**Domain:** CLI-first social media automation -- operational reliability fixes
+**Researched:** 2026-02-27
+**Confidence:** HIGH
 
 ## Feature Landscape
 
 ### Table Stakes (Users Expect These)
 
-Features AI assistants assume exist in well-structured codebases. Missing these = AI struggles to work effectively.
+These are blockers exposed by real usage (342-turn, 29-hour session). Without them, the product does not function for a new user going through setup and first post.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **Interface definitions for platform handlers** | AI needs contracts to understand component boundaries without reading all implementations | MEDIUM | Define `PlatformPublisher` interface with `publish()` method for X, LinkedIn, Instagram, TikTok |
-| **Code splitting from monolithic files** | AI context windows (even 1M tokens) struggle with >1,000 line files for deep understanding | MEDIUM | Extract platform logic from `publish-post.ts` (1,239 lines) into focused modules |
-| **Root CLAUDE.md documentation** | Claude Code automatically loads this for project context. Missing = AI lacks project-specific guidance | LOW | 100-200 lines covering: overview, common commands, code style, prohibited actions |
-| **Path aliases for module imports** | Clear boundaries make AI reasoning easier than relative imports (`../../platforms/x/client.ts`) | LOW | Configure `@psn/platforms/*`, `@psn/core/db/*`, `@psn/core/types/*` |
-| **Barrel exports at module boundaries** | Single entry point per module. AI discovers public API without confusion | LOW | `src/platforms/x/index.ts` exports only: `XPublisher`, `createXOAuthClient`, `XPostContent` type |
-| **File size limits (<200 lines)** | AI can hold entire file in context for deep reasoning. Large files = chunking = reduced understanding | LOW | Split functions >50 lines, classes >200 lines, files >200 lines |
-| **Explicit dependency injection** | AI needs to see what components require to function. Global dependencies confuse reasoning | LOW | Constructor injection: `class Publisher(db: Database, tokenManager: TokenManager)` |
-| **JSDoc comments on public APIs** | AI reads JSDoc to understand purpose, parameters, return types, and edge cases | LOW | Focus on "why" not "what". Include examples and thrown errors |
+| Trigger.dev env var delivery | Workers crash immediately without DATABASE_URL and HUB_ENCRYPTION_KEY. Current workaround is manual `.env` hacking which no user discovers on their own. | MEDIUM | Use `resolveEnvVars` in trigger.config.ts to pull from hub connection file at deploy time. The current trigger.config.ts has zero env var resolution. Also need X_CLIENT_ID and X_CLIENT_SECRET. |
+| X OAuth callback server | OAuth requires a real callback URL to capture the authorization code. Current code has `"https://example.com/callback"` hardcoded in x.handler.ts line 54. Users cannot complete OAuth without manually extracting the code from a redirect to a dead URL. | MEDIUM | Standard pattern: ephemeral localhost HTTP server (RFC 8252). Bun.serve with `port: 0` for OS-assigned port. Browser opens auth URL, localhost captures code, server shuts down. |
+| Thread publishing resilience | Thread posting is sequential (tweet N needs tweet N-1's ID). If tweet 3/7 fails, all progress is lost -- the handler throws without persisting the 2 successful tweet IDs. The `threadProgress` field in metadata exists in the schema but is never written during posting, only read. | HIGH | Must persist tweet IDs to DB after each successful tweet. On retry, resume from `threadProgress.posted` index. This is the most data-loss-prone bug. |
+| Tweet pre-flight validation | X returns HTTP 403 for oversized tweets (not 400, not a clear error). Users see "Forbidden" with no indication their tweet is too long. Zero validation happens before the API call. | LOW | Use `twitter-text` npm package (`parseTweet`) for weighted character counting. URLs always count as 23 chars (t.co wrapping). Emojis count as 2. Media attachments are free. |
+| Testing infrastructure (Vitest) | 12 test files exist but coverage is spotty. No mocks for platform API calls. No interface compliance tests. Carried from v1.2. | MEDIUM | Vitest 4.x already installed. Add `@trigger.dev/testing` (v3.3.x) for task mocking. Use MSW for HTTP API mocks. Write contract tests verifying PlatformPublisher compliance. |
+| Context management | State scattered across PROJECT.md, CLAUDE.md, MEMORY.md, and planning docs. No validation that docs stay in sync. Carried from v1.2. | LOW | Pre-commit hooks to validate key state files. State consolidation to reduce duplication between PROJECT.md and MEMORY.md. |
 
 ### Differentiators (Competitive Advantage)
 
-Features that set this codebase apart as AI-native. Not required for basic AI usage, but significantly enhance agentic capabilities.
+Features that go beyond fixing what is broken and make PSN notably better than alternatives.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Directory-level CLAUDE.md files** | Progressive disclosure: AI gets context relevant to current working directory | LOW | `src/platforms/x/CLAUDE.md` (50-100 lines) with X-specific patterns, gotchas, examples |
-| **Interface compliance tests** | Automatic validation that implementations honor contracts. AI refactors with confidence | MEDIUM | Vitest tests: `expect(publisher).toMatchObject<PlatformPublisher>({ publish: expect.any(Function) })` |
-| **Context rot prevention** | Keep docs synchronized with code. Stale docs = AI follows outdated patterns | HIGH | Pre-commit hooks or CI checks: verify CLAUDE.md examples still compile, file size limits enforced |
-| **Mock infrastructure for external APIs** | Isolated unit tests. AI can generate tests without understanding platform-specific APIs | MEDIUM | Vitest mocks for `twitter-api-v2`, `instagram-graph-api`, `linkedin-api-sdk`, etc. |
-| **Architecture overview documentation** | High-level system structure. AI understands data flow and component relationships without exploring | LOW | `ARCHITECTURE.md` with diagrams showing: DB → Platform Clients → Publishers → Trigger Tasks |
-| **Error scenario documentation** | AI understands edge cases and how to handle them. Produces more robust code | LOW | Document rate limit handling (429), token refresh failures, partial posting failures, media upload timeouts |
-| **Refactoring safety nets** | Large-scale changes (splitting `publish-post.ts`) without breaking behavior | HIGH | Integration tests for end-to-end publishing flows. Pre/post refactoring test runs to validate |
+| Thread resume-from-checkpoint | Most social media tools treat thread posting as atomic -- all or nothing. PSN can resume a partially-posted thread from exactly where it left off, preserving already-posted tweets. | LOW (incremental over resilience fix) | The resilience fix naturally enables this. Store `threadProgress` after each tweet, expose resume capability. No competitor does this for CLI tools. |
+| Intelligent tweet validation with suggestions | Beyond rejecting oversized tweets, actively suggest where to split or what to trim. Show weighted char count breakdown (URLs=23, emojis=2 each). | LOW | `parseTweet` returns `weightedLength` and `permillage`. Display in `/psn:post` preview step before scheduling. |
+| Dry-run mode for publishing | Let users see exactly what would be sent to each platform API without posting. Validates credentials, token freshness, content limits, media requirements. | MEDIUM | Requires `dryRun` option on each handler. Validates everything except the final API call. Builds trust with cautious users. |
+| Multi-hub env var resolution | Workers automatically resolve correct hub credentials based on post's hubId, without per-hub environment configuration. | MEDIUM | Task payload includes hubId, task fetches hub connection from central registry at runtime. Eliminates per-hub Trigger.dev project requirement. |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
-Features that seem good but create problems for agentic development.
-
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| **AI-generated CLAUDE.md from scratch** | Quick way to get started documentation | AI invents patterns that don't exist, misses critical project conventions, produces generic filler | Start minimal (100 lines), evolve organically after 2nd-3rd AI correction |
-| **Complex multi-level @imports** | Keeps main CLAUDE.md concise | AI may miss critical rules if they're buried in 5 levels of imports. Confusing inheritance | Simple structure: root CLAUDE.md (project rules) + directory CLAUDE.md (module patterns) |
-| **Auto-generated file headers** | "DO NOT EDIT" patterns prevent AI from modifying generated code | AI may try to modify generated code anyway, causing conflicts. Violates single-source-of-truth principle | Separate `src/` and `dist/` directories. Generated files in `dist/` only |
-| **God objects with extensive JSDoc** | Comprehensive documentation in one place | AI overwhelmed by 500+ line interfaces with 50 methods. Can't reason about individual methods | Interface segregation: split into focused interfaces (e.g., `PlatformPublisher`, `MediaUploader`, `OAuthClient`) |
-| **Dynamic imports for lazy loading** | Reduce bundle size by loading code on-demand | AI can't statically analyze dependencies. Refactoring becomes error-prone | Eager imports for AI-assisted development. Lazy loading only if bundle size is critical |
+| Automatic thread retry without user confirmation | "Just retry the whole thread if it fails" | Leads to duplicate tweets. X Error 187 (duplicate detection) is unreliable as idempotency. Orphaned partial threads confuse followers. X has no idempotency key support. | Resume-from-checkpoint with user confirmation. Show what posted, what remains, let user decide. |
+| Storing OAuth tokens in local .env files | "Simpler than DB encryption" | Tokens in plaintext on disk. Git accidents expose credentials. Multi-device sync impossible. X refresh tokens are one-time-use so stale local copies break auth permanently. | Current DB encryption is correct. The OAuth *flow* needs fixing, not the storage. |
+| ngrok/tunnel for OAuth callback | "Use ngrok so callback works remotely" | Adds infrastructure dependency. Free ngrok URLs change. Security risk (exposes local port). Unnecessary for OAuth code capture. | Localhost callback per RFC 8252. Industry standard for CLI/native apps. No tunnel needed. GitHub CLI, Google oauth2l, and Trigger.dev CLI all use this pattern. |
+| Full E2E tests against live platform APIs | "Test against real X/LinkedIn/IG/TikTok" | Rate limits, API costs ($0.01/tweet adds up), flaky tests, credential management in CI. Platform API behavior changes break tests randomly. | Mock platform APIs with MSW. Contract tests for interface compliance. Live API tests only for manual smoke testing. |
+| Per-task .env files in Trigger.dev | "Each task gets its own env vars" | Trigger.dev does not support per-task env vars. Environment variables are project-wide per environment (dev/staging/prod). Fighting this creates maintenance burden. | `resolveEnvVars` for deploy-time sync. Pass hub identifiers in task payloads, resolve credentials at runtime for multi-tenant scenarios. |
 
 ## Feature Dependencies
 
 ```
-Interface definitions (PlatformPublisher)
-    └──requires──> Type definitions (shared types in src/core/types/)
-                    └──enhances──> Barrel exports (clear public API)
+[Tweet pre-flight validation]
+    (independent -- no dependencies)
 
-Code splitting (extract platform handlers)
-    └──requires──> Interface definitions (contract to follow)
-                    └──requires──> Path aliases (clean imports)
+[X OAuth callback server]
+    (independent -- no dependencies on other v1.3 features)
 
-CLAUDE.md documentation
-    └──enhances──> Code splitting (easier to understand split modules)
+[Trigger.dev env var delivery]
+    (independent -- but blocks ALL deployed task execution)
+    └──enables──> [Thread publishing resilience] (workers must run to test threads)
 
-Interface compliance tests
-    └──requires──> Interface definitions
-                    └──requires──> Mock infrastructure (test isolation)
+[Thread publishing resilience]
+    └──requires──> [Trigger.dev env var delivery] (tasks must run to test)
+    └──enhanced-by──> [Tweet pre-flight validation] (validate before posting = fewer mid-thread failures)
 
-Context rot prevention
-    └──requires──> CLAUDE.md documentation
-                    └──requires──> Refactoring safety nets (validate changes)
+[Testing infrastructure]
+    └──enhanced-by──> [Tweet pre-flight validation] (validation logic is highly testable)
+    └──enhanced-by──> [Thread publishing resilience] (checkpoint logic needs thorough tests)
 
-Error scenario documentation
-    └──enhances──> JSDoc comments
+[Context management]
+    (independent -- no code dependencies)
 ```
 
 ### Dependency Notes
 
-- **Interface definitions requires Type definitions:** Shared types must exist before interfaces can reference them
-- **Code splitting requires Interface definitions:** Extracting modules requires contracts to follow. Without interfaces, AI invents its own structure
-- **Code splitting requires Path aliases:** Clean imports (`@psn/platforms/x/publisher`) make AI reasoning easier than relative paths (`../../platforms/x/client.ts`)
-- **CLAUDE.md enhances Code splitting:** Documentation helps AI understand new module structure after refactoring
-- **Interface compliance tests require Interface definitions:** Tests validate that implementations honor contracts
-- **Interface compliance tests requires Mock infrastructure:** Isolate unit tests from external platform APIs
-- **Context rot prevention requires CLAUDE.md documentation:** Nothing to keep synchronized if no documentation exists
-- **Context rot prevention requires Refactoring safety nets:** Tests validate that docs still match code after changes
-- **Error scenario documentation enhances JSDoc comments:** JSDoc describes happy path, error scenarios describe edge cases
+- **Thread resilience requires env var delivery:** Cannot test thread publishing in deployed workers if workers crash on startup from missing env vars. Fix env vars first.
+- **Validation enhances thread resilience:** If tweets are validated before posting, mid-thread failures from content issues (oversized tweets) are eliminated. Only network/rate-limit failures remain, which have existing handling.
+- **Testing infrastructure enhances everything:** Contract tests ensure resilience and validation changes do not break the handler interface. Tests can be written in parallel with feature work.
+- **Context management is fully independent:** No code dependencies. Can be done at any point.
+
+## Implementation Details
+
+### 1. Trigger.dev Env Var Delivery
+
+**Current state:** `trigger.config.ts` has no env var configuration. Workers read `process.env.DATABASE_URL` and `process.env.HUB_ENCRYPTION_KEY` at runtime and crash if missing.
+
+**Solution -- two complementary approaches:**
+
+1. **Deploy-time (primary):** Add `resolveEnvVars` to `trigger.config.ts` that reads from `.hubs/personal.json` and syncs DATABASE_URL, HUB_ENCRYPTION_KEY, X_CLIENT_ID, and X_CLIENT_SECRET to the Trigger.dev environment. This runs during `bunx trigger.dev deploy`, on the local machine -- it can read local files.
+2. **Dashboard fallback:** Document that users can set these in the Trigger.dev dashboard (Environment Variables page) for their project.
+
+**Key detail:** `resolveEnvVars` runs in the build/deploy context (local machine), not in the worker. It reads local config files and pushes values to Trigger.dev's environment. The deployed worker then receives them as `process.env.*`.
+
+**Also needed:** X_CLIENT_ID and X_CLIENT_SECRET (x.handler.ts lines 31-34). These come from `config/keys.env` locally.
+
+**Existing code to modify:** `trigger.config.ts` (19 lines, trivial), plus documentation in setup wizard.
+
+### 2. X OAuth Callback Server
+
+**Current state:** `createXOAuthClient` called with `callbackUrl: "https://example.com/callback"` (hardcoded placeholder in x.handler.ts line 54 and presumably in the setup command). No server captures the redirect.
+
+**Solution -- localhost callback per RFC 8252:**
+
+1. Start ephemeral `Bun.serve()` with `port: 0` (OS assigns available port).
+2. Set callback URL to `http://localhost:{port}/callback`.
+3. Create Arctic Twitter client with that callback URL.
+4. Generate auth URL with PKCE (already implemented in `x/oauth.ts`).
+5. Open user's browser via `Bun.spawn(["open", url])` or similar.
+6. Wait for callback with authorization code (timeout: 120s).
+7. Exchange code for tokens (already implemented), encrypt, store in DB.
+8. Shut down server, display success message.
+
+**Library choice:** Hand-roll with Bun.serve rather than adding `oauth-callback` package. The pattern is ~50 lines and avoids a dependency for trivial functionality. Bun.serve with `port: 0` is idiomatic.
+
+**Security considerations:** Bind to localhost only (Bun.serve default). Validate state parameter matches (CSRF prevention, already handled by Arctic). Timeout after 120s if user abandons flow.
+
+**Existing code to modify:** `src/platforms/x/oauth.ts` (add callback server function), setup command (wire it in), x.handler.ts (use dynamic callback URL for token refresh -- though refresh does not need a callback URL, this is only for the initial auth flow).
+
+### 3. Thread Publishing Resilience
+
+**Current state:** `XHandler.postThread()` (x.handler.ts lines 125-159) iterates through tweets, pushes IDs to a local `tweetIds` array. On non-rate-limit failure, the handler throws -- successfully-posted tweet IDs are lost. The `threadProgressSchema` exists (lines 17-22) and is read on entry (lines 132-136), but never written back to DB during posting.
+
+**Solution -- persist progress after each tweet:**
+
+1. After each successful `client.createTweet()`, write `threadProgress` to `posts.metadata` via DB update: `{ posted: i+1, total: tweets.length, lastPostedId: result.id, tweetIds: [...] }`.
+2. Also set `subStatus: "thread_partial"` to distinguish from other publishing states.
+3. On failure, the post remains in `publishing` status with `threadProgress` showing exactly where it stopped.
+4. On retry (Trigger.dev auto-retry or manual), read `threadProgress` to resume from correct index with correct `replyToId`.
+5. On completion, store all tweet IDs in metadata. Clear `subStatus`.
+
+**Performance:** DB write after each tweet adds ~50ms latency per tweet (Neon HTTP driver). For a 7-tweet thread: ~350ms total overhead. Acceptable tradeoff for data safety.
+
+**Edge case -- duplicate detection:** If DB write fails after a successful tweet post, on retry the same content is re-posted. X may return Error 187 (duplicate). Handle by catching 187 and treating as "already posted, advance index." Parse the error to extract or look up the existing tweet ID if possible.
+
+**Edge case -- rate limit mid-thread:** Already handled (x.handler.ts lines 150-155) with `wait.until`. The fix must preserve this behavior while adding checkpoint persistence.
+
+**Existing code to modify:** `src/platforms/handlers/x.handler.ts` (postThread method, ~35 lines affected). Needs DB connection passed into postThread (currently only has XClient).
+
+### 4. Tweet Pre-flight Validation
+
+**Current state:** No validation before API call. `splitIntoThread` (thread-splitter.ts) uses raw `string.length` against 280. Does not account for weighted character counting.
+
+**Solution:**
+
+1. Add `twitter-text` npm package (official X library, maintained by X/Twitter).
+2. Create `src/platforms/x/validate.ts` with a `validateTweet(text: string, mediaIds?: string[]): ValidationResult` function.
+3. Call `parseTweet(text)` which returns `{ weightedLength, valid, permillage }`.
+4. Before each `createTweet` call in the handler, run validation. Return descriptive error if invalid.
+5. In `/psn:post` command preview step, show weighted character count per tweet.
+
+**Validation rules:**
+- `parseTweet(text).valid === true` (weighted length <= 280)
+- URLs count as 23 characters regardless of actual length (t.co wrapping)
+- Emojis count as 2 characters each (Unicode weight)
+- Media attachments do not count toward character limit
+- Maximum 4 images or 1 video per tweet
+- Practical thread limit: 25 tweets (warn, not block)
+
+**Also fix thread-splitter:** Update `splitIntoThread` to use weighted character counting from `twitter-text` instead of raw `string.length`. This prevents generating tweets that pass the splitter but fail the API.
+
+**Existing code to modify:** New file `src/platforms/x/validate.ts`. Modify `x.handler.ts` publish method. Modify `thread-splitter.ts` to accept a weight function.
+
+### 5. Testing Infrastructure
+
+**Current state:** Vitest 4.x installed. 12 test files exist. No API mocking infrastructure. No `@trigger.dev/testing`.
+
+**Solution:**
+
+1. **Add packages:** `@trigger.dev/testing` (task-level testing), `msw` (HTTP API mocking).
+2. **Contract tests:** For each platform handler (X, LinkedIn, Instagram, TikTok), verify it implements PlatformPublisher with correct method signatures and behavioral contracts. Test: returns `{ platform, status, externalPostId }` on success, returns `{ platform, status: "failed", error }` on failure.
+3. **Unit tests for new features:**
+   - Tweet validation: weighted counting edge cases (emoji, URLs, mixed content)
+   - Thread checkpoint: persistence after each tweet, resume from checkpoint, duplicate handling
+   - OAuth callback: server lifecycle, timeout, state validation
+4. **MSW setup:** Create `src/test/msw-handlers.ts` with mock responses for X API endpoints (`/2/tweets`, `/2/users/me`).
+
+**Test categories:**
+- **Unit:** Pure functions (validation, thread splitting, checkpoint logic)
+- **Contract:** Handler interface compliance (all 4 handlers)
+- **Integration:** Task-level tests with `@trigger.dev/testing` + MSW mocks
+
+### 6. Context Management
+
+**Current state:** PROJECT.md, CLAUDE.md, MEMORY.md, and planning docs have overlapping content. No automated sync validation.
+
+**Solution:**
+1. **Pre-commit hook** (git hook script in `.githooks/` or lefthook): validate that PROJECT.md exists and has required sections (Current State, Constraints, Key Decisions).
+2. **State consolidation:** Remove duplicate content between PROJECT.md and MEMORY.md. MEMORY.md should reference PROJECT.md, not duplicate it.
+3. **Doc validation script:** `scripts/validate-docs.ts` that checks milestone status markers are consistent.
 
 ## MVP Definition
 
-### Launch With (Phase 1-2)
+### v1.3 Scope (This Milestone)
 
-Minimum viable features for AI to work effectively with this codebase.
+- [x] Trigger.dev env var delivery -- Unblocks all deployed task execution
+- [x] X OAuth callback server -- Unblocks user authentication
+- [x] Thread publishing resilience -- Prevents data loss on partial failure
+- [x] Tweet pre-flight validation -- Prevents misleading 403 errors
+- [x] Testing infrastructure -- Vitest mocks, contract tests, MSW
+- [x] Context management -- State consolidation, pre-commit hooks
 
-- [ ] **Interface definitions for platform handlers** — Essential for AI to understand boundaries. Define `PlatformPublisher` interface with `publish(content, token)` method
-- [ ] **Code splitting from monolithic `publish-post.ts`** — 1,239 lines is too large for AI deep understanding. Extract platform-specific logic into `src/platforms/*/publisher.ts` modules
-- [ ] **Root CLAUDE.md documentation** — Project-level guidance: overview, common commands (`bun run typecheck`, `bun run lint:fix`), code style, prohibited actions
-- [ ] **Path aliases for module imports** — Configure `@psn/platforms/*`, `@psn/core/db/*`, `@psn/core/types/*` in tsconfig.json
-- [ ] **Barrel exports at module boundaries** — Single entry point per platform. `src/platforms/x/index.ts` exports only public API
-- [ ] **File size limits (<200 lines)** — Split `publish-post.ts` into focused modules. Extract helper functions, group by responsibility
+### Defer to v1.4+ (Future)
 
-### Add After Validation (Phase 3-4)
-
-Features to add once core refactoring is working and AI is effectively navigating the codebase.
-
-- [ ] **Directory-level CLAUDE.md files** — Trigger when AI makes 2nd-3rd mistake in same module (e.g., `src/platforms/x/CLAUDE.md` for X-specific patterns)
-- [ ] **Interface compliance tests** — Trigger when AI generates code that doesn't match interface contracts. Vitest tests using `toMatchObject<PlatformPublisher>`
-- [ ] **Mock infrastructure for external APIs** — Trigger when writing unit tests for platform clients. Vitest mocks for `twitter-api-v2`, `instagram-graph-api`, etc.
-- [ ] **JSDoc comments on public APIs** — Trigger when AI generates unclear or incorrect usage. Focus on "why", examples, thrown errors
-- [ ] **Explicit dependency injection** — Trigger when refactoring components to testability. Constructor injection for database, token manager, etc.
-
-### Future Consideration (Phase 5+)
-
-Features to defer until agentic development patterns are validated and refined.
-
-- [ ] **Context rot prevention** — Defer until CLAUDE.md has stable content. Pre-commit hooks to verify docs still compile, file size limits enforced
-- [ ] **Architecture overview documentation** — Defer until module structure is finalized. `ARCHITECTURE.md` with diagrams and data flow
-- [ ] **Error scenario documentation** — Defer until edge cases are well-understood. Document rate limits, token refresh failures, partial failures
-- [ ] **Refactoring safety nets** — Defer until large-scale refactoring is planned. Integration tests for end-to-end publishing flows
+- [ ] Dry-run mode -- Valuable but not blocking real usage
+- [ ] Multi-hub env var resolution -- Only matters with Company Hubs (secondary use case)
+- [ ] Thread resume CLI UX (`/psn:post --resume`) -- Checkpoint persistence is v1.3, user-facing resume UX can wait
+- [ ] LinkedIn/Instagram/TikTok OAuth callback servers -- Same pattern as X, but those platforms need partner approval first anyway
 
 ## Feature Prioritization Matrix
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Interface definitions | HIGH | MEDIUM | P1 |
-| Code splitting (publish-post.ts) | HIGH | HIGH | P1 |
-| Root CLAUDE.md documentation | HIGH | LOW | P1 |
-| Path aliases | HIGH | LOW | P1 |
-| Barrel exports | HIGH | LOW | P1 |
-| File size limits | HIGH | MEDIUM | P1 |
-| Directory-level CLAUDE.md | MEDIUM | LOW | P2 |
-| Interface compliance tests | MEDIUM | MEDIUM | P2 |
-| Mock infrastructure | MEDIUM | MEDIUM | P2 |
-| JSDoc comments | MEDIUM | LOW | P2 |
-| Explicit dependency injection | MEDIUM | MEDIUM | P2 |
-| Context rot prevention | HIGH | HIGH | P3 |
-| Architecture overview documentation | MEDIUM | MEDIUM | P3 |
-| Error scenario documentation | MEDIUM | LOW | P3 |
-| Refactoring safety nets | MEDIUM | HIGH | P3 |
+| Trigger.dev env var delivery | HIGH | LOW | P1 |
+| X OAuth callback server | HIGH | MEDIUM | P1 |
+| Thread publishing resilience | HIGH | HIGH | P1 |
+| Tweet pre-flight validation | HIGH | LOW | P1 |
+| Testing infrastructure (Vitest) | MEDIUM | MEDIUM | P2 |
+| Context management | LOW | LOW | P2 |
+| Dry-run mode | MEDIUM | MEDIUM | P3 |
+| Multi-hub env resolution | MEDIUM | HIGH | P3 |
 
 **Priority key:**
-- P1: Must have for AI to work effectively with codebase
-- P2: Should have, enhances AI capabilities significantly
-- P3: Nice to have, mature AI workflow first
-
-## Competitor Feature Analysis
-
-| Feature | Standard TypeScript Projects | AI-Native Projects | Post Shit Now Plan |
-|---------|----------------------------|-------------------|-------------------|
-| Interface definitions | Common (80%+) | Universal (100%) | P1 - Define `PlatformPublisher`, `MediaUploader`, `OAuthClient` |
-| File size limits | Rare (<20%) | Common (60%) | P1 - Enforce <200 lines per file |
-| Root CLAUDE.md | Rare (<10%) | Universal (100%) | P1 - 100-200 lines project guide |
-| Path aliases | Common (70%) | Universal (100%) | P1 - `@psn/*` aliases configured |
-| Barrel exports | Uncommon (30%) | Common (70%) | P1 - Single entry point per platform |
-| Directory CLAUDE.md | Very rare (<5%) | Common (50%) | P2 - Add after 2nd-3rd AI correction |
-| Interface compliance tests | Rare (<20%) | Common (60%) | P2 - Vitest tests for contracts |
-| Mock infrastructure | Common (60%) | Universal (100%) | P2 - Vitest mocks for external APIs |
-| Context rot prevention | Very rare (<2%) | Emerging (20%) | P3 - Pre-commit hooks after docs stable |
-
-## Implementation Notes
-
-### Interface Definition Strategy
-
-```typescript
-// src/core/types/platform.ts (new file)
-export interface PlatformPublisher {
-  /**
-   * Publish content to the platform.
-   *
-   * @param content - Post content including text and optional media
-   * @param token - OAuth access token for the platform
-   * @returns Promise resolving to published post data with ID and URL
-   * @throws {RateLimitError} When platform rate limit is exceeded (429)
-   * @throws {AuthenticationError} When token is invalid or expired
-   */
-  publish(content: PostContent, token: string): Promise<PublishResult>;
-}
-
-export interface MediaUploader {
-  uploadMedia(media: MediaFile, token: string): Promise<MediaId>;
-}
-
-export interface OAuthClient {
-  createAuthorizationUrl(): string;
-  exchangeCodeForToken(code: string): Promise<TokenResponse>;
-  refreshToken(refreshToken: string): Promise<TokenResponse>;
-}
-```
-
-### Code Splitting Strategy for publish-post.ts
-
-Current structure (monolithic):
-```
-src/trigger/publish-post.ts (1,239 lines)
-├── Database connection setup
-├── Post loading logic
-├── Platform-specific publishing (X, LinkedIn, Instagram, TikTok)
-├── Media upload logic (inline for each platform)
-├── Token refresh logic
-├── Error handling and retry
-└── Notification dispatch
-```
-
-Target structure (split):
-```
-src/trigger/
-├── publish-post.ts (<200 lines) - Orchestration only
-├── load-post.ts - Post loading from database
-└── platform-dispatcher.ts - Delegates to platform publishers
-
-src/platforms/
-├── x/
-│   ├── publisher.ts - Implements PlatformPublisher.publish()
-│   ├── index.ts - Barrel export
-│   └── CLAUDE.md - X-specific patterns
-├── linkedin/
-│   ├── publisher.ts - Implements PlatformPublisher.publish()
-│   ├── index.ts - Barrel export
-│   └── CLAUDE.md - LinkedIn-specific patterns
-├── instagram/
-│   ├── publisher.ts - Implements PlatformPublisher.publish()
-│   ├── index.ts - Barrel export
-│   └── CLAUDE.md - Instagram-specific patterns
-└── tiktok/
-    ├── publisher.ts - Implements PlatformPublisher.publish()
-    ├── index.ts - Barrel export
-    └── CLAUDE.md - TikTok-specific patterns
-```
-
-### CLAUDE.md Template
-
-```markdown
-# Post Shit Now - Claude Code Project Instructions
-
-## Project Overview
-Claude Code-first social media growth system. Users interact via terminal slash commands. Trigger.dev Cloud handles scheduling, posting, analytics. Distributed as git repo clone.
-
-## Common Commands
-- `bun run typecheck`: Verify TypeScript types
-- `bun run lint`: Run Biome linter
-- `bun run lint:fix`: Auto-fix lint issues
-- `bun run test`: Run Vitest tests
-
-## Code Style
-- ES modules (import/export), never CommonJS (require)
-- Named exports over default exports
-- Files under 200 lines, functions under 50 lines
-- Path aliases: `@psn/platforms/*`, `@psn/core/db/*`, `@psn/core/types/*`
-
-## Platform Integration Pattern
-When working with platform code:
-1. Read platform's CLAUDE.md (e.g., `src/platforms/x/CLAUDE.md`)
-2. Use `PlatformPublisher` interface for publishing logic
-3. Never modify `publish-post.ts` directly (orchestration only)
-4. Export only public API via barrel export (`index.ts`)
-
-## Prohibited Actions
-- Never modify `drizzle/` directory directly (use `bun run db:generate`)
-- Never use CommonJS `require()` statements
-- Never mix platform logic in `publish-post.ts` (extract to platform-specific publisher)
-- Never expose internal implementation via barrel exports
-```
+- P1: Must have -- blocks real user workflow
+- P2: Should have -- improves development quality and maintainability
+- P3: Nice to have -- defer to future milestone
 
 ## Sources
 
-- [AI智能体的开发流程](https://www.sohu.com/a/985410373_121198703) — Autonomy boundaries, determinism, observability for AI agents
-- [Agent智能体:2026年AI开发者必须掌握的自主系统革命](https://k.sina.cn/article/7879848900_1d5acf3c401902q0wo.html) — Modular design, pluggable architecture
-- [AI API Middleware for Faster, More Accurate Responses](https://www.linkedin.com/posts/shekhar-dube-457b2713_ai-intelligent-api-key-technical-points-activity-7414581115270647809-Q7LW) — MCP protocol, interface boundaries
-- [2026 AI Agent 技术演进与主流云服务商实践](https://developer.baidu.com/article/detail.html?id=5575437) — Three-layer separation architecture
-- [2025: The Year AI Agents Grew Up](https://www.linkedin.com/pulse/2025-year-ai-agents-grew-up-reasoning-mcp-production-reality-ibrahim-xdmce) — Agentic workflows become default
-- [AI Agent：2026年AI生态核心与开发实践指南](https://m.blog.csdn.net/2301_77193447/article/details/157838768) — Closed-loop architecture, safety boundaries
-- [2026年AI Agent开发路线图：从入门到精通的全栈指南](https://blog.csdn.net/l01011_/article/details/157251316) — Lightweight, modular design
-- [坚守内核，拥抱变量：我的 2025 年终复盘与 2026 展望](https://tonybai.com/2026/01/04/stick-to-the-core-embrace-variables-2025-review-2026-outlook/) — Agentic systems explosion year
-- [告别"金鱼记忆"：一份CLAUDE.md配置指南](https://blog.csdn.net/lgf228/article/details/158368721) — CLAUDE.md organization patterns
-- [Vibe Coding - 把从"会写代码的聊天框"升级为"可复用的工程工作流系统"](https://m.blog.csdn.net/yangshangwei/article/details/158319117) — CLAUDE.md, Skills, Subagents, Plugins
-- [解锁CLAUDE.md的5个高级技巧](https://blog.csdn.net/2601_95315444/article/details/158312992) — Advanced CLAUDE.md techniques
-- [5个技巧让CLAUDE.md发挥最大威力](https://blog.csdn.net/2601_95160669/article/details/157694584) — CLAUDE.md best practices
-- [一套可复制的Claude Code 配置方案：CLAUDE.md、Rules](https://www.53ai.com/news/LargeLanguageModel/2026012313267.html) — Reproducible configuration
-- [【Anthropic】Claude Code：智能体编程最佳实践](https://www.heartthinkdo.com/?p=4551) — Official Anthropic best practices
-- [CLAUDE.md 全方位指南：构建高效 AI 开发上下文](https://segmentfault.com/a/1190000047545795?sort=votes) — Comprehensive CLAUDE.md guide
-- [重磅！Claude Code官方开源：AI屎山代码，终于有解了~](https://www.woshipm.com/ai/6324053.html) — Claude Code for monolithic refactoring
-- [【教程】CLAUDE.md 与 AGENTS.md 完全指南](https://m.blog.csdn.net/a18792721831/article/details/156729996) — CLAUDE.md and AGENTS.md guide
-- [Coding Agent 的进化之路—— 从代码建议到自主编程](https://juejin.cn/post/7607358297457475584) — Agent evolution, context management
-- [Prompt 驱动开发手册——理解AI 编码能力](https://juejin.cn/post/7607620065857585202) — AI coding capabilities
-- [Claude Sonnet 4：最新开放100 万 Token 上下文窗口](https://blog.csdn.net/qq_44866828/article/details/150379436) — Context window expansion
-- [无限代码危机！奈飞AI工程师曝自家上下文工程秘诀](https://www.51cto.com/article/832772.html) — Context compression, Netflix practices
-- [前Codex 大神倒戈实锤！吹爆Claude Code：编程提速5 倍](https://www.163.com/dy/article/KBFBMELA05566ZHB.html) — Claude Code for agentic coding
-- [2026 AI开发变局：TypeScript碾压Python？4大核心优势](https://m.toutiao.com/a7605583772906324520/) — TypeScript dominance in AI era
-- [你还在手动修复AI代码？TypeScript这3种模式让AI输出即生产就绪](https://m.blog.csdn.net/QuickDebug/article/details/153119732) — TypeScript patterns for AI
-- [TypeScript为何在AI时代登顶：Anders Hejlsberg 的十二年演化论](http://juejin.cn/entry/7571278865516576818) — TypeScript's 12-year evolution
-- [2026年TS开发者危机：深耕2年被AI碾压](https://m.toutiao.com/a7601492992842596899/) — Developer landscape in AI era
-- [2026年测试工具与平台推荐榜单](http://www.xnnews.com.cn/ly/lygl/202602/t20260206_4253223.shtml) — AI-assisted testing infrastructure
-- [2026年AI开发工具比较：开源vs.商业](https://m.blog.csdn.net/2501_94261392/article/details/157142212) — Compliance, test automation
-- [2026年软件测试工具趋势全景报告](https://blog.csdn.net/2501_94261392/article/details/156644803) — ISO/IEC 33000 compliance
-- [AI辅助代码审查：测试生成工具](https://blog.csdn.net/2501_94449023/article/details/156945757) — AI code review, 40% defect improvement
-- [2026年AI开发工具评测：性能大比拼](https://blog.csdn.net/2501_944311/article/details/157203958) — Performance evaluation framework
-- [AI测试自动化：2026年必备工具Top 7](https://blog.csdn.net/2501_944311/article/details/156942520) — 70% enterprises use AI testing
-- [2026年CI/CD工具趋势预测](https://blog.csdn.net/2501_94436481/article/details/156720693) — 90% automated security coverage
-- [AGENTS.md 规范](https://jimmysong.io/zh/book/ai-handbook/sdd/agents/) — Three-layer boundary model
-- [TypeScript与AI开发：构建智能应用的完整工具链](https://m.blog.csdn.net/gitblog_01019/article/details/154672479) — TypeScript AI toolchain
-- [TypeScript开发者文档焦虑：当AI秒产用户手册](https://www.cnblogs.com/tlnshuju/p/19547893) — Documentation challenges
-- [资深工程师的Vibe Coding实战指南](http://juejin.cn/entry/7521772773284528179) — Vibe coding practices
+- [Trigger.dev Environment Variables](https://trigger.dev/docs/deploy-environment-variables) -- resolveEnvVars and dashboard configuration (HIGH confidence)
+- [Trigger.dev trigger.config.ts](https://trigger.dev/docs/trigger-config) -- config file bundling and build extensions (HIGH confidence)
+- [Trigger.dev Env Vars SDK Changelog](https://trigger.dev/changelog/env-vars-sdk) -- SDK for programmatic env var management (HIGH confidence)
+- [oauth-callback (GitHub)](https://github.com/kriasoft/oauth-callback) -- Lightweight OAuth callback for CLI tools, Bun/Node/Deno (MEDIUM confidence)
+- [RFC 8252 - OAuth 2.0 for Native Apps](https://datatracker.ietf.org/doc/html/rfc8252) -- Standard for localhost OAuth callbacks (HIGH confidence)
+- [X API Error Troubleshooting](https://developer.x.com/en/support/x-api/error-troubleshooting) -- Error codes including 187 (duplicate) and 403 (MEDIUM confidence)
+- [X Counting Characters](https://docs.x.com/fundamentals/counting-characters) -- Official weighted character counting rules (HIGH confidence)
+- [twitter-text (npm)](https://www.npmjs.com/package/twitter-text) -- Official X text parsing library with parseTweet (HIGH confidence)
+- [twitter-text (GitHub)](https://github.com/twitter/twitter-text) -- Conformance tests and specification (HIGH confidence)
+- [@trigger.dev/testing (npm)](https://www.npmjs.com/package/@trigger.dev/testing) -- Official Trigger.dev testing utilities v3.3.x (MEDIUM confidence)
+- [Building a Localhost OAuth Callback Server in Node.js](https://dev.to/koistya/building-a-localhost-oauth-callback-server-in-nodejs-470c) -- Pattern reference (MEDIUM confidence)
 
 ---
-*Feature research for: Agentic Development Improvements - Post Shit Now v1.2*
-*Researched: 2026-02-25*
+*Feature research for: v1.3 Real-World Reliability*
+*Researched: 2026-02-27*

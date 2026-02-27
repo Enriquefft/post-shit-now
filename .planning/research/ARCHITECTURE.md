@@ -1,683 +1,498 @@
-# Architecture Research
+# Architecture Research: v1.3 Real-World Reliability
 
-**Domain:** CLI-first social media automation with background task processing
-**Researched:** 2026-02-18
+**Domain:** Integration fixes for existing social media automation system
+**Researched:** 2026-02-27
 **Confidence:** HIGH
 
-## System Overview
+## Existing Architecture (Baseline)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    USER'S MACHINE (Claude Code)                      │
-│                                                                      │
-│  ┌──────────────────┐    ┌──────────────────────────────────────┐   │
-│  │  Slash Commands   │    │  Local Workspace (Git)               │   │
-│  │  .claude/commands │────│  config/, content/, analytics/       │   │
-│  │  /psn:post        │    │  Voice profiles, drafts, media       │   │
-│  │  /psn:plan        │    └──────────────────────────────────────┘   │
-│  │  /psn:review      │                                               │
-│  │  /psn:setup       │    ┌──────────────────────────────────────┐   │
-│  │  /psn:engage      │    │  Shared Library (@psn/core)          │   │
-│  │  /psn:capture     │────│  DB schemas, API clients, types      │   │
-│  │  /psn:approve     │    │  Hub connector, token manager        │   │
-│  │  /psn:series      │    └─────────────┬────────────────────────┘   │
-│  │  /psn:config      │                  │                            │
-│  │  /psn:calendar    │                  │ import shared code         │
-│  └────────┬─────────┘                  │                            │
-│           │                             │                            │
-│           │ Claude reads commands,      │                            │
-│           │ executes TS scripts         │                            │
-│           │ via tool_use / Bash         │                            │
-│           ▼                             ▼                            │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │  CLI Scripts (src/cli/)                                      │   │
-│  │  Thin wrappers that commands invoke via `npx tsx`            │   │
-│  │  ├── queue-post.ts      # Insert post into hub DB            │   │
-│  │  ├── trigger-task.ts    # Fire Trigger.dev task via SDK      │   │
-│  │  ├── query-analytics.ts # Read analytics from hub DB         │   │
-│  │  ├── manage-ideas.ts    # CRUD on idea bank                  │   │
-│  │  └── hub-status.ts      # Check hub connectivity             │   │
-│  └──────────┬──────────────────────────────┬────────────────────┘   │
-│             │                              │                         │
-└─────────────┼──────────────────────────────┼─────────────────────────┘
-              │                              │
-              │ Trigger.dev SDK              │ Drizzle ORM
-              │ (tasks.trigger())            │ (direct DB queries)
-              │                              │
-   ┌──────────▼─────────────┐    ┌──────────▼─────────────────────┐
-   │  Trigger.dev Cloud      │    │  Neon Postgres                  │
-   │                         │    │                                  │
-   │  Personal Project:      │    │  Personal Hub DB:                │
-   │  ├── post-scheduler     │◄──►│  ├── posts (content queue)      │
-   │  ├── analytics-collector│    │  ├── analytics                   │
-   │  ├── trend-collector    │    │  ├── ideas                       │
-   │  ├── trend-alerter      │    │  ├── preference_models           │
-   │  ├── engagement-monitor │    │  ├── series                      │
-   │  ├── token-refresher    │    │  ├── oauth_tokens (encrypted)    │
-   │  ├── notifier           │    │  ├── trends                      │
-   │  └── whatsapp-handler   │    │  └── whatsapp_sessions           │
-   │                         │    │                                  │
-   │  Company Project(s):    │    │  Company Hub DB(s):              │
-   │  (same task set minus   │◄──►│  (same schema + team_members     │
-   │   whatsapp, plus        │    │   + brand_preferences)           │
-   │   approval workflow)    │    │  RLS enforced per team member    │
-   └────────────┬────────────┘    └──────────────────────────────────┘
-                │
-                │ Platform API calls
-                ▼
-   ┌─────────────────────────────────────────────────────────────┐
-   │  Social Media APIs + Intelligence APIs                       │
-   │  ├── X (Twitter) API          ├── Perplexity Sonar          │
-   │  ├── LinkedIn API             ├── Exa API                    │
-   │  ├── Instagram Graph API      ├── Tavily API                 │
-   │  ├── TikTok API               ├── HN Algolia, Reddit API    │
-   │  └── WhatsApp (WAHA/Twilio)   └── RSS feeds, Google Trends  │
-   └─────────────────────────────────────────────────────────────┘
+│  CLI Layer (src/cli/)                                               │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────────────┐      │
+│  │ setup-*  │  │  post.ts  │  │ plan.ts  │  │ setup-x-oauth │      │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └───────┬───────┘      │
+├───────┴──────────────┴────────────┴─────────────────┴──────────────┤
+│  Core Layer (src/core/)                                             │
+│  ┌────────────────┐  ┌──────────┐  ┌─────────┐  ┌──────────┐      │
+│  │publisher-factory│  │ crypto   │  │  env    │  │thread-   │      │
+│  │                │  │          │  │         │  │splitter  │      │
+│  └───────┬────────┘  └──────────┘  └─────────┘  └──────────┘      │
+├──────────┴─────────────────────────────────────────────────────────┤
+│  Platform Layer (src/platforms/)                                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
+│  │XHandler  │  │LinkedIn  │  │Instagram │  │TikTok   │           │
+│  │ ↓client  │  │Handler   │  │Handler   │  │Handler  │           │
+│  │ ↓oauth   │  │          │  │          │  │         │           │
+│  │ ↓media   │  │          │  │          │  │         │           │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬────┘           │
+├───────┴──────────────┴────────────┴──────────────┴────────────────┤
+│  Trigger Layer (src/trigger/)                                       │
+│  ┌──────────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐      │
+│  │ publish-post │  │ watchdog │  │analytics │  │token-    │      │
+│  │              │  │          │  │collector │  │refresher │      │
+│  └──────┬───────┘  └──────────┘  └──────────┘  └──────────┘      │
+├─────────┴──────────────────────────────────────────────────────────┤
+│  Data Layer                                                         │
+│  ┌──────────────────────────────────────────┐                      │
+│  │  Neon Postgres (Drizzle ORM, RLS)        │                      │
+│  │  14 tables: posts, oauth_tokens, etc.    │                      │
+│  └──────────────────────────────────────────┘                      │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Component Responsibilities
-
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|------------------------|
-| **Slash Commands** (.md files) | Prompt templates that guide Claude through workflows (post creation, planning, review). They instruct Claude to read local files, call CLI scripts, and present results. | Markdown files with structured prompts. Claude interprets and orchestrates. |
-| **CLI Scripts** (src/cli/) | Thin executable scripts that commands invoke via `npx tsx`. Bridge between Claude's tool_use and the hub infrastructure. Each script does ONE thing. | TypeScript files using shared library. Invoked by Claude via Bash tool. |
-| **Shared Library** (@psn/core) | Single source of truth for DB schemas, API clients, types, and hub connection logic. Used by both CLI scripts and Trigger.dev tasks. | pnpm workspace package. Drizzle schemas, Zod validators, typed API wrappers. |
-| **Trigger.dev Tasks** | Background automation: scheduled posting, analytics collection, trend monitoring, token refresh, notifications. Run on Trigger.dev Cloud. | TypeScript tasks using @trigger.dev/sdk/v3. Import shared library for DB access and API calls. |
-| **Neon Postgres** | Persistent storage for all queryable data: content queue, analytics, ideas, preferences, tokens, trends. | Managed Postgres with Drizzle ORM. RLS on company hubs for team member isolation. |
-| **Local Workspace** (Git) | User-specific files that don't need to be queryable: drafts, media, voice profiles, strategy config, series definitions. | YAML/Markdown files in the cloned repo. Gitignored secrets in config/*.env. |
-
-## Recommended Project Structure
+### Current Data Flow: Publish
 
 ```
-post-shit-now/
-├── .claude/
-│   ├── commands/
-│   │   └── psn/                    # All slash commands
-│   │       ├── post.md
-│   │       ├── plan.md
-│   │       ├── capture.md
-│   │       ├── engage.md
-│   │       ├── review.md
-│   │       ├── approve.md
-│   │       ├── series.md
-│   │       ├── config.md
-│   │       ├── setup.md
-│   │       └── calendar.md
-│   └── settings.json
-│
-├── packages/
-│   └── core/                       # @psn/core — shared library
-│       ├── package.json
-│       ├── tsconfig.json
-│       ├── src/
-│       │   ├── index.ts            # Public API barrel export
-│       │   ├── db/
-│       │   │   ├── schema.ts       # All Drizzle table definitions
-│       │   │   ├── schema-personal.ts  # Personal hub-only tables
-│       │   │   ├── schema-company.ts   # Company hub-only tables
-│       │   │   ├── schema-shared.ts    # Tables in both hubs
-│       │   │   ├── rls.ts          # RLS policy definitions
-│       │   │   ├── migrate.ts      # Migration runner
-│       │   │   └── connection.ts   # Hub connector (reads env, returns db client)
-│       │   ├── api/
-│       │   │   ├── x.ts            # X (Twitter) API client
-│       │   │   ├── linkedin.ts     # LinkedIn API client
-│       │   │   ├── instagram.ts    # Instagram API client
-│       │   │   ├── tiktok.ts       # TikTok API client
-│       │   │   ├── intelligence.ts # Perplexity, Exa, Tavily wrappers
-│       │   │   └── notifications.ts # WhatsApp/notification dispatch
-│       │   ├── types/
-│       │   │   ├── post.ts         # Post types, status enums
-│       │   │   ├── idea.ts         # Idea types, stage enums
-│       │   │   ├── analytics.ts    # Analytics types
-│       │   │   └── hub.ts          # Hub connection types
-│       │   ├── oauth/
-│       │   │   ├── manager.ts      # Token encrypt/decrypt, storage
-│       │   │   └── refresh.ts      # Platform-specific refresh logic
-│       │   └── utils/
-│       │       ├── platform.ts     # Platform-aware helpers
-│       │       └── rate-limit.ts   # Rate limiter with backoff
-│       └── drizzle/
-│           └── migrations/         # Generated migration files
-│
-├── src/
-│   ├── cli/                        # CLI scripts (commands invoke these)
-│   │   ├── queue-post.ts           # Insert/update post in hub DB
-│   │   ├── trigger-task.ts         # Trigger a Trigger.dev task
-│   │   ├── query-analytics.ts      # Read analytics, generate reports
-│   │   ├── manage-ideas.ts         # CRUD operations on idea bank
-│   │   ├── hub-status.ts           # Check connectivity, run migrations
-│   │   ├── manage-series.ts        # Series CRUD
-│   │   ├── oauth-flow.ts           # Interactive OAuth (open browser, receive callback)
-│   │   └── setup-hub.ts            # Hub provisioning (Neon + Trigger.dev)
-│   │
-│   └── trigger/                    # Trigger.dev task definitions
-│       ├── trigger.config.ts       # Trigger.dev project config
-│       ├── tasks/
-│       │   ├── post-scheduler.ts   # Execute scheduled posts via platform APIs
-│       │   ├── analytics-collector.ts  # Cron: fetch analytics from platforms
-│       │   ├── trend-collector.ts  # Cron: gather trends from intelligence sources
-│       │   ├── trend-alerter.ts    # Evaluate trends against pillars, notify
-│       │   ├── engagement-monitor.ts   # Monitor replies, mentions
-│       │   ├── token-refresher.ts  # Cron: refresh expiring OAuth tokens
-│       │   ├── notifier.ts         # Dispatch notifications (WhatsApp, etc.)
-│       │   └── whatsapp-handler.ts # Inbound WhatsApp message processing
-│       └── shared/
-│           ├── middleware.ts        # DB connection middleware for tasks
-│           └── hub-context.ts      # Resolve which hub a task operates on
-│
-├── config/                         # User's local configuration
-│   ├── keys.env                    # API keys (gitignored)
-│   ├── hub.env                     # Personal Hub credentials (gitignored)
-│   ├── connections/                # Company Hub connections (gitignored)
-│   │   └── <company>.env
-│   ├── strategy.yaml               # Content pillars, frequency, goals
-│   ├── voice-profiles/
-│   │   ├── personal.yaml
-│   │   ├── brand-operator-<company>.yaml
-│   │   └── brand-ambassador-<company>.yaml
-│   ├── series/
-│   │   └── <series-name>.yaml
-│   └── company/
-│       └── <company>.yaml
-│
-├── content/
-│   ├── drafts/                     # Work in progress
-│   ├── media/                      # Images, videos, assets
-│   └── intelligence/
-│       └── competitive-intel.yaml
-│
-├── analytics/
-│   └── reports/                    # Generated markdown reports
-│
-├── pnpm-workspace.yaml            # Workspace: packages/core
-├── package.json                    # Root package.json
-├── tsconfig.json                   # Root TypeScript config
-├── drizzle.config.ts               # Drizzle Kit config (points to packages/core)
-├── CLAUDE.md                       # Project instructions for Claude
-└── .gitignore                      # Ignores *.env, .trigger/, node_modules/
+/psn:post (Claude Code)
+    ↓ creates post row (status: "scheduled")
+    ↓ schedules Trigger.dev delayed run
+publish-post task (Trigger.dev worker)
+    ↓ reads DATABASE_URL, HUB_ENCRYPTION_KEY from process.env
+    ↓ connects to Neon Postgres
+    ↓ loads post row
+    ↓ resolves handler via publisher-factory
+    ↓ handler.publish(db, post, encKey)
+        ↓ decrypts OAuth token from DB
+        ↓ creates platform client (e.g., XClient)
+        ↓ uploads media if needed
+        ↓ posts content via API
+        ↓ returns PlatformPublishResult
+    ↓ updates post row (status: "published")
+    ↓ triggers notification if failed
 ```
 
-### Structure Rationale
+## Integration Points for v1.3 Fixes
 
-- **packages/core/:** Single shared library consumed by both CLI scripts and Trigger.dev tasks. This is the critical design decision -- without it, you duplicate DB schemas, API clients, and types across two separate codebases. Trigger.dev v3 bundles all dependencies automatically, so importing from a workspace package works seamlessly in deployed tasks.
+### 1. Trigger.dev Env Var Delivery
 
-- **src/cli/:** Thin scripts that Claude commands invoke via `npx tsx src/cli/<script>.ts`. Each script does exactly one thing (queue a post, query analytics, trigger a task). Commands compose these scripts into workflows. This keeps commands (markdown) declarative and scripts (TypeScript) imperative.
+**Problem:** Workers read `process.env.DATABASE_URL` and `process.env.HUB_ENCRYPTION_KEY` but these only exist in local config files (`config/keys.env`, `.hubs/personal.json`). Deployed workers on Trigger.dev Cloud have no access to local files, so every task crashes with "Missing required env vars."
 
-- **src/trigger/:** Trigger.dev task definitions. These are the background workers. They import from @psn/core for all DB and API access. Deployed to Trigger.dev Cloud via `npx trigger.dev deploy`.
+**Where it fits:** Build extension in `trigger.config.ts` using Trigger.dev's `syncEnvVars` pattern.
 
-- **config/:** All user-specific configuration. YAML over JSON because voice profiles and strategy configs are human-edited. Environment files are gitignored.
+**Architecture change: NEW helper + MODIFY config**
 
-## Architectural Patterns
-
-### Pattern 1: Command-Script-Hub Pipeline
-
-**What:** Commands (markdown) instruct Claude to invoke CLI scripts (TypeScript) that interact with hubs (Neon + Trigger.dev). Commands never talk to infrastructure directly.
-
-**When to use:** Every command interaction.
-
-**Trade-offs:** Adds a script layer, but keeps commands declarative and testable. Claude can read script output and make decisions. Scripts are deterministic while commands are flexible.
-
-**Example:**
-```markdown
-<!-- .claude/commands/psn/calendar.md -->
-Read the user's hub configuration from config/hub.env.
-Run `npx tsx src/cli/query-analytics.ts --hub personal --query upcoming-posts`
-to get the next 7 days of scheduled posts.
-Present the results as a formatted calendar.
-If the user wants to reschedule, run
-`npx tsx src/cli/queue-post.ts --hub personal --action reschedule --post-id <id> --new-time <time>`
 ```
+trigger.config.ts (current)
+    defineConfig({ project, dirs, retries, maxDuration })
+
+trigger.config.ts (after)
+    defineConfig({
+        project, dirs, retries, maxDuration,
+        build: {
+            extensions: [
+                syncEnvVars(async () => {
+                    // Reads .hubs/personal.json + config/keys.env
+                    // Returns flat { name, value }[] array
+                    return loadEnvVarsForDeploy();
+                })
+            ]
+        }
+    })
+```
+
+**New file: `src/trigger/env-sync.ts`** -- extracts env var loading logic so it is testable independently from the config file. Reads from `.hubs/personal.json` for hub credentials and `config/keys.env` for API keys + platform credentials.
+
+**Env vars to sync:**
+| Source | Env Var | Used By |
+|--------|---------|---------|
+| `.hubs/personal.json` | `DATABASE_URL` | All tasks (DB connection) |
+| `.hubs/personal.json` | `HUB_ENCRYPTION_KEY` | publish-post, token-refresher (token decrypt) |
+| `config/keys.env` | `X_CLIENT_ID` | XHandler (OAuth refresh during publish) |
+| `config/keys.env` | `X_CLIENT_SECRET` | XHandler (OAuth refresh during publish) |
+| `config/keys.env` | `TRIGGER_SECRET_KEY` | Task-to-task triggering (e.g., publish-post triggers notification-dispatcher) |
+| `config/keys.env` | Other platform credentials | LinkedIn, Instagram, TikTok handlers |
+
+**Data flow change:** At deploy time only. During `bunx trigger.dev deploy`, the syncEnvVars extension reads local files and pushes env vars to Trigger.dev Cloud. No changes to any task code -- they already read from `process.env.*`.
+
+**Important detail:** The `syncEnvVars` callback runs during the build/deploy phase, which happens on the developer's machine (where local files exist). The env vars are then set in Trigger.dev Cloud for the deployed workers.
+
+**Confidence:** HIGH -- Trigger.dev docs explicitly describe `syncEnvVars` as the solution for this exact pattern. No custom infrastructure needed.
+
+---
+
+### 2. X OAuth Callback Server
+
+**Problem:** The OAuth flow uses `https://example.com/callback` as the callback URL. X redirects there after authorization, but that URL leads nowhere. Users must manually extract the `code` parameter from the browser's address bar. Real users fail at this step consistently.
+
+**Where it fits:** New module in `src/cli/`, consumed by `src/cli/setup-x-oauth.ts`.
+
+**Architecture change: NEW component + MODIFY existing**
+
+```
+src/cli/oauth-callback-server.ts  (NEW)
+    startCallbackServer(port) -> { url, waitForCode(), close() }
+        Uses Bun.serve() for lightweight HTTP server
+        Listens on localhost:PORT/callback
+        Extracts ?code= and ?state= from redirect query params
+        Resolves Promise with code, auto-closes server
+
+src/cli/setup-x-oauth.ts  (MODIFY)
+    X_CALLBACK_URL changes from "https://example.com/callback"
+        to "http://localhost:18923/callback"
+    After generating auth URL, starts callback server
+    Waits for code via server Promise
+    Falls back to manual code entry if port already bound
+```
+
+**`src/platforms/x/oauth.ts` -- NO CHANGE.** The `callbackUrl` is already a parameter to `createXOAuthClient()`. The hardcoding is in `setup-x-oauth.ts`, not in the oauth module.
+
+**Port selection:** Use a fixed, unusual port (`18923`) because OAuth callback URLs must be registered in the X Developer Portal and must match exactly. Dynamic ports would make setup instructions impossible.
+
+**User-facing change to setup instructions:** The `need_input` response from `setupXOAuth()` currently tells users to set the callback URL to `https://example.com/callback`. This changes to `http://localhost:18923/callback`.
+
+**Data flow change:**
+
+```
+Current:
+  generate auth URL → user opens browser → X redirects to example.com
+  → user manually copies ?code= from URL bar → pastes into terminal
+
+After:
+  start Bun.serve() on :18923 → generate auth URL with localhost callback
+  → user opens browser → X redirects to localhost:18923/callback
+  → server captures ?code= → resolves Promise → server auto-closes
+  → falls back to manual entry on BindError
+```
+
+**Reusability:** The callback server is generic (captures code + state from OAuth redirect). LinkedIn, Instagram, and TikTok OAuth flows can reuse it. Build the server as platform-agnostic.
+
+**Confidence:** HIGH -- Bun.serve() is well-suited for this. The arctic library handles PKCE correctly regardless of callback URL. The only new piece is an HTTP server that captures one request.
+
+---
+
+### 3. Thread Publishing Resilience
+
+**Problem:** If a 7-tweet thread fails on tweet 4, tweets 1-3 are already posted on X. The tweet IDs exist only in local variables. When Trigger.dev retries the task, `postThread()` starts from tweet 1 again, creating duplicate tweets.
+
+**Where it fits:** MODIFY `src/platforms/handlers/x.handler.ts`. The infrastructure already exists but is incomplete.
+
+**Current state (code analysis):**
+
+The schema already defines `PostMetadata.threadProgress` (line 82 of schema.ts):
+```typescript
+threadProgress?: string;  // JSON string of { posted, total, lastPostedId, tweetIds }
+```
+
+The XHandler already **reads** thread progress on entry:
+```typescript
+const threadProgress = metadata?.threadProgress
+    ? threadProgressSchema.parse(JSON.parse(metadata.threadProgress as string))
+    : undefined;
+const startIndex = threadProgress?.posted ?? 0;
+const tweetIds = threadProgress?.tweetIds ?? [];
+```
+
+But the handler **never writes** progress back to the DB during the thread. If the task crashes between tweets, all progress is lost.
+
+**Architecture change: MODIFY `XHandler.postThread()` signature and body**
 
 ```typescript
-// src/cli/query-analytics.ts
-import { createHubConnection } from '@psn/core';
-import { posts } from '@psn/core/db/schema';
-import { gte } from 'drizzle-orm';
+// Current signature (no DB access):
+private async postThread(client, tweets, mediaIds, metadata, postId)
 
-const hub = await createHubConnection(args.hub);
-const upcoming = await hub.db
-  .select()
-  .from(posts)
-  .where(gte(posts.scheduledAt, new Date()));
-
-console.log(JSON.stringify(upcoming, null, 2));
-// Claude reads this output and formats it for the user
+// After (DB access added):
+private async postThread(client, tweets, mediaIds, metadata, postId, db)
 ```
 
-### Pattern 2: Hub Connector with Environment Resolution
+**The `publish()` method already has `db`** -- it just needs to pass it down to `postThread()`.
 
-**What:** A single `createHubConnection()` function that reads the appropriate .env file and returns a typed Drizzle client. Personal hub reads `config/hub.env`. Company hubs read `config/connections/<company>.env`. The connection includes both the DB client and the Trigger.dev secret key for that hub.
+**Data flow change for thread publishing:**
 
-**When to use:** Every script and task that needs hub access.
+```
+For each tweet[i] in thread:
+    1. Call client.createTweet({ text, replyToId }) -> tweetId
+    2. Append tweetId to accumulated tweetIds array
+    3. db.update(posts)
+       .set({
+           subStatus: "thread_partial",
+           metadata: {
+               ...existingMetadata,
+               threadProgress: JSON.stringify({
+                   posted: i + 1,
+                   total: tweets.length,
+                   lastPostedId: tweetId,
+                   tweetIds: [...accumulated]
+               })
+           }
+       })
+       .where(eq(posts.id, postId))
+    4. Continue to next tweet
 
-**Trade-offs:** Simple and predictable. One function, one responsibility. The alternative (passing connection strings everywhere) leads to credential sprawl.
+On crash/retry:
+    1. publish-post task re-runs
+    2. XHandler reads post.metadata.threadProgress
+    3. Resumes from posted index, using lastPostedId as replyToId
+    4. Skips already-posted tweets
 
-**Example:**
-```typescript
-// packages/core/src/db/connection.ts
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
-import * as schema from './schema';
-
-export interface HubConnection {
-  db: ReturnType<typeof drizzle>;
-  triggerKey: string;
-  hubType: 'personal' | 'company';
-  hubName: string;
-}
-
-export async function createHubConnection(
-  hubRef: string  // 'personal' or company name
-): Promise<HubConnection> {
-  const envPath = hubRef === 'personal'
-    ? 'config/hub.env'
-    : `config/connections/${hubRef}.env`;
-
-  const env = await loadEnvFile(envPath);
-
-  const sql = neon(env.DATABASE_URL);
-  const db = drizzle(sql, { schema });
-
-  return {
-    db,
-    triggerKey: env.TRIGGER_SECRET_KEY,
-    hubType: hubRef === 'personal' ? 'personal' : 'company',
-    hubName: hubRef,
-  };
-}
+After thread completes:
+    1. Write all tweetIds to posts.platformPostIds
+    2. Clear threadProgress from metadata (cleanup)
 ```
 
-### Pattern 3: Shared Schema, Separate Databases
+**Schema changes: NONE.** All fields already exist:
+- `posts.metadata.threadProgress` -- typed in PostMetadata
+- `posts.platformPostIds` -- typed as `string[]`, exists but unpopulated for threads
+- `posts.subStatus` -- already supports `"thread_partial"` value
 
-**What:** Both personal and company hubs use the same Drizzle schema definitions from @psn/core, but each hub is a separate Neon database. Tables shared across both hubs (posts, analytics, ideas, series, oauth_tokens, trends) use identical schemas. Company hubs add extra tables (team_members, brand_preferences). RLS policies only apply to company hub tables.
+**DB writes per thread:** One UPDATE per tweet (typically 3-7). Using Neon HTTP driver, each is a stateless HTTP request. Acceptable latency and no connection concerns.
 
-**When to use:** Schema definition and migration.
+**Confidence:** HIGH -- the schema and read logic already exist. This fix adds the write-back that was missed during initial implementation.
 
-**Trade-offs:** Schema duplication is avoided completely. The tradeoff is that company-only tables exist in the schema but are not migrated to personal hubs. Drizzle Kit handles this with separate migration configs.
+---
 
-**Example:**
-```typescript
-// packages/core/src/db/schema-shared.ts
-// These tables exist in BOTH personal and company hubs
-import { pgTable, text, timestamp, jsonb } from 'drizzle-orm/pg-core';
+### 4. Tweet Validation
 
-export const posts = pgTable('posts', {
-  id: text('id').primaryKey(),
-  createdBy: text('created_by').notNull(),
-  platform: text('platform').notNull(),  // x|linkedin|instagram|tiktok
-  status: text('status').notNull(),       // draft|scheduled|pending-approval|approved|published|failed
-  content: jsonb('content').notNull(),
-  scheduledAt: timestamp('scheduled_at', { withTimezone: true }),
-  publishedAt: timestamp('published_at', { withTimezone: true }),
-  triggerRunId: text('trigger_run_id'),   // Links to Trigger.dev delayed run
-  language: text('language'),              // en|es|both
-  // ... more fields
-});
+**Problem:** X API returns HTTP 403 for tweets exceeding 280 characters. The error body is vague ("Forbidden"). Users see `"failed: Forbidden"` and have no idea the tweet was too long.
 
-// packages/core/src/db/schema-company.ts
-// These tables ONLY exist in company hubs
-import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
-import { pgPolicy } from 'drizzle-orm/pg-core';
-import { authenticatedRole, crudPolicy, authUid } from 'drizzle-orm/neon';
+**Where it fits:** New validation module in `src/platforms/x/`, called from `XHandler` before any API calls.
 
-export const teamMembers = pgTable('team_members', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull(),
-  role: text('role').notNull(),         // admin|editor|contributor
-  invitedAt: timestamp('invited_at', { withTimezone: true }),
-  joinedAt: timestamp('joined_at', { withTimezone: true }),
-});
+**Architecture change: NEW component + MODIFY handler**
+
+```
+src/platforms/x/validation.ts  (NEW)
+    X_CHAR_LIMIT = 280
+    URL_DISPLAY_LENGTH = 23  (X shortens all URLs to t.co length)
+
+    countTweetLength(text: string): number
+        Accounts for URL shortening (URLs count as 23 chars regardless of actual length)
+
+    validateTweet(text: string): { valid: boolean; error?: string; charCount: number }
+        Returns clear error: "Tweet is 312 chars (max 280)"
+
+    validateThread(tweets: string[]): { valid: boolean; errors: Array<{ index: number; error: string }> }
+        Validates each tweet in thread, reports all violations at once
+
+src/platforms/handlers/x.handler.ts  (MODIFY)
+    Add validation call before createTweet():
+        const validation = validateTweet(tweetText);
+        if (!validation.valid) {
+            return { platform: "x", status: "failed", error: validation.error };
+        }
 ```
 
-### Pattern 4: Trigger.dev Task Middleware for Hub Context
+**Integration with existing thread-splitter:** The `splitIntoThread()` function in `src/core/utils/thread-splitter.ts` already respects 280 chars. Validation catches two edge cases the splitter cannot handle:
+1. Pre-split content (JSON array in `post.content`) where individual segments were manually composed too long
+2. URL shortening math -- a tweet with a 200-char URL is actually only 23 chars of URL + remaining text, but a tweet with no URLs uses raw character count
 
-**What:** Trigger.dev tasks receive a `hubId` in their payload. A middleware layer resolves the hub connection (reads DATABASE_URL from Trigger.dev environment variables) and injects the Drizzle client into the task context. Tasks never manage their own connections.
+**Data flow change:**
 
-**When to use:** Every Trigger.dev task.
+```
+Current:
+    content → createTweet() → X API 403 → "failed: Forbidden"
 
-**Trade-offs:** Centralized connection management vs slightly more indirection. The benefit is tasks stay focused on business logic. The middleware also handles RLS context setting for company hubs.
+After:
+    content → validateTweet() → invalid → return failed with clear message
+                               → valid   → createTweet() → normal flow
+```
 
-**Example:**
+**No schema changes.** Validation is purely in-memory before API calls.
+
+**Confidence:** HIGH -- X's character counting rules are well-documented. URL shortening to 23 chars via t.co is stable behavior since 2016.
+
+---
+
+### 5. Testing Infrastructure
+
+**Problem:** 12 test files exist but no mocking strategy, no handler compliance tests, no CI integration. The XHandler has 170 lines of untested publish logic.
+
+**Where it fits:** New test utilities and test files. No production code changes required if mock boundaries are clean.
+
+**Architecture for testing:**
+
+```
+src/
+├── test/                            (NEW - shared test infrastructure)
+│   ├── fixtures/                    (post rows, token rows, platform responses)
+│   │   ├── posts.ts                 (createTestPost factory)
+│   │   └── tokens.ts               (createTestToken factory)
+│   ├── mocks/                       (mock factories for external boundaries)
+│   │   ├── db.ts                    (mock createHubConnection → in-memory)
+│   │   ├── platform-client.ts       (mock XClient, LinkedInClient, etc.)
+│   │   └── trigger.ts              (mock task(), wait.until(), logger)
+│   └── helpers.ts                   (shared test setup/teardown)
+```
+
+**Mock boundaries -- where to cut:**
+
+| Boundary | Mock Target | Why This Layer |
+|----------|------------|----------------|
+| Database | `createHubConnection()` | Handlers receive `db` as parameter, easy to substitute |
+| Platform APIs | `XClient`, etc. | Handlers create clients internally -- mock at class level |
+| Trigger.dev SDK | `task()`, `wait`, `logger` | Not available outside Trigger.dev runtime |
+| Filesystem | `Bun.file()` | Media upload reads files from disk |
+| Network | Individual `fetch()` calls | Only for OAuth exchange, not globally |
+
+**Handler compliance test pattern:**
+
 ```typescript
-// src/trigger/shared/middleware.ts
-import { createHubDbFromUrl } from '@psn/core';
-
-export function withHubDb() {
-  return task.middleware(async ({ ctx, next, payload }) => {
-    const dbUrl = process.env.DATABASE_URL;
-    const db = createHubDbFromUrl(dbUrl);
-
-    // For company hubs with RLS, set the user context
-    if (payload.userId && process.env.HUB_TYPE === 'company') {
-      await db.execute(
-        sql`SELECT set_config('app.current_user_id', ${payload.userId}, true)`
-      );
-    }
-
-    return next({ ctx: { ...ctx, db } });
-  });
-}
-
-// src/trigger/tasks/post-scheduler.ts
-import { task } from '@trigger.dev/sdk/v3';
-import { withHubDb } from '../shared/middleware';
-import { posts } from '@psn/core/db/schema';
-
-export const postScheduler = task({
-  id: 'post-scheduler',
-  middleware: [withHubDb()],
-  run: async (payload, { ctx }) => {
-    const post = await ctx.db
-      .select()
-      .from(posts)
-      .where(eq(posts.id, payload.postId))
-      .limit(1);
-
-    // Call platform API to publish
-    // Update post status to 'published'
-  },
+// Tests that ALL handlers satisfy the PlatformPublisher contract
+describe.each(["x", "linkedin", "instagram", "tiktok"])("%s handler", (platform) => {
+    it("returns { status: 'published', externalPostId } on success");
+    it("returns { status: 'failed' } for content policy errors (does not throw)");
+    it("throws on rate limit errors (for Trigger.dev retry)");
+    it("refreshes expired tokens transparently before publish");
+    it("persists refreshed tokens to DB before returning");
 });
 ```
 
-### Pattern 5: Deploy Same Tasks to Multiple Trigger.dev Projects
+**Vitest config changes needed:**
+- Add path alias resolution matching `tsconfig.json` so `@psn/core`, `@psn/platforms` work in tests
+- Add `setupFiles` for shared mock initialization
 
-**What:** The same task codebase in `src/trigger/` deploys to both personal and company Trigger.dev projects. The difference is environment variables (DATABASE_URL, HUB_TYPE, platform API keys). Deploy with different `--project-ref` flags.
+**What to test at which layer:**
 
-**When to use:** Deployment.
+| Layer | What to Test | How |
+|-------|-------------|-----|
+| `src/core/utils/` | Pure functions (thread-splitter, crypto, timezone) | Unit tests, no mocks needed |
+| `src/platforms/x/validation.ts` | Character counting, URL shortening logic | Unit tests, no mocks |
+| `src/platforms/x/client.ts` | Request construction, response parsing, error mapping | Mock fetch |
+| `src/platforms/handlers/*.ts` | Full publish flow: token decrypt, client creation, API call, status return | Mock DB + mock client |
+| `src/trigger/publish-post.ts` | Orchestration: status transitions, multi-platform dispatch, notification on failure | Mock everything (DB, handlers, notifications) |
+| `src/cli/oauth-callback-server.ts` | Server starts, captures code, auto-closes | Real Bun.serve() with localhost requests |
 
-**Trade-offs:** One codebase, multiple deploys. Simple but requires discipline -- tasks must be hub-agnostic and derive behavior from environment variables, not hardcoded assumptions. Company-only tasks (like approval workflows) gracefully no-op in personal hubs.
+**Confidence:** HIGH -- Vitest is already installed and configured. The mock boundary design follows directly from the existing architecture where dependencies are injected via function parameters.
 
-**Example:**
-```bash
-# Deploy to personal hub's Trigger.dev project
-npx trigger.dev deploy --project-ref proj_personal_abc123
+---
 
-# Deploy to company hub's Trigger.dev project
-npx trigger.dev deploy --project-ref proj_company_xyz789
+### 6. Context Management
 
-# Each project has its own env vars set in the Trigger.dev dashboard:
-# - DATABASE_URL (pointing to the correct Neon DB)
-# - HUB_TYPE (personal|company)
-# - Platform API keys for that hub's accounts
-```
+**Problem:** No pre-commit hooks. Circular dependencies can slip in undetected. No automated quality gates before commits.
 
-### Pattern 6: RLS for Company Hubs Only
+**Where it fits:** Project root configuration. No production code changes.
 
-**What:** Personal hubs skip RLS entirely -- there is only one user, so row-level isolation is unnecessary overhead. Company hubs use Postgres RLS to isolate team member data. The RLS context is set per-transaction using `set_config()` with the team member's user ID.
-
-**When to use:** Company hub database access.
-
-**Trade-offs:** RLS adds latency per query (minimal on Neon). The benefit is airtight data isolation without application-level filtering. Company hubs without RLS risk one team member seeing another's drafts or tokens.
-
-**Example:**
-```typescript
-// packages/core/src/db/rls.ts
-import { sql } from 'drizzle-orm';
-import { pgPolicy } from 'drizzle-orm/pg-core';
-
-// Custom RLS using set_config (no Neon Authorize needed -- simpler)
-// Tasks set: SELECT set_config('app.current_user_id', '<user-id>', true)
-// Policies check: current_setting('app.current_user_id')
-
-export const teamMemberPolicy = pgPolicy('team_member_isolation', {
-  as: 'permissive',
-  for: 'all',
-  using: sql`created_by = current_setting('app.current_user_id', true)`,
-  withCheck: sql`created_by = current_setting('app.current_user_id', true)`,
-});
-
-// Applied to posts, ideas, etc. in company hub schema
-// team_members and brand_preferences are NOT RLS'd (shared across team)
-// oauth_tokens are RLS'd to admin role only
-```
-
-## Data Flow
-
-### Command-to-Hub Flow (Interactive)
+**Architecture change: NEW config files**
 
 ```
-User types /psn:post
-    ↓
-Claude reads post.md command template
-    ↓
-Claude reads config/strategy.yaml + voice profile
-    ↓
-Claude generates content options, user picks one
-    ↓
-Claude runs: npx tsx src/cli/queue-post.ts \
-    --hub personal \
-    --platform x \
-    --content '{"text":"..."}' \
-    --schedule "2026-02-19T09:00:00-06:00"
-    ↓
-queue-post.ts:
-    1. Connects to personal hub DB via createHubConnection('personal')
-    2. Inserts row into posts table (status: 'scheduled')
-    3. Calls tasks.trigger() on post-scheduler with delay option
-       matching the scheduled time
-    4. Stores the Trigger.dev run ID in the posts row
-    5. Outputs JSON confirmation
-    ↓
-Claude reads output, confirms to user:
-"Scheduled for X at 9:00 AM CST. Run /psn:calendar to see your queue."
+.husky/                              (NEW - git hooks manager)
+    └── pre-commit                   (runs lint-staged)
+
+.lintstagedrc.json                   (NEW - staged file checks)
+    "src/**/*.ts": [
+        "biome check --write",       (format + lint with auto-fix)
+        "vitest related --run"        (tests affected by changed files)
+    ]
+
+package.json                         (MODIFY - add dev dependencies + prepare script)
+    devDependencies += { "husky": "^9", "lint-staged": "^15" }
+    scripts += { "prepare": "husky" }
 ```
 
-### Background Task Flow (Automated)
+**Pre-commit chain:**
 
 ```
-Trigger.dev cron fires analytics-collector (daily at 11 PM)
-    ↓
-Task middleware injects DB connection from DATABASE_URL env var
-    ↓
-analytics-collector.ts:
-    1. Reads all posts published in last 24h from posts table
-    2. For each post, calls platform API to fetch metrics
-       (impressions, engagements, clicks, shares)
-    3. Upserts analytics rows in analytics table
-    4. If any post crosses engagement threshold,
-       triggers notifier task to send WhatsApp alert
-    ↓
-User runs /psn:review next day
-    ↓
-Claude runs: npx tsx src/cli/query-analytics.ts --hub personal --period 7d
-    ↓
-Script queries analytics table, aggregates, returns JSON
-    ↓
-Claude presents performance summary, suggests strategy adjustments
+git commit
+    ↓ .husky/pre-commit
+    ↓ bunx lint-staged
+        ↓ For each staged .ts file:
+            1. biome check --write  (auto-fix format + lint)
+            2. vitest related --run  (only tests for changed files)
+        ↓ Separately (not per-file):
+            3. bun run check:circular  (madge --circular src/)
+    ↓ Any failure → commit blocked with clear error
 ```
 
-### Cross-Hub Flow (Company Posting)
+**Circular dependency detection:** Already works via `madge` (in package.json scripts as `check:circular`). The pre-commit hook just invokes it. No new tooling needed.
+
+**Confidence:** HIGH -- husky + lint-staged is standard for TypeScript projects. madge already functions correctly.
+
+---
+
+## Component Inventory: New vs Modified
+
+| Component | Status | File Path | Purpose |
+|-----------|--------|-----------|---------|
+| Env sync helper | **NEW** | `src/trigger/env-sync.ts` | Read local config files, return env var array for syncEnvVars |
+| Trigger config | **MODIFY** | `trigger.config.ts` | Add syncEnvVars build extension |
+| OAuth callback server | **NEW** | `src/cli/oauth-callback-server.ts` | Temporary HTTP server for OAuth redirect capture |
+| X OAuth setup | **MODIFY** | `src/cli/setup-x-oauth.ts` | Use callback server instead of manual code entry |
+| Tweet validation | **NEW** | `src/platforms/x/validation.ts` | Pre-flight character count and URL shortening validation |
+| XHandler | **MODIFY** | `src/platforms/handlers/x.handler.ts` | Add validation before API calls; persist thread progress to DB |
+| Test utilities | **NEW** | `src/test/` | Shared mocks, fixtures, helpers |
+| Handler compliance tests | **NEW** | `src/platforms/handlers/__tests__/` | PlatformPublisher contract verification |
+| Publish-post tests | **NEW/MODIFY** | `src/trigger/publish-post.test.ts` | Expand existing test file with real coverage |
+| Pre-commit hooks | **NEW** | `.husky/`, `.lintstagedrc.json` | Automated quality gates |
+| Package.json | **MODIFY** | `package.json` | Add husky + lint-staged to devDependencies |
+
+## Schema Changes
+
+**No new tables, no new columns, no migrations required for v1.3.**
+
+All fixes use existing infrastructure:
+- `posts.metadata.threadProgress` -- already typed in `PostMetadata`, needs write logic
+- `posts.platformPostIds` -- already exists as `jsonb("platform_post_ids").$type<string[]>()`, needs population after thread completes
+- `posts.subStatus` -- already supports `"thread_partial"` value
+
+This is significant: zero database migrations means zero risk of schema-related deployment issues.
+
+## Recommended Build Order
 
 ```
-User types /psn:post, selects "Acme Corp" company account
-    ↓
-Claude reads config/company/acme-corp.yaml + brand-operator voice
-    ↓
-Claude generates company content, user approves
-    ↓
-Claude runs: npx tsx src/cli/queue-post.ts \
-    --hub acme-corp \
-    --platform linkedin \
-    --content '{"text":"...","media":"..."}' \
-    --schedule "2026-02-20T10:00:00-06:00" \
-    --status pending-approval    # Company posts need approval
-    ↓
-queue-post.ts:
-    1. Connects to Acme Corp's hub DB via createHubConnection('acme-corp')
-    2. Inserts row into posts table (status: 'pending-approval')
-    3. Does NOT trigger post-scheduler yet (needs approval first)
-    4. Triggers notifier to alert approvers via WhatsApp
-    ↓
-Approver runs /psn:approve
-    ↓
-Claude runs: npx tsx src/cli/manage-ideas.ts --hub acme-corp --action list-pending
-    ↓
-Approver reviews, approves post
-    ↓
-Claude runs: npx tsx src/cli/queue-post.ts \
-    --hub acme-corp \
-    --action approve \
-    --post-id <id>
-    ↓
-Script updates status to 'approved', triggers post-scheduler with delay
+Phase 1: Trigger.dev Env Vars           (unblocks all deployed testing)
+    └── No dependencies. Highest impact -- deployed tasks crash without this.
+    └── Files: src/trigger/env-sync.ts (NEW), trigger.config.ts (MODIFY)
+
+Phase 2: Tweet Validation               (standalone quick win)
+    └── No dependencies on other fixes. Pure function + handler call.
+    └── Files: src/platforms/x/validation.ts (NEW), x.handler.ts (MODIFY)
+
+Phase 3: Thread Resilience              (same handler file as Phase 2)
+    └── Depends on Phase 2 landing first to avoid merge conflicts in x.handler.ts.
+    └── Files: x.handler.ts (MODIFY -- add DB writes in postThread)
+
+Phase 4: X OAuth Callback Server        (standalone CLI fix)
+    └── No production code dependencies. Enables real user onboarding testing.
+    └── Files: src/cli/oauth-callback-server.ts (NEW), setup-x-oauth.ts (MODIFY)
+
+Phase 5: Testing Infrastructure         (depends on stable production code)
+    └── Write tests AFTER production code is finalized. Testing moving targets wastes effort.
+    └── Files: src/test/ (NEW), __tests__/ files (NEW), vitest.config.ts (MODIFY)
+
+Phase 6: Context Management             (depends on tests existing)
+    └── Pre-commit hooks run tests, so tests must exist first.
+    └── Files: .husky/ (NEW), .lintstagedrc.json (NEW), package.json (MODIFY)
 ```
 
-### Token Refresh Flow (Background)
+**Ordering rationale:**
+- Env vars first: every Trigger.dev task is broken in production without this. All other fixes are untestable deployed until credentials reach workers.
+- Validation before thread resilience: both touch `x.handler.ts`. Validation is smaller and can ship independently. Thread resilience is more invasive.
+- OAuth after production fixes: it is a setup-time fix, not a runtime fix. Users who already authenticated are unaffected.
+- Tests after code stabilizes: testing code that is about to change means rewriting tests.
+- Context management last: hooks call the test runner, which requires tests to exist.
 
-```
-Trigger.dev cron fires token-refresher (every 12 hours)
-    ↓
-token-refresher.ts:
-    1. Queries oauth_tokens table for tokens expiring within 7 days
-    2. For each expiring token, calls platform refresh endpoint
-    3. Encrypts new token, updates oauth_tokens row
-    4. If refresh fails (e.g., LinkedIn revoked), triggers notifier
-       with "Re-authorize your LinkedIn account" message
-    ↓
-User gets WhatsApp notification if action needed
-```
+## Anti-Patterns to Avoid
 
-## Key Data Flows Summary
+### Anti-Pattern 1: Passing Secrets in Trigger.dev Payloads
 
-1. **Content creation:** Command -> Claude generates -> CLI script -> Hub DB (posts table) -> Trigger.dev delayed run -> Platform API
-2. **Analytics:** Trigger.dev cron -> Platform APIs -> Hub DB (analytics table) -> CLI script query -> Claude formats for user
-3. **Trend intelligence:** Trigger.dev cron -> Intelligence APIs -> Hub DB (trends table) -> Used during /psn:plan
-4. **Token management:** Trigger.dev cron -> Check expiry -> Platform refresh APIs -> Hub DB (oauth_tokens) -> Notify if failed
-5. **Notifications:** Any task -> notifier task -> WhatsApp (WAHA/Twilio) or future channels
-6. **Idea pipeline:** /psn:capture -> CLI script -> Hub DB (ideas table) -> Surfaced during /psn:plan and /psn:post
+**What people do:** Include `DATABASE_URL` or encryption keys in the task payload when calling `publishPost.trigger({ postId, databaseUrl, encKey })`.
+**Why it is wrong:** Trigger.dev logs all payloads in the dashboard. Secrets become visible to anyone with dashboard access. The existing code already reads from `process.env` -- payloads should contain only identifiers.
+**Do this instead:** Use `syncEnvVars` to push secrets at deploy time. Tasks continue reading from `process.env` as they already do.
 
-## Scaling Considerations
+### Anti-Pattern 2: Thread Retry Without Progress Tracking
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| 1-10 users (solo/small team) | Current architecture as-is. Neon free tier, Trigger.dev free/hobby. Single personal hub per user, 0-1 company hubs. No performance concerns. |
-| 10-100 users (agency model) | Agency creates many company hubs. Each is still isolated (separate DB + Trigger.dev project). Main concern is deployment automation -- `/psn:setup` must reliably provision hubs. Consider a hub provisioning script that automates Neon DB creation + Trigger.dev project setup. |
-| 100+ concurrent users per company hub | RLS performance on frequently-queried tables. Add indexes on `created_by` columns. Consider connection pooling (Neon has built-in). Analytics queries may need materialized views for dashboards. |
+**What people do:** Retry the entire thread from tweet 1, hoping X's API is idempotent.
+**Why it is wrong:** X has no idempotency mechanism for tweet creation. Posting the same text twice creates two separate tweets. Users end up with duplicate partial threads that cannot be cleaned up programmatically.
+**Do this instead:** Persist `threadProgress` to DB after each successful tweet. On retry, read progress and resume from the correct index.
 
-### Scaling Priorities
+### Anti-Pattern 3: OAuth Callback Server That Never Closes
 
-1. **First bottleneck: Rate limits.** Instagram's 200 req/hr is the hard ceiling. When multiple team members schedule analytics collection for the same company, batch requests and share rate limit state. The rate limiter in @psn/core must be hub-scoped, not per-task.
+**What people do:** Start `Bun.serve()` for OAuth and forget cleanup.
+**Why it is wrong:** Port stays bound indefinitely. Future OAuth flows or other local tools fail with EADDRINUSE. In a CLI context, orphaned servers are invisible to the user.
+**Do this instead:** Auto-close the server after receiving the callback. Add a timeout (e.g., 5 minutes) that closes the server if no callback arrives. Use `server.stop()` in Bun.
 
-2. **Second bottleneck: Trigger.dev free tier limits.** 10 schedules covers one hub's cron jobs. Each additional hub needs its own Trigger.dev project with its own schedule allocation. At scale, company hubs should use Trigger.dev Hobby ($30/mo) or Pro tier.
+### Anti-Pattern 4: Mocking at the Wrong Boundary
 
-3. **Third bottleneck: Token management.** LinkedIn's 60-day token expiry + Instagram's token rotation means the token-refresher task is a critical path. If it fails silently, scheduled posts fail days later. Build alerting into the refresh flow, not just the posting flow.
-
-## Anti-Patterns
-
-### Anti-Pattern 1: Commands Calling Platform APIs Directly
-
-**What people do:** Have the slash command instruct Claude to call the X API directly via `curl` or a script, bypassing the hub entirely.
-**Why it's wrong:** No scheduling, no analytics tracking, no audit trail, no retry on failure. The post exists only in the API response. If the user closes their terminal, scheduled posts are lost.
-**Do this instead:** Always route through the hub. Commands insert into the DB, Trigger.dev executes at the scheduled time. Even "post now" goes through the queue with zero delay.
-
-### Anti-Pattern 2: Fat Commands
-
-**What people do:** Put complex logic in the markdown command file -- conditionals, error handling, retry logic.
-**Why it's wrong:** Markdown commands are prompts, not programs. Claude interprets them non-deterministically. Complex logic in prompts leads to inconsistent behavior, hard-to-debug failures, and prompt bloat.
-**Do this instead:** Keep commands declarative ("read this, run this script, present this"). Put all logic in CLI scripts and the shared library. Commands orchestrate; scripts execute.
-
-### Anti-Pattern 3: Shared Database for Personal and Company Data
-
-**What people do:** Use one database with a `hub_type` column to distinguish personal vs company data.
-**Why it's wrong:** Data isolation violations are one WHERE clause away. Leaving a company requires data migration instead of deleting a connection file. RLS complexity explodes.
-**Do this instead:** Separate databases. The hub boundary IS the data boundary. No mixing, no migration, no risk.
-
-### Anti-Pattern 4: Storing OAuth Tokens Locally
-
-**What people do:** Put platform tokens in `config/keys.env` alongside API keys.
-**Why it's wrong:** Tokens expire and need automatic refresh. If they're in a local file, the background Trigger.dev task can't update them. You'd need a sync mechanism between local files and the cloud worker.
-**Do this instead:** Store tokens in the hub DB (encrypted). Trigger.dev tasks read fresh tokens before every API call. The token-refresher task updates them in place.
-
-### Anti-Pattern 5: One Trigger.dev Project for All Hubs
-
-**What people do:** Deploy all tasks to a single Trigger.dev project and route hub-specific work via task payloads.
-**Why it's wrong:** Environment variables (DATABASE_URL, API keys) would need to be per-invocation, not per-project. Trigger.dev Cloud sets env vars at the project level. You'd have to pass credentials in task payloads, which is a security risk and breaks the env var model.
-**Do this instead:** One Trigger.dev project per hub. Same codebase, different deploys, different env vars. Clean separation.
-
-## Integration Points
-
-### External Services
-
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| **Neon Postgres** | `@neondatabase/serverless` driver + Drizzle ORM | Use HTTP driver for CLI scripts (serverless), WebSocket for long-running Trigger.dev tasks. Connection string in hub .env files. |
-| **Trigger.dev Cloud** | `@trigger.dev/sdk/v3` | CLI scripts use `tasks.trigger()` with `TRIGGER_SECRET_KEY`. Tasks use `task()` definitions. Deploy via `npx trigger.dev deploy`. |
-| **X API** | OAuth 2.0 PKCE + REST API | Pay-per-use since Jan 2026. Token stored in hub DB. |
-| **LinkedIn API** | OAuth 2.0 3-legged + REST API | Partner approval required (weeks). 60-day token expiry. No content discovery API. |
-| **Instagram Graph API** | OAuth 2.0 via Facebook + REST API | 200 req/hr rate limit. Business account required. Multi-step media upload. |
-| **TikTok API** | OAuth 2.0 + REST API | Audit required for public posting. Unaudited = 5 users, private-only. |
-| **WhatsApp (WAHA/Twilio)** | Webhook for inbound + REST API for outbound | WAHA is self-hosted (Docker), Twilio is managed. Future: Claude-powered chatbot. |
-| **Intelligence APIs** | REST APIs (Perplexity, Exa, Tavily, Brave, HN Algolia, Reddit) | Mostly free tiers. Rate limits vary. Results stored in trends table. |
-
-### Internal Boundaries
-
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| Commands <-> CLI Scripts | Bash tool_use (`npx tsx`) | Commands pass args via CLI flags. Scripts return JSON to stdout. Claude reads and interprets. |
-| CLI Scripts <-> Hub DB | Drizzle ORM queries | Direct database access. Scripts construct queries using shared schema. |
-| CLI Scripts <-> Trigger.dev | `tasks.trigger()` SDK call | Requires TRIGGER_SECRET_KEY. Returns run handle for status tracking. |
-| Trigger.dev Tasks <-> Hub DB | Drizzle ORM queries (via middleware) | Same schema, same queries. Connection injected by middleware. |
-| Trigger.dev Tasks <-> Platform APIs | REST HTTP via shared API clients | All API clients in @psn/core. Rate limiting built into clients. |
-| Trigger.dev Tasks <-> Other Tasks | `task.trigger()` chaining | e.g., post-scheduler triggers notifier on success/failure. |
-
-## Build Order (Dependency Chain)
-
-The components must be built in this order due to hard dependencies:
-
-```
-Phase 1: Foundation
-    @psn/core (schemas, types, connection)
-    └── Nothing works without shared schemas and DB connection
-
-Phase 2: Hub Infrastructure
-    Hub provisioning (Neon DB + Trigger.dev project setup)
-    └── Depends on: @psn/core schemas for migrations
-    OAuth flow (interactive browser-based token acquisition)
-    └── Depends on: @psn/core oauth module, hub DB for token storage
-
-Phase 3: Core Command Loop
-    CLI scripts (queue-post, query-analytics, manage-ideas)
-    └── Depends on: @psn/core, hub DB (running + migrated)
-    First command: /psn:post (create and schedule a post)
-    └── Depends on: CLI scripts, voice profiles, hub DB
-
-Phase 4: Background Automation
-    Trigger.dev tasks (post-scheduler first, then analytics-collector)
-    └── Depends on: @psn/core, deployed hub, env vars configured
-    Token-refresher task
-    └── Depends on: oauth module, hub DB with tokens
-
-Phase 5: Intelligence + Planning
-    Trend-collector, trend-alerter
-    └── Depends on: intelligence API clients, hub DB trends table
-    /psn:plan command (weekly batch planning)
-    └── Depends on: trends data, idea bank, analytics history
-
-Phase 6: Team Features
-    Company hub schema (RLS, team_members, brand_preferences)
-    └── Depends on: core schema, RLS policy definitions
-    /psn:approve workflow
-    └── Depends on: company hub, notification system
-
-Phase 7: Notifications + Engagement
-    WhatsApp integration, /psn:engage
-    └── Depends on: notifier task, engagement-monitor task
-```
+**What people do:** Mock `globalThis.fetch` for handler tests.
+**Why it is wrong:** Every internal `fetch()` call hits the mock, including unrelated ones. Tests become fragile -- they pass for wrong reasons and break when internal implementation changes.
+**Do this instead:** Mock at the client class boundary. Replace `XClient` with a mock implementation, not the network layer. This tests handler logic (token refresh, media upload coordination, thread sequencing) without coupling to HTTP request details.
 
 ## Sources
 
-- [Trigger.dev Manual Setup](https://trigger.dev/docs/manual-setup) -- project structure, trigger.config.ts, monorepo patterns
-- [Trigger.dev Task Overview](https://trigger.dev/docs/tasks/overview) -- task definition, lifecycle hooks, middleware
-- [Trigger.dev Scheduled Tasks](https://trigger.dev/docs/tasks/scheduled) -- declarative vs imperative cron, delayed runs
-- [Trigger.dev Triggering](https://trigger.dev/docs/triggering) -- tasks.trigger() from backend, delay option, TRIGGER_SECRET_KEY
-- [Trigger.dev Environment Variables](https://trigger.dev/docs/deploy-environment-variables) -- per-project env var management
-- [Trigger.dev Monorepo Guide](https://trigger.dev/changelog/monorepo-turborepo-guide) -- shared tasks package pattern
-- [Drizzle ORM RLS](https://orm.drizzle.team/docs/rls) -- pgPolicy, pgRole, enabling RLS on tables
-- [Neon + Drizzle RLS Guide](https://neon.com/docs/guides/rls-drizzle) -- crudPolicy, authUid, JWT-based user context
-- [Drizzle + Neon Connection](https://orm.drizzle.team/docs/connect-neon) -- serverless driver setup
-- [Neon Row-Level Security](https://neon.com/docs/guides/row-level-security) -- RLS fundamentals on Neon
+- [Trigger.dev Environment Variables](https://trigger.dev/docs/deploy-environment-variables) -- env var delivery to deployed workers (HIGH confidence)
+- [Trigger.dev syncEnvVars Extension](https://trigger.dev/docs/config/extensions/syncEnvVars) -- build-time env var sync from local/external sources (HIGH confidence)
+- [Trigger.dev Env Vars SDK](https://trigger.dev/changelog/env-vars-sdk) -- programmatic env var management API (HIGH confidence)
+- Codebase analysis: `src/trigger/publish-post.ts` (lines 40-43: env var reads), `src/platforms/handlers/x.handler.ts` (lines 125-159: thread posting), `src/cli/setup-x-oauth.ts` (line 9: hardcoded callback URL), `src/core/db/schema.ts` (line 82: threadProgress metadata type)
 
 ---
-*Architecture research for: Post Shit Now -- CLI-first social media automation*
-*Researched: 2026-02-18*
+*Architecture research for: v1.3 Real-World Reliability integration*
+*Researched: 2026-02-27*
