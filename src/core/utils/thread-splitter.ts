@@ -6,48 +6,109 @@
  * 2. Sentence boundaries (.!?) second
  * 3. Word boundaries as last resort
  *
- * Never splits mid-word.
+ * Uses weighted character counting (countTweetChars) for all size
+ * comparisons -- URLs=23, emoji=2, CJK=2, Latin=1.
+ *
+ * Never splits mid-word. Appends fraction suffix " i/N" to each tweet.
+ * Maximum thread length: 10 tweets.
  */
+
+import { countTweetChars } from "./tweet-validator.ts";
 
 const PARAGRAPH_SEPARATOR = /\n\n+/;
 const SENTENCE_BOUNDARY = /(?<=[.!?])\s+/;
 
+/** Maximum number of tweets in a thread. */
+const MAX_THREAD_LENGTH = 10;
+
 /**
- * Split text into tweet-sized chunks respecting natural boundaries.
- *
- * @param text - The text to split
- * @param maxLen - Maximum characters per tweet (default: 280)
- * @returns Array of tweet strings, empty array for empty/whitespace input
+ * Calculate the character cost of a thread suffix like " 1/3" or " 10/10".
  */
-export function splitIntoThread(text: string, maxLen = 280): string[] {
-	const trimmed = text.trim();
-	if (!trimmed) return [];
+function suffixLength(total: number): number {
+	// Format: " i/N" -- space + digits + slash + digits
+	const totalDigits = String(total).length;
+	// Max index has same digit count as total
+	// " " = 1, index digits, "/" = 1, total digits
+	return 1 + totalDigits + 1 + totalDigits;
+}
 
-	// Step 1: Split by paragraphs first (paragraph boundaries always create separate tweets)
-	const paragraphs = trimmed
-		.split(PARAGRAPH_SEPARATOR)
-		.map((p) => p.trim())
-		.filter(Boolean);
-
-	// Single paragraph that fits -> single tweet
-	const first = paragraphs[0];
-	if (paragraphs.length === 1 && first && first.length <= maxLen) {
-		return [first];
-	}
-
-	// Step 2: Each paragraph becomes its own tweet; split long paragraphs as needed
+/**
+ * Split raw tweets (no suffix reservation) from text and a given maxLen.
+ */
+function splitRaw(paragraphs: string[], maxLen: number): string[] {
 	const tweets: string[] = [];
 
 	for (const paragraph of paragraphs) {
-		if (paragraph.length <= maxLen) {
+		if (countTweetChars(paragraph) <= maxLen) {
 			tweets.push(paragraph);
 		} else {
-			// Paragraph is too long, split by sentence then word boundaries
 			tweets.push(...splitBySentences(paragraph, maxLen));
 		}
 	}
 
 	return tweets;
+}
+
+/**
+ * Split text into tweet-sized chunks respecting natural boundaries.
+ *
+ * Each tweet in the result has a fraction suffix appended (e.g., " 1/3").
+ * Space for the suffix is reserved before splitting so tweets never overflow.
+ *
+ * @param text - The text to split
+ * @param maxLen - Maximum characters per tweet (default: 280)
+ * @returns Array of tweet strings with fraction suffixes, empty array for empty/whitespace input
+ */
+export function splitIntoThread(text: string, maxLen = 280): string[] {
+	const trimmed = text.trim();
+	if (!trimmed) return [];
+
+	// Split by paragraphs first (paragraph boundaries always create separate tweets)
+	const paragraphs = trimmed
+		.split(PARAGRAPH_SEPARATOR)
+		.map((p) => p.trim())
+		.filter(Boolean);
+
+	// Single paragraph that fits -> single tweet (no suffix needed for 1 tweet)
+	const first = paragraphs[0];
+	if (paragraphs.length === 1 && first && countTweetChars(first) <= maxLen) {
+		return [first];
+	}
+
+	// Two-pass approach for suffix reservation:
+	// Pass 1: estimate tweet count with a rough suffix reservation
+	const estimatedSuffix = suffixLength(MAX_THREAD_LENGTH); // worst case
+	const pass1 = splitRaw(paragraphs, maxLen - estimatedSuffix);
+
+	// If single tweet after splitting, return without suffix
+	if (pass1.length === 1) {
+		return pass1;
+	}
+
+	// Pass 2: re-split with actual suffix length if it differs
+	const actualSuffix = suffixLength(Math.min(pass1.length, MAX_THREAD_LENGTH));
+	let tweets: string[];
+
+	if (actualSuffix !== estimatedSuffix) {
+		tweets = splitRaw(paragraphs, maxLen - actualSuffix);
+		// Check if the count changed the suffix length again
+		const recheckSuffix = suffixLength(Math.min(tweets.length, MAX_THREAD_LENGTH));
+		if (recheckSuffix !== actualSuffix) {
+			tweets = splitRaw(paragraphs, maxLen - recheckSuffix);
+		}
+	} else {
+		tweets = pass1;
+	}
+
+	// Cap at MAX_THREAD_LENGTH
+	if (tweets.length > MAX_THREAD_LENGTH) {
+		tweets = tweets.slice(0, MAX_THREAD_LENGTH);
+	}
+
+	const total = tweets.length;
+
+	// Append fraction suffix to each tweet
+	return tweets.map((tweet, i) => `${tweet} ${i + 1}/${total}`);
 }
 
 /**
@@ -61,7 +122,7 @@ function splitBySentences(text: string, maxLen: number): string[] {
 	let current = "";
 
 	for (const sentence of sentences) {
-		if (sentence.length > maxLen) {
+		if (countTweetChars(sentence) > maxLen) {
 			// Sentence itself is too long, flush current and split by words
 			if (current) {
 				tweets.push(current.trim());
@@ -70,7 +131,7 @@ function splitBySentences(text: string, maxLen: number): string[] {
 			tweets.push(...splitByWords(sentence, maxLen));
 		} else {
 			const merged = current ? `${current} ${sentence}` : sentence;
-			if (merged.length <= maxLen) {
+			if (countTweetChars(merged) <= maxLen) {
 				current = merged;
 			} else {
 				if (current) tweets.push(current.trim());
@@ -95,7 +156,7 @@ function splitByWords(text: string, maxLen: number): string[] {
 
 	for (const word of words) {
 		const merged = current ? `${current} ${word}` : word;
-		if (merged.length <= maxLen) {
+		if (countTweetChars(merged) <= maxLen) {
 			current = merged;
 		} else {
 			if (current) tweets.push(current);
@@ -109,9 +170,9 @@ function splitByWords(text: string, maxLen: number): string[] {
 }
 
 /**
- * Format a thread as a numbered preview with character counts.
+ * Format a thread as a numbered preview with weighted character counts.
  *
- * @param tweets - Array of tweet strings
+ * @param tweets - Array of tweet strings (with or without fraction suffixes)
  * @returns Preview string, tweet count, and optional warning
  */
 export function formatThreadPreview(tweets: string[]): {
@@ -122,10 +183,16 @@ export function formatThreadPreview(tweets: string[]): {
 	const total = tweets.length;
 
 	const preview = tweets
-		.map((tweet, i) => `${i + 1}/${total} (${tweet.length} chars)\n${tweet}`)
+		.map(
+			(tweet, i) =>
+				`${i + 1}/${total} (${countTweetChars(tweet)} chars)\n${tweet}`,
+		)
 		.join("\n\n");
 
-	const warning = total > 7 ? `Thread has ${total} tweets (recommended max: 7)` : null;
+	const warning =
+		total > MAX_THREAD_LENGTH
+			? `Thread has ${total} tweets (recommended max: ${MAX_THREAD_LENGTH})`
+			: null;
 
 	return { preview, tweetCount: total, warning };
 }
