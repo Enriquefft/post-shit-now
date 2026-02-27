@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Milestone
 status: unknown
-last_updated: "2026-02-27T07:47:06.835Z"
+last_updated: "2026-02-27T07:50:26.882Z"
 progress:
   total_phases: 26
-  completed_phases: 24
+  completed_phases: 25
   total_plans: 95
-  completed_plans: 90
+  completed_plans: 91
 ---
 
 # Project State
@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 Phase: 22-documentation-and-module-boundaries
-Plan: 2/3 complete
-Status: In progress — plans 22-01 and 22-02 complete, plan 22-03 remaining
-Last activity: 2026-02-27 — Plan 22-01 complete (CLAUDE.md navigation files)
+Plan: 3/3 complete
+Status: Complete — all plans 22-01, 22-02, 22-03 done
+Last activity: 2026-02-27 — Plan 22-03 complete (module API barrels — src/platforms/index.ts, src/core/index.ts)
 
 Progress: [████░░░░░░] 25%
 
@@ -56,6 +56,7 @@ Progress: [████░░░░░░] 25%
 
 *Updated after each plan completion*
 | Phase 22 P01 | 2 | 2 tasks | 3 files |
+| Phase 22 P03 | 4 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting current work:
 - [22-02]: Pre-existing 24 typecheck errors out of scope — confirmed predated the plan via git stash check
 - [Phase 22]: Root CLAUDE.md scoped to orientation only: project overview, ASCII flow diagram, module map, dev commands, slash commands — no tooling rules or extension recipes
 - [Phase 22]: Module CLAUDE.md files use strict two-section structure (Ownership + Key Files) — no extension recipes, no tooling rules
+- [Phase 22]: src/core/index.ts selectively re-exports from types/index.ts — cross-module types excluded to prevent circular deps (LinkedInOAuthConfig, ApprovalAction, HubConnection, etc.)
+- [Phase 22]: platforms/index.ts imports handler classes from individual files (not handlers/index.ts internal barrel) to maintain clear public vs internal barrel semantics
 
 ### Pending Todos
 
@@ -98,6 +101,6 @@ None yet for v1.2.
 
 ## Session Continuity
 
-Last session: 2026-02-27T07:47:00Z
-Stopped at: Completed 22-01-PLAN.md (CLAUDE.md navigation files — 2 tasks, 3 files created)
+Last session: 2026-02-27T07:52:00Z
+Stopped at: Completed 22-03-PLAN.md (Module API barrels — 2 tasks, 2 files created)
 Resume file: None
