@@ -481,7 +481,11 @@ Plans:
   1. A tweet containing URLs, emojis, and CJK characters is counted with correct weighting (URLs=23, emojis=2, CJK=2)
   2. An oversized tweet produces an error message showing actual count vs 280 max before any API call is made
   3. The thread splitter and tweet validator both use a single `countTweetChars()` function (no duplicate counting logic)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 26-01-PLAN.md — Create tweet-validator.ts with weighted character counting and refactor thread-splitter
+- [ ] 26-02-PLAN.md — Wire pre-flight validation into X handler with duplicate detection
 
 #### Phase 27: X OAuth Callback Server
 **Goal**: Users complete X OAuth authorization without manually copying codes from browser URLs
