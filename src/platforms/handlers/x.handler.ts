@@ -137,6 +137,12 @@ export class XHandler implements PlatformPublisher {
 			}
 		}
 
+		// Duplicate detection (soft warning only, does not block)
+		const duplicateWarning = await this.checkDuplicates(db, userId, content);
+		if (duplicateWarning) {
+			logger.warn("Duplicate content detected", { postId, warning: duplicateWarning });
+		}
+
 		try {
 			if (!isThread) {
 				const result = await client.createTweet({ text: tweets[0] ?? content, mediaIds });
@@ -150,6 +156,35 @@ export class XHandler implements PlatformPublisher {
 			}
 			throw error;
 		}
+	}
+
+	private async checkDuplicates(
+		db: DbConnection,
+		userId: string,
+		content: string,
+	): Promise<string | null> {
+		const recentPosts = await db
+			.select({ content: posts.content })
+			.from(posts)
+			.where(
+				sql`${posts.userId} = ${userId}
+					AND ${posts.platform} = 'x'
+					AND ${posts.status} = 'published'
+					AND ${posts.publishedAt} > NOW() - INTERVAL '7 days'`,
+			)
+			.limit(50);
+
+		const inputWords = new Set(content.toLowerCase().split(/\s+/).filter(Boolean));
+		for (const post of recentPosts) {
+			const postWords = new Set(post.content.toLowerCase().split(/\s+/).filter(Boolean));
+			const intersection = new Set([...inputWords].filter((w) => postWords.has(w)));
+			const union = new Set([...inputWords, ...postWords]);
+			const similarity = union.size > 0 ? intersection.size / union.size : 0;
+			if (similarity >= 0.8) {
+				return "Content is 80%+ similar to a post published within the last 7 days";
+			}
+		}
+		return null;
 	}
 
 	private async postThread(
