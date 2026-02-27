@@ -324,11 +324,12 @@ See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for full details
 
 Completed: 2026-02-20
 
-## v1.2 Milestone (In Progress)
+## v1.2 Milestone (Architecture Complete, Testing/Context Carried to v1.3)
 
 **Goal:** Improve agentic coding accuracy through code splitting, interface boundaries, and documentation
-**Timeline:** 2026-02-25 to TBD
+**Timeline:** 2026-02-25 to 2026-02-27
 **Focus:** Address architectural debt to enable AI-assisted development
+**Status:** Architecture phases complete (21-22.1). Phases 23-24 carried to v1.3 as Phases 29-30.
 
 ### Overview
 
@@ -351,8 +352,8 @@ This milestone transforms the codebase for AI-assisted development by:
 - [x] **Phase 21: Foundation and Architecture Cleanup** - Split monolithic code, define interfaces, configure tooling (completed 2026-02-27)
 - [x] **Phase 22: Documentation and Module Boundaries** - CLAUDE.md, path aliases, barrel exports (completed 2026-02-27)
 - [x] **Phase 22.1: Tech Debt Cleanup** - Fix canonical type imports, CLAUDE.md alias label, PostSubStatus union (completed 2026-02-27)
-- [ ] **Phase 23: Testing Infrastructure** - Vitest, mocks, interface compliance tests
-- [ ] **Phase 24: Context Management and Validation** - Context manager, circular dependency detection, pre-commit hooks
+- [ ] **Phase 23: Testing Infrastructure** - Carried to v1.3 as Phase 29
+- [ ] **Phase 24: Context Management and Validation** - Carried to v1.3 as Phase 30
 
 ### Phase Details
 
@@ -402,6 +403,7 @@ Plans:
 - [ ] 22.1-01-PLAN.md — Fix canonical type imports in publish-helpers.ts, add partial_failure to PostSubStatus, correct CLAUDE.md alias label
 
 #### Phase 23: Testing Infrastructure
+**Status**: Carried to v1.3 as Phase 29
 **Goal**: Establish testing infrastructure with interface compliance validation and mock infrastructure
 **Depends on**: Phase 22
 **Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, DOC-03
@@ -414,6 +416,7 @@ Plans:
 **Plans**: TBD
 
 #### Phase 24: Context Management and Validation
+**Status**: Carried to v1.3 as Phase 30
 **Goal**: Consolidate state access patterns and add validation automation
 **Depends on**: Phase 23
 **Requirements**: CTX-01, CTX-02, CTX-03, CTX-04, TOOL-04
@@ -425,18 +428,173 @@ Plans:
   5. Documentation validation prevents context rot
 **Plans**: TBD
 
+## v1.3 Milestone (Real-World Reliability)
+
+**Goal:** Fix every friction point a real user hit during first PSN session -- setup, OAuth, publishing, and Trigger.dev integration
+**Timeline:** 2026-02-27 to TBD
+**Source:** 342-turn trial session analysis (29 hours) + carried v1.2 items
+**Focus:** Deployment infrastructure, X platform publishing pipeline, developer tooling
+
+### Overview
+
+This milestone addresses 6 friction points exposed by real-world usage:
+
+1. **Trigger.dev env var delivery** - Workers deploy with zero credentials, crash on every task
+2. **Tweet validation** - Oversized tweets get misleading 403 errors instead of clear character counts
+3. **X OAuth callback** - No callback server forces manual authorization code capture
+4. **Thread publishing resilience** - Partial thread failures lose tweet IDs, retries create duplicates
+5. **Testing infrastructure** - No test infrastructure for validating fixes (carried from v1.2)
+6. **Context management** - No pre-commit hooks for code quality gates (carried from v1.2)
+
+Zero database migrations. All schema exists -- fixes complete incomplete write paths and add missing validation.
+
+### Phases
+
+- [ ] **Phase 25: Trigger.dev Env Var Delivery** - syncEnvVars build extension for credential delivery to workers
+- [ ] **Phase 26: Tweet Validation** - Weighted character counting and pre-flight validation
+- [ ] **Phase 27: X OAuth Callback Server** - Automatic authorization code capture via localhost
+- [ ] **Phase 28: Thread Publishing Resilience** - Per-tweet checkpoint persistence and resume-from-checkpoint
+- [ ] **Phase 29: Testing Infrastructure** - Vitest, mocks, interface compliance tests (carried from v1.2 Phase 23)
+- [ ] **Phase 30: Context Management** - Pre-commit hooks and state consolidation (carried from v1.2 Phase 24)
+
+### Phase Details
+
+#### Phase 25: Trigger.dev Env Var Delivery
+**Goal**: Trigger.dev workers receive all required credentials at deploy time without manual .env hacking
+**Depends on**: Nothing (first phase of v1.3)
+**Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03
+**Success Criteria** (what must be TRUE):
+  1. Running `bunx trigger.dev deploy` syncs DATABASE_URL, HUB_ENCRYPTION_KEY, and platform credentials to Trigger.dev Cloud
+  2. A task started with missing env vars logs an actionable error listing each missing variable by name
+  3. The syncEnvVars extension reads credentials from local hub config files -- no manual .env file creation required
+**Plans**: TBD
+
+#### Phase 26: Tweet Validation
+**Goal**: Tweets are validated with accurate character counting before submission, producing clear error messages instead of misleading 403s
+**Depends on**: Phase 25 (workers must run to test validation in production)
+**Requirements**: TVAL-01, TVAL-02, TVAL-03
+**Success Criteria** (what must be TRUE):
+  1. A tweet containing URLs, emojis, and CJK characters is counted with correct weighting (URLs=23, emojis=2, CJK=2)
+  2. An oversized tweet produces an error message showing actual count vs 280 max before any API call is made
+  3. The thread splitter and tweet validator both use a single `countTweetChars()` function (no duplicate counting logic)
+**Plans**: TBD
+
+#### Phase 27: X OAuth Callback Server
+**Goal**: Users complete X OAuth authorization without manually copying codes from browser URLs
+**Depends on**: Phase 25 (independent of tweet validation, but workers must run for end-to-end OAuth testing)
+**Requirements**: OAUTH-01, OAUTH-02, OAUTH-03, OAUTH-04
+**Success Criteria** (what must be TRUE):
+  1. Running X OAuth setup opens the browser and automatically captures the authorization code via `http://127.0.0.1:18923/callback`
+  2. The callback URL `http://127.0.0.1:18923/callback` is defined in exactly one constant -- `grep -r` finds zero hardcoded duplicates
+  3. OAuth state parameter is generated, sent with the auth request, and validated on callback to prevent CSRF
+  4. If port 18923 is unavailable, the user is prompted to manually paste the authorization code (graceful fallback)
+**Plans**: TBD
+
+#### Phase 28: Thread Publishing Resilience
+**Goal**: Partial thread failures are recoverable -- no lost tweet IDs, no duplicate tweets on retry
+**Depends on**: Phase 26 (pre-validated tweets reduce mid-thread content failures; both modify x.handler.ts)
+**Requirements**: THREAD-01, THREAD-02, THREAD-03, THREAD-04
+**Success Criteria** (what must be TRUE):
+  1. After each successful tweet in a thread, the posted tweet ID is persisted to the DB within the same error boundary
+  2. When a thread publish is retried (via Trigger.dev), posting resumes from the last checkpoint -- already-posted tweets are skipped
+  3. If a checkpoint DB write fails, it retries 2-3 times before surfacing the error -- checkpoint failures are never swallowed
+  4. X Error 187 (duplicate status) received during retry is treated as "already posted" and the thread continues
+**Plans**: TBD
+
+#### Phase 29: Testing Infrastructure
+**Goal**: Validate all v1.3 fixes with automated tests and establish mock infrastructure for ongoing development
+**Depends on**: Phase 28 (tests written after production code stabilizes)
+**Carried from**: v1.2 Phase 23
+**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, DOC-03
+**Success Criteria** (what must be TRUE):
+  1. `bun test` runs Vitest with TypeScript path alias resolution (@psn/core, @psn/platforms) working
+  2. Mock classes exist for X, LinkedIn, Instagram, and TikTok API clients (mock at client class boundary, not HTTP layer)
+  3. Interface compliance tests verify each PlatformPublisher handler satisfies behavioral contracts (preconditions, postconditions, error handling)
+  4. Unit tests cover tweet validation (`countTweetChars` edge cases) and thread checkpoint logic (resume, duplicate detection)
+  5. Public API functions in platforms/ and core/ have JSDoc comments with behavioral contracts
+**Plans**: TBD
+
+#### Phase 30: Context Management
+**Goal**: Automated code quality gates at commit time and consolidated project state documentation
+**Depends on**: Phase 29 (hooks validate code that must be stable; tests must exist first)
+**Carried from**: v1.2 Phase 24
+**Requirements**: CTX-01, CTX-02, CTX-03, CTX-04
+**Success Criteria** (what must be TRUE):
+  1. `git commit` triggers lefthook pre-commit hooks that run `biome check --fix` on staged files and auto-re-stage fixed files
+  2. Pre-commit hooks run typecheck in parallel with biome, completing in under 3 seconds total
+  3. Circular dependency detection (madge) runs at commit time and blocks commits that introduce cycles
+  4. A documented consolidation process exists for keeping PROJECT.md and MEMORY.md in sync
+**Plans**: TBD
+
+### Requirements Coverage (v1.3)
+
+| Requirement | Phase | Category |
+|-------------|-------|----------|
+| DEPLOY-01 | Phase 25 | Deployment Infrastructure |
+| DEPLOY-02 | Phase 25 | Deployment Infrastructure |
+| DEPLOY-03 | Phase 25 | Deployment Infrastructure |
+| TVAL-01 | Phase 26 | Tweet Validation |
+| TVAL-02 | Phase 26 | Tweet Validation |
+| TVAL-03 | Phase 26 | Tweet Validation |
+| OAUTH-01 | Phase 27 | OAuth Flow |
+| OAUTH-02 | Phase 27 | OAuth Flow |
+| OAUTH-03 | Phase 27 | OAuth Flow |
+| OAUTH-04 | Phase 27 | OAuth Flow |
+| THREAD-01 | Phase 28 | Thread Resilience |
+| THREAD-02 | Phase 28 | Thread Resilience |
+| THREAD-03 | Phase 28 | Thread Resilience |
+| THREAD-04 | Phase 28 | Thread Resilience |
+| TEST-01 | Phase 29 | Testing Infrastructure |
+| TEST-02 | Phase 29 | Testing Infrastructure |
+| TEST-03 | Phase 29 | Testing Infrastructure |
+| TEST-04 | Phase 29 | Testing Infrastructure |
+| DOC-03 | Phase 29 | Testing Infrastructure |
+| CTX-01 | Phase 30 | Context Management |
+| CTX-02 | Phase 30 | Context Management |
+| CTX-03 | Phase 30 | Context Management |
+| CTX-04 | Phase 30 | Context Management |
+
+**Mapped: 23/23 requirements** -- full coverage, no orphans.
+
+### Dependency Chain
+
+```
+Phase 25 (Env Vars) ─── prerequisite for all production testing
+    │
+    ├── Phase 26 (Tweet Validation) ─── independent, lands before 28 to avoid x.handler.ts conflicts
+    │       │
+    │       └── Phase 28 (Thread Resilience) ─── benefits from pre-validated tweets
+    │
+    └── Phase 27 (OAuth Callback) ─── independent of publishing fixes
+                                        │
+                                        └── Phase 29 (Testing) ─── tests written after code stabilizes
+                                                │
+                                                └── Phase 30 (Context Mgmt) ─── hooks validate stable code
+```
+
+### Research Flags
+
+- **Phase 28 (Thread Resilience):** HIGH complexity. Consider `/gsd:research-phase` for checkpoint write error handling, X Error 187 parsing, and optimistic locking patterns.
+- **All other phases:** Standard patterns, skip research-phase.
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 21 → 22 → 22.1 → 23 → 24
+Phases execute in numeric order: 21 → 22 → 22.1 → 25 → 26 → 27 → 28 → 29 → 30
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 21. Foundation and Architecture Cleanup | v1.2 | 2/2 | Complete | 2026-02-27 |
 | 22. Documentation and Module Boundaries | v1.2 | 3/3 | Complete | 2026-02-27 |
-| 22.1. Tech Debt Cleanup | 1/1 | Complete    | 2026-02-27 | - |
-| 23. Testing Infrastructure | v1.2 | 0/0 | Not started | - |
-| 24. Context Management and Validation | v1.2 | 0/0 | Not started | - |
+| 22.1. Tech Debt Cleanup | v1.2 | 1/1 | Complete | 2026-02-27 |
+| 23. Testing Infrastructure | v1.2 | - | Carried to v1.3 Phase 29 | - |
+| 24. Context Management | v1.2 | - | Carried to v1.3 Phase 30 | - |
+| 25. Trigger.dev Env Var Delivery | v1.3 | 0/0 | Not started | - |
+| 26. Tweet Validation | v1.3 | 0/0 | Not started | - |
+| 27. X OAuth Callback Server | v1.3 | 0/0 | Not started | - |
+| 28. Thread Publishing Resilience | v1.3 | 0/0 | Not started | - |
+| 29. Testing Infrastructure | v1.3 | 0/0 | Not started | - |
+| 30. Context Management | v1.3 | 0/0 | Not started | - |
 
 ---
 
