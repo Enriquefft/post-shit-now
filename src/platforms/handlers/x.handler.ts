@@ -8,6 +8,7 @@ import type { PlatformPublisher } from "../../core/types/publisher.ts";
 import { decrypt, encrypt } from "../../core/utils/crypto.ts";
 import { registerHandler } from "../../core/utils/publisher-factory.ts";
 import { splitIntoThread } from "../../core/utils/thread-splitter.ts";
+import { validateTweet, countTweetChars } from "../../core/utils/tweet-validator.ts";
 import { XClient } from "../x/client.ts";
 import { uploadMedia } from "../x/media.ts";
 import { createXOAuthClient, refreshAccessToken as refreshXToken } from "../x/oauth.ts";
@@ -99,11 +100,40 @@ export class XHandler implements PlatformPublisher {
 				tweets = [content];
 			}
 		} catch {
-			if (content.length > 280) {
+			if (countTweetChars(content) > 280) {
 				tweets = splitIntoThread(content);
 				isThread = tweets.length > 1;
 			} else {
 				tweets = [content];
+			}
+		}
+
+		// Pre-flight tweet validation (blocks oversized, warns on mentions/hashtags)
+		if (!isThread) {
+			const validation = validateTweet(tweets[0] ?? content);
+			if (!validation.valid) {
+				return {
+					platform: "x",
+					status: "failed",
+					error: `${validation.errors.join("; ")}. Consider splitting into a thread`,
+				};
+			}
+			if (validation.warnings.length > 0) {
+				logger.warn("Tweet validation warnings", { postId, warnings: validation.warnings });
+			}
+		} else {
+			for (const [i, tweet] of tweets.entries()) {
+				const v = validateTweet(tweet);
+				if (!v.valid) {
+					return {
+						platform: "x",
+						status: "failed",
+						error: `Thread tweet ${i + 1}: ${v.errors.join("; ")}`,
+					};
+				}
+				if (v.warnings.length > 0) {
+					logger.warn("Thread tweet validation warnings", { postId, tweetIndex: i + 1, warnings: v.warnings });
+				}
 			}
 		}
 
