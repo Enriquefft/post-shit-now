@@ -64,16 +64,16 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARCH-01 | Phase 21 | Complete |
+| ARCH-01 | Phase 21 / Phase 22.1 | Complete (gap: publish-helpers.ts type redeclaration, PostSubStatus) |
 | ARCH-02 | Phase 21 | Complete |
 | ARCH-03 | Phase 21 | Complete |
-| ARCH-04 | Phase 21 | Complete |
+| ARCH-04 | Phase 21 / Phase 22.1 | Complete (gap: publish-helpers.ts type redeclaration) |
 | ARCH-05 | Phase 21 | Complete |
-| DOC-01 | Phase 22 | Complete |
+| DOC-01 | Phase 22 / Phase 22.1 | Complete (gap: @psn/trigger label in CLAUDE.md) |
 | DOC-02 | Phase 22 | Complete |
 | DOC-03 | Phase 23 | Pending |
 | ARCH-06 | Phase 22 | Complete |
-| ARCH-07 | Phase 22 | Complete |
+| ARCH-07 | Phase 22 / Phase 22.1 | Complete (gap: @psn/trigger label in CLAUDE.md) |
 | ARCH-08 | Phase 22 | Complete |
 | ARCH-09 | Phase 22 | Complete |
 | ARCH-10 | Phase 22 | Complete |

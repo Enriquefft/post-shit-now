@@ -350,6 +350,7 @@ This milestone transforms the codebase for AI-assisted development by:
 
 - [x] **Phase 21: Foundation and Architecture Cleanup** - Split monolithic code, define interfaces, configure tooling (completed 2026-02-27)
 - [x] **Phase 22: Documentation and Module Boundaries** - CLAUDE.md, path aliases, barrel exports (completed 2026-02-27)
+- [ ] **Phase 22.1: Tech Debt Cleanup** - Fix canonical type imports, CLAUDE.md alias label, PostSubStatus union
 - [ ] **Phase 23: Testing Infrastructure** - Vitest, mocks, interface compliance tests
 - [ ] **Phase 24: Context Management and Validation** - Context manager, circular dependency detection, pre-commit hooks
 
@@ -385,6 +386,18 @@ Plans:
 - [ ] 22-02-PLAN.md — Replace wildcard tsconfig path alias with specific @psn/core, @psn/platforms, @psn/trigger aliases
 - [ ] 22-03-PLAN.md — Create public API barrel exports for src/platforms/index.ts and src/core/index.ts
 
+#### Phase 22.1: Tech Debt Cleanup
+**Goal**: Address actionable tech debt from v1.2 milestone audit before proceeding to testing infrastructure
+**Depends on**: Phase 22
+**Gap Closure**: Closes tech debt items from v1.2-MILESTONE-AUDIT.md
+**Requirements**: ARCH-01, ARCH-04, DOC-01, ARCH-07
+**Success Criteria** (what must be TRUE):
+  1. `publish-helpers.ts` imports `DbConnection` and `PostRow` from `src/core/types/publisher.ts` (no local redeclaration)
+  2. `CLAUDE.md` Module Map shows `@psn/trigger/*` (not bare `@psn/trigger`)
+  3. `PostSubStatus` union in `src/core/types/index.ts` includes `"partial_failure"` member
+  4. `bun run typecheck` error count unchanged (no new errors introduced)
+**Plans**: TBD
+
 #### Phase 23: Testing Infrastructure
 **Goal**: Establish testing infrastructure with interface compliance validation and mock infrastructure
 **Depends on**: Phase 22
@@ -412,15 +425,16 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 21 → 22 → 23 → 24
+Phases execute in numeric order: 21 → 22 → 22.1 → 23 → 24
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 21. Foundation and Architecture Cleanup | 2/2 | Complete   | 2026-02-27 | - |
-| 22. Documentation and Module Boundaries | 3/3 | Complete    | 2026-02-27 | - |
+| 21. Foundation and Architecture Cleanup | v1.2 | 2/2 | Complete | 2026-02-27 |
+| 22. Documentation and Module Boundaries | v1.2 | 3/3 | Complete | 2026-02-27 |
+| 22.1. Tech Debt Cleanup | v1.2 | 0/0 | Not started | - |
 | 23. Testing Infrastructure | v1.2 | 0/0 | Not started | - |
 | 24. Context Management and Validation | v1.2 | 0/0 | Not started | - |
 
 ---
 
-*Last updated: 2026-02-25*
+*Last updated: 2026-02-27*
