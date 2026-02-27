@@ -1,6 +1,11 @@
 import { generateCodeVerifier, generateState, Twitter } from "arctic";
 import type { XOAuthConfig } from "../../core/types/index.ts";
 
+/** Single source of truth for X OAuth callback URL. Used by setup flow and callback server. */
+export const X_CALLBACK_URL = "http://127.0.0.1:18923/callback";
+export const OAUTH_CALLBACK_PORT = 18923;
+export const OAUTH_CALLBACK_HOSTNAME = "127.0.0.1";
+
 /**
  * Create an Arctic Twitter OAuth 2.0 PKCE client.
  */
