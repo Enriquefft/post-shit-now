@@ -4,9 +4,8 @@ import { oauthTokens } from "../core/db/schema.ts";
 import type { SetupResult } from "../core/types/index.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
-import { createXOAuthClient, exchangeCode, generateAuthUrl } from "../platforms/x/oauth.ts";
-
-const X_CALLBACK_URL = "https://example.com/callback";
+import { createXOAuthClient, exchangeCode, generateAuthUrl, X_CALLBACK_URL } from "../platforms/x/oauth.ts";
+import { captureOAuthCallback } from "./oauth-callback-server.ts";
 
 /**
  * X OAuth setup step for /psn:setup.
@@ -51,7 +50,7 @@ export async function setupXOAuth(configDir = "config"): Promise<SetupResult> {
 					"   - Set App permissions: Read and write",
 					"   - Set Type: Web App, Automated App or Bot",
 					"   - Enable OAuth 2.0",
-					"   - Set Callback URL to: https://example.com/callback",
+					"   - Set Callback URL to: http://127.0.0.1:18923/callback",
 					"   - Set Website URL to any valid URL",
 					"3. Go to Keys and tokens -> OAuth 2.0 Client ID and Client Secret",
 					"4. Add to config/keys.env:",
@@ -98,24 +97,36 @@ export async function setupXOAuth(configDir = "config"): Promise<SetupResult> {
 		}
 	}
 
-	// No valid token — generate auth URL
+	// No valid token — initiate OAuth flow
 	const client = createXOAuthClient({
 		clientId,
 		clientSecret,
 		callbackUrl: X_CALLBACK_URL,
 	});
-	const { url, state: _state, codeVerifier } = generateAuthUrl(client);
+	const { url, state, codeVerifier } = generateAuthUrl(client);
 
+	// Try automatic capture via callback server
+	const outcome = await captureOAuthCallback(state, {
+		authUrl: url,
+		timeoutMs: 120_000,
+	});
+
+	if (outcome.ok) {
+		// Auto-captured -- proceed directly to token exchange
+		return completeXOAuth(configDir, outcome.result.code, outcome.result.state, codeVerifier);
+	}
+
+	// Fallback: manual code entry (OAUTH-04)
 	return {
 		step: "x-oauth",
 		status: "need_input",
-		message: "X authorization required",
+		message: `${outcome.error.message} Paste the authorization code from the redirect URL:`,
 		data: {
 			authUrl: url,
-			state: _state,
+			state,
 			codeVerifier,
 			instructions:
-				"Open the URL above in your browser, authorize the app, then paste the authorization code from the redirect URL (the 'code' parameter)",
+				"Open the URL above in your browser, authorize the app, then paste the authorization code (the 'code' query parameter from the redirect URL)",
 		},
 	};
 }
