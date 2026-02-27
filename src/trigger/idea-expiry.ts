@@ -1,6 +1,7 @@
 import { logger, schedules } from "@trigger.dev/sdk";
 import { createHubConnection } from "../core/db/connection.ts";
 import { expireTimelyIdeas } from "../ideas/lifecycle.ts";
+import { CORE_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 
 /**
  * Daily idea expiry checker.
@@ -12,14 +13,9 @@ export const ideaExpiry = schedules.task({
 	cron: "0 7 * * *",
 	maxDuration: 60, // 1 minute
 	run: async () => {
-		const databaseUrl = process.env.DATABASE_URL;
+		const env = requireEnvVars(CORE_ENV_VARS, "idea-expiry");
 
-		if (!databaseUrl) {
-			logger.error("DATABASE_URL not set -- cannot run idea expiry");
-			return { status: "error", reason: "missing_env" };
-		}
-
-		const db = createHubConnection(databaseUrl);
+		const db = createHubConnection(env.DATABASE_URL);
 		const userId = "default";
 
 		try {

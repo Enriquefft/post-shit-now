@@ -3,6 +3,14 @@ import { sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
+import {
+	CRYPTO_ENV_VARS,
+	INSTAGRAM_ENV_VARS,
+	LINKEDIN_ENV_VARS,
+	TIKTOK_ENV_VARS,
+	X_ENV_VARS,
+	requireEnvVars,
+} from "./env-validation.ts";
 import { refreshInstagramToken } from "../platforms/instagram/oauth.ts";
 import {
 	createLinkedInOAuthClient,
@@ -50,20 +58,10 @@ export const tokenRefresher = schedules.task({
 	cron: "0 */6 * * *",
 	maxDuration: 120,
 	run: async () => {
-		const databaseUrl = process.env.DATABASE_URL;
-		const encryptionKey = process.env.HUB_ENCRYPTION_KEY;
+		const env = requireEnvVars(CRYPTO_ENV_VARS, "token-refresher");
 
-		if (!databaseUrl) {
-			logger.error("DATABASE_URL not set — cannot run token refresher");
-			return { total: 0, refreshed: 0, failed: 0, skipped: 0 };
-		}
-		if (!encryptionKey) {
-			logger.error("HUB_ENCRYPTION_KEY not set — cannot decrypt tokens");
-			return { total: 0, refreshed: 0, failed: 0, skipped: 0 };
-		}
-
-		const db = createHubConnection(databaseUrl);
-		const encKey = keyFromHex(encryptionKey);
+		const db = createHubConnection(env.DATABASE_URL);
+		const encKey = keyFromHex(env.HUB_ENCRYPTION_KEY);
 
 		const result: TokenRefresherResult = { total: 0, refreshed: 0, failed: 0, skipped: 0 };
 
@@ -110,20 +108,12 @@ export const tokenRefresher = schedules.task({
 
 				if (token.platform === "x") {
 					// ─── X Token Refresh ──────────────────────────────────────
-					const clientId = process.env.X_CLIENT_ID;
-					const clientSecret = process.env.X_CLIENT_SECRET;
-					if (!clientId || !clientSecret) {
-						logger.warn("X_CLIENT_ID or X_CLIENT_SECRET not set — skipping X token", {
-							tokenId: token.id,
-						});
-						result.skipped++;
-						continue;
-					}
+					const xEnv = requireEnvVars(X_ENV_VARS, "token-refresher/x");
 
 					if (!xOAuthClient) {
 						xOAuthClient = createXOAuthClient({
-							clientId,
-							clientSecret,
+							clientId: xEnv.X_CLIENT_ID,
+							clientSecret: xEnv.X_CLIENT_SECRET,
 							callbackUrl: "https://example.com/callback",
 						});
 					}
@@ -132,23 +122,12 @@ export const tokenRefresher = schedules.task({
 					newTokens = await refreshXToken(xOAuthClient, decryptedRefresh);
 				} else if (token.platform === "linkedin") {
 					// ─── LinkedIn Token Refresh ───────────────────────────────
-					const clientId = process.env.LINKEDIN_CLIENT_ID;
-					const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
-					if (!clientId || !clientSecret) {
-						logger.warn(
-							"LINKEDIN_CLIENT_ID or LINKEDIN_CLIENT_SECRET not set — skipping LinkedIn token",
-							{
-								tokenId: token.id,
-							},
-						);
-						result.skipped++;
-						continue;
-					}
+					const liEnv = requireEnvVars(LINKEDIN_ENV_VARS, "token-refresher/linkedin");
 
 					if (!linkedInOAuthClient) {
 						linkedInOAuthClient = createLinkedInOAuthClient({
-							clientId,
-							clientSecret,
+							clientId: liEnv.LINKEDIN_CLIENT_ID,
+							clientSecret: liEnv.LINKEDIN_CLIENT_SECRET,
 							callbackUrl: "https://example.com/callback",
 						});
 					}
@@ -160,23 +139,12 @@ export const tokenRefresher = schedules.task({
 					logLinkedInExpiryWarnings(token);
 				} else if (token.platform === "tiktok") {
 					// ─── TikTok Token Refresh ────────────────────────────────
-					const clientKey = process.env.TIKTOK_CLIENT_KEY;
-					const clientSecret = process.env.TIKTOK_CLIENT_SECRET;
-					if (!clientKey || !clientSecret) {
-						logger.warn(
-							"TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET not set — skipping TikTok token",
-							{
-								tokenId: token.id,
-							},
-						);
-						result.skipped++;
-						continue;
-					}
+					const ttEnv = requireEnvVars(TIKTOK_ENV_VARS, "token-refresher/tiktok");
 
 					if (!tikTokOAuthClient) {
 						tikTokOAuthClient = createTikTokOAuthClient({
-							clientKey,
-							clientSecret,
+							clientKey: ttEnv.TIKTOK_CLIENT_KEY,
+							clientSecret: ttEnv.TIKTOK_CLIENT_SECRET,
 							callbackUrl: "https://example.com/callback",
 						});
 					}

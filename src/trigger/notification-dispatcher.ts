@@ -2,6 +2,7 @@ import { logger, task } from "@trigger.dev/sdk";
 import { sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
+import { CORE_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 import { dispatchNotification, routeCompanyNotification } from "../notifications/dispatcher.ts";
 import { createWhatsAppProvider } from "../notifications/provider.ts";
 import type {
@@ -47,13 +48,9 @@ export const notificationDispatcherTask = task({
 	id: "notification-dispatcher",
 	maxDuration: 60,
 	run: async (input: DispatchPayload) => {
-		const databaseUrl = process.env.DATABASE_URL;
-		if (!databaseUrl) {
-			logger.error("DATABASE_URL not set");
-			return { dispatched: 0, skipped: 0, downgraded: 0 };
-		}
+		const env = requireEnvVars(CORE_ENV_VARS, "notification-dispatcher");
 
-		const db = createHubConnection(databaseUrl);
+		const db = createHubConnection(env.DATABASE_URL);
 		const result = { dispatched: 0, skipped: 0, downgraded: 0 };
 
 		// Determine target users

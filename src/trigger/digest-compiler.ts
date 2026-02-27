@@ -2,6 +2,7 @@ import { logger, schedules } from "@trigger.dev/sdk";
 import { sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
+import { CORE_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 import { compileDigest, formatDigestMessage } from "../notifications/digest.ts";
 import { isQuietHours } from "../notifications/dispatcher.ts";
 import { createWhatsAppProvider } from "../notifications/provider.ts";
@@ -46,13 +47,9 @@ export const digestCompilerTask = schedules.task({
 	cron: "0 * * * *", // every hour
 	maxDuration: 300, // 5 minutes
 	run: async () => {
-		const databaseUrl = process.env.DATABASE_URL;
-		if (!databaseUrl) {
-			logger.error("DATABASE_URL not set");
-			return { digestsSent: 0, skipped: 0, errors: 0 };
-		}
+		const env = requireEnvVars(CORE_ENV_VARS, "digest-compiler");
 
-		const db = createHubConnection(databaseUrl);
+		const db = createHubConnection(env.DATABASE_URL);
 		const result = { digestsSent: 0, skipped: 0, errors: 0 };
 
 		// Find all users with digest enabled

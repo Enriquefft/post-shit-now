@@ -10,6 +10,14 @@ import {
 import { createHubConnection } from "../core/db/connection.ts";
 import { oauthTokens } from "../core/db/schema.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
+import {
+	CRYPTO_ENV_VARS,
+	INSTAGRAM_ENV_VARS,
+	LINKEDIN_ENV_VARS,
+	TIKTOK_ENV_VARS,
+	X_ENV_VARS,
+	requireEnvVars,
+} from "./env-validation.ts";
 import { InstagramClient } from "../platforms/instagram/client.ts";
 import { refreshInstagramToken } from "../platforms/instagram/oauth.ts";
 import { LinkedInClient } from "../platforms/linkedin/client.ts";
@@ -35,20 +43,10 @@ export const analyticsCollector = schedules.task({
 	maxDuration: 300, // 5 minutes
 	run: async () => {
 		// Load env vars
-		const databaseUrl = process.env.DATABASE_URL;
-		const encryptionKeyHex = process.env.HUB_ENCRYPTION_KEY;
+		const env = requireEnvVars(CRYPTO_ENV_VARS, "analytics-collector");
 
-		if (!databaseUrl) {
-			logger.error("DATABASE_URL not set — cannot run analytics collector");
-			return { status: "error", reason: "missing_env" };
-		}
-		if (!encryptionKeyHex) {
-			logger.error("HUB_ENCRYPTION_KEY not set — cannot decrypt tokens");
-			return { status: "error", reason: "missing_env" };
-		}
-
-		const encKey = keyFromHex(encryptionKeyHex);
-		const db = createHubConnection(databaseUrl);
+		const encKey = keyFromHex(env.HUB_ENCRYPTION_KEY);
+		const db = createHubConnection(env.DATABASE_URL);
 		const userId = "default";
 
 		const results: Record<string, CollectionSummary | { error: string }> = {};
@@ -124,13 +122,7 @@ async function collectXAnalytics(
 	encKey: Buffer,
 	userId: string,
 ): Promise<CollectionSummary> {
-	const xClientId = process.env.X_CLIENT_ID;
-	const xClientSecret = process.env.X_CLIENT_SECRET;
-
-	if (!xClientId || !xClientSecret) {
-		logger.warn("X_CLIENT_ID or X_CLIENT_SECRET not set — skipping X analytics");
-		return { postsCollected: 0, followerCount: 0, apiCallsMade: 0, errors: 0 };
-	}
+	const xEnv = requireEnvVars(X_ENV_VARS, "analytics-collector/x");
 
 	// Fetch OAuth token
 	const [token] = await db
@@ -153,8 +145,8 @@ async function collectXAnalytics(
 		}
 
 		const xOAuthClient = createXOAuthClient({
-			clientId: xClientId,
-			clientSecret: xClientSecret,
+			clientId: xEnv.X_CLIENT_ID,
+			clientSecret: xEnv.X_CLIENT_SECRET,
 			callbackUrl: "https://example.com/callback",
 		});
 
@@ -197,13 +189,7 @@ async function collectLinkedInAnalyticsTask(
 	encKey: Buffer,
 	userId: string,
 ): Promise<CollectionSummary | null> {
-	const linkedInClientId = process.env.LINKEDIN_CLIENT_ID;
-	const linkedInClientSecret = process.env.LINKEDIN_CLIENT_SECRET;
-
-	if (!linkedInClientId || !linkedInClientSecret) {
-		// LinkedIn not configured — skip silently (optional platform)
-		return null;
-	}
+	const liEnv = requireEnvVars(LINKEDIN_ENV_VARS, "analytics-collector/linkedin");
 
 	// Fetch OAuth token
 	const [token] = await db
@@ -226,8 +212,8 @@ async function collectLinkedInAnalyticsTask(
 		}
 
 		const linkedInOAuthClient = createLinkedInOAuthClient({
-			clientId: linkedInClientId,
-			clientSecret: linkedInClientSecret,
+			clientId: liEnv.LINKEDIN_CLIENT_ID,
+			clientSecret: liEnv.LINKEDIN_CLIENT_SECRET,
 			callbackUrl: "https://example.com/callback",
 		});
 
@@ -271,13 +257,7 @@ async function collectInstagramAnalyticsTask(
 	encKey: Buffer,
 	userId: string,
 ): Promise<CollectionSummary | null> {
-	const instagramAppId = process.env.INSTAGRAM_APP_ID;
-	const instagramAppSecret = process.env.INSTAGRAM_APP_SECRET;
-
-	if (!instagramAppId || !instagramAppSecret) {
-		// Instagram not configured — skip silently
-		return null;
-	}
+	const igEnv = requireEnvVars(INSTAGRAM_ENV_VARS, "analytics-collector/instagram");
 
 	// Fetch OAuth token
 	const [token] = await db
@@ -353,13 +333,7 @@ async function collectTikTokAnalyticsTask(
 	encKey: Buffer,
 	userId: string,
 ): Promise<CollectionSummary | null> {
-	const tiktokClientKey = process.env.TIKTOK_CLIENT_KEY;
-	const tiktokClientSecret = process.env.TIKTOK_CLIENT_SECRET;
-
-	if (!tiktokClientKey || !tiktokClientSecret) {
-		// TikTok not configured — skip silently
-		return null;
-	}
+	const ttEnv = requireEnvVars(TIKTOK_ENV_VARS, "analytics-collector/tiktok");
 
 	// Fetch OAuth token
 	const [token] = await db
@@ -383,8 +357,8 @@ async function collectTikTokAnalyticsTask(
 		}
 
 		const tiktokOAuthClient = createTikTokOAuthClient({
-			clientKey: tiktokClientKey,
-			clientSecret: tiktokClientSecret,
+			clientKey: ttEnv.TIKTOK_CLIENT_KEY,
+			clientSecret: ttEnv.TIKTOK_CLIENT_SECRET,
 			callbackUrl: "https://example.com/callback",
 		});
 
