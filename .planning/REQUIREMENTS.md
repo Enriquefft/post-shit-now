@@ -15,9 +15,9 @@ Requirements for real-world reliability fixes. Derived from 342-turn trial sessi
 
 ### Tweet Validation
 
-- [ ] **TVAL-01**: Tweets are validated with weighted character counting (URLs=23, emojis=2, CJK=2) before API submission
+- [x] **TVAL-01**: Tweets are validated with weighted character counting (URLs=23, emojis=2, CJK=2) before API submission
 - [ ] **TVAL-02**: Oversized tweets produce clear error messages with actual vs max character count instead of misleading 403
-- [ ] **TVAL-03**: Thread splitter and tweet validator share a single countTweetChars() utility (single source of truth)
+- [x] **TVAL-03**: Thread splitter and tweet validator share a single countTweetChars() utility (single source of truth)
 
 ### OAuth Flow
 
@@ -73,9 +73,9 @@ Requirements for real-world reliability fixes. Derived from 342-turn trial sessi
 | DEPLOY-01 | Phase 25 | Complete |
 | DEPLOY-02 | Phase 25 | Complete |
 | DEPLOY-03 | Phase 25 | Complete |
-| TVAL-01 | Phase 26 | Pending |
+| TVAL-01 | Phase 26 | Complete |
 | TVAL-02 | Phase 26 | Pending |
-| TVAL-03 | Phase 26 | Pending |
+| TVAL-03 | Phase 26 | Complete |
 | OAUTH-01 | Phase 27 | Pending |
 | OAUTH-02 | Phase 27 | Pending |
 | OAUTH-03 | Phase 27 | Pending |
