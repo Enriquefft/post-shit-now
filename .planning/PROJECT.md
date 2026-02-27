@@ -64,20 +64,19 @@ Post Shit Now v1.0 is production-ready with comprehensive feature coverage:
 
 See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for complete milestone details
 
-## Current Milestone: v1.2 (Agentic Architecture Improvements)
+## Current Milestone: v1.3 (Real-World Reliability)
 
-**Goal:** Improve agentic coding accuracy through code splitting, interface boundaries, and documentation
+**Goal:** Fix every friction point a real user hit during first PSN session — setup, OAuth, publishing, and Trigger.dev integration
 
-**Context:** v1.1 completed critical setup fixes (Phase 1). Remaining phases deferred due to pivot toward agentic development improvements. Research identified `publish-post.ts` (1,239 lines) as primary coupling hotspot - all platform clients imported directly, no interface contracts, difficult for AI assistants to understand scope.
+**Context:** v1.2 completed architecture cleanup (Phases 21–22.1). Remaining v1.2 phases (Testing, Context Management) carried into v1.3. A real-user trial session (342 turns, 29 hours) exposed 7 product-level issues through log analysis. None are cosmetic — each one either blocks setup, loses data, or makes retries impossible.
 
 **Focus areas:**
-- Code splitting - Extract platform handlers, define interfaces
-- Module boundaries - Create clear contracts between components
-- Context management - Consolidate state access patterns
-- Documentation - Assistant guides, architecture overview
-- Context rot prevention - Keep docs synchronized with code
-
-**Note:** v1.1 incomplete phases archived. v1.2 starts fresh with agentic development focus.
+- Trigger.dev env var delivery — workers get no credentials without manual `.env` hacking
+- X OAuth flow — placeholder callback URL, no callback server, manual code capture
+- Thread publishing resilience — partial failures unrecoverable, tweet IDs lost
+- Tweet validation — X returns misleading 403 for oversized tweets
+- Testing infrastructure — carried from v1.2 (Vitest, mocks, compliance tests)
+- Context management — carried from v1.2 (state consolidation, pre-commit hooks)
 
 <details>
 <summary>v1.0 Archived Requirements</summary>
