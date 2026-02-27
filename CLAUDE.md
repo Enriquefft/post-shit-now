@@ -18,7 +18,7 @@ Users interact through slash commands in Claude Code. Commands schedule Trigger.
 |-------|------|----------------|
 | `@psn/core` | `src/core/` | Shared types, DB connection, crypto utils |
 | `@psn/platforms` | `src/platforms/` | Platform handlers + PlatformPublisher contract |
-| `@psn/trigger` | `src/trigger/` | Trigger.dev scheduled tasks |
+| `@psn/trigger/*` | `src/trigger/` | Trigger.dev scheduled tasks |
 
 Other top-level directories (no alias — relative imports):
 
