@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Milestone
 status: unknown
-last_updated: "2026-02-27T07:54:00.039Z"
+last_updated: "2026-02-27T10:59:00.000Z"
 progress:
   total_phases: 26
-  completed_phases: 25
+  completed_phases: 26
   total_plans: 95
-  completed_plans: 91
+  completed_plans: 92
 ---
 
 # Project State
@@ -22,10 +22,10 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 
 ## Current Position
 
-Phase: 22-documentation-and-module-boundaries
-Plan: 3/3 complete
-Status: Complete — all plans 22-01, 22-02, 22-03 done
-Last activity: 2026-02-27 — Plan 22-03 complete (module API barrels — src/platforms/index.ts, src/core/index.ts)
+Phase: 22.1-tech-debt-cleanup
+Plan: 1/1 complete
+Status: Complete — plan 22.1-01 done
+Last activity: 2026-02-27 — Plan 22.1-01 complete (fix type imports, add partial_failure, correct CLAUDE.md alias)
 
 Progress: [████░░░░░░] 25%
 
@@ -57,6 +57,7 @@ Progress: [████░░░░░░] 25%
 *Updated after each plan completion*
 | Phase 22 P01 | 2 | 2 tasks | 3 files |
 | Phase 22 P03 | 4 | 2 tasks | 2 files |
+| Phase 22.1 P01 | 5 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 22]: Module CLAUDE.md files use strict two-section structure (Ownership + Key Files) — no extension recipes, no tooling rules
 - [Phase 22]: src/core/index.ts selectively re-exports from types/index.ts — cross-module types excluded to prevent circular deps (LinkedInOAuthConfig, ApprovalAction, HubConnection, etc.)
 - [Phase 22]: platforms/index.ts imports handler classes from individual files (not handlers/index.ts internal barrel) to maintain clear public vs internal barrel semantics
+- [22.1-01]: publish-helpers.ts must import DbConnection/PostRow from @psn/core/types/publisher.ts — never re-declare locally (single-source-of-truth)
+- [22.1-01]: @psn/trigger/* is the correct alias form — no bare @psn/trigger; correct usage is import from '@psn/trigger/publish-post'
 
 ### Pending Todos
 
@@ -101,6 +104,6 @@ None yet for v1.2.
 
 ## Session Continuity
 
-Last session: 2026-02-27T07:52:00Z
-Stopped at: Completed 22-03-PLAN.md (Module API barrels — 2 tasks, 2 files created)
+Last session: 2026-02-27T10:59:00Z
+Stopped at: Completed 22.1-01-PLAN.md (Tech debt cleanup — 2 tasks, 3 files modified)
 Resume file: None
