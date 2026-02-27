@@ -9,9 +9,9 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 
 ### Code Splitting
 
-- [ ] **ARCH-01**: Extract PlatformPublisher interface with behavioral contracts
+- [x] **ARCH-01**: Extract PlatformPublisher interface with behavioral contracts
 - [ ] **ARCH-02**: Split publish-post.ts into platform-specific handlers (<200 lines each)
-- [ ] **ARCH-03**: Create handler factory for platform selection
+- [x] **ARCH-03**: Create handler factory for platform selection
 - [ ] **ARCH-04**: Refactor orchestration layer to use interface-based handlers
 - [ ] **ARCH-05**: Move platform clients to use interface pattern
 
@@ -45,8 +45,8 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 
 ### Tooling
 
-- [ ] **TOOL-01**: Configure TypeScript (noUnusedLocals, noUnusedParameters)
-- [ ] **TOOL-02**: Set up circular dependency checker (madge)
+- [x] **TOOL-01**: Configure TypeScript (noUnusedLocals, noUnusedParameters)
+- [x] **TOOL-02**: Set up circular dependency checker (madge)
 - [ ] **TOOL-03**: Configure Biome linting for file size enforcement
 - [ ] **TOOL-04**: Add pre-commit hooks for doc compliance
 
@@ -64,9 +64,9 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARCH-01 | Phase 21 | Pending |
+| ARCH-01 | Phase 21 | Complete |
 | ARCH-02 | Phase 21 | Pending |
-| ARCH-03 | Phase 21 | Pending |
+| ARCH-03 | Phase 21 | Complete |
 | ARCH-04 | Phase 21 | Pending |
 | ARCH-05 | Phase 21 | Pending |
 | DOC-01 | Phase 22 | Pending |
@@ -85,8 +85,8 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 | CTX-02 | Phase 24 | Pending |
 | CTX-03 | Phase 24 | Pending |
 | CTX-04 | Phase 24 | Pending |
-| TOOL-01 | Phase 21 | Pending |
-| TOOL-02 | Phase 21 | Pending |
+| TOOL-01 | Phase 21 | Complete |
+| TOOL-02 | Phase 21 | Complete |
 | TOOL-03 | Phase 21 | Pending |
 | TOOL-04 | Phase 24 | Pending |
 

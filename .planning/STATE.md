@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 Phase: 1 of 4 (Foundation and Architecture Cleanup)
-Plan: 0 of 0 in current phase
-Status: Ready to plan
-Last activity: 2026-02-25 — v1.2 roadmap created
+Plan: 1 of 4 in current phase (21-01 complete)
+Status: In progress
+Last activity: 2026-02-26 — 21-01 complete (PlatformPublisher interface + factory)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 6%
 
 ## Performance Metrics
 
@@ -55,6 +55,9 @@ Recent decisions affecting current work:
 - [v1.2]: Primary target is 1,239-line monolithic publish-post.ts
 - [v1.2]: Interface-first design to enable AI understanding
 - [v1.2]: File size limits (<200 lines) for AI context optimization
+- [21-01]: Registration pattern chosen for handler factory to avoid circular imports
+- [21-01]: PlatformPublisher interface with JSDoc behavioral contracts (preconditions, postconditions, throws)
+- [21-01]: DbConnection and PostRow type aliases co-located in publisher.ts for single-import handlers
 
 ### Pending Todos
 
@@ -73,6 +76,6 @@ None yet for v1.2.
 
 ## Session Continuity
 
-Last session: 2026-02-25T19:15:00Z
-Stopped at: v1.2 roadmap created, ready to begin Phase 21 planning
+Last session: 2026-02-26T23:59:21Z
+Stopped at: Completed 21-01-PLAN.md (PlatformPublisher interface and handler factory)
 Resume file: None
