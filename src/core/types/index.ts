@@ -35,6 +35,7 @@ export type PostSubStatus =
 	| "media_uploading"
 	| "media_uploaded"
 	| "thread_partial"
+	| "partial_failure"
 	| null;
 
 export interface PlatformPublishResult {

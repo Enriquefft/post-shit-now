@@ -1,12 +1,9 @@
+import type { DbConnection, PostRow } from "@psn/core/types/publisher.ts";
 import { logger } from "@trigger.dev/sdk";
 import { eq } from "drizzle-orm";
-import { posts, preferenceModel } from "../core/db/schema.ts";
 import type { PostMetadata } from "../core/db/schema.ts";
-import { createHubConnection } from "../core/db/connection.ts";
+import { posts, preferenceModel } from "../core/db/schema.ts";
 import { recordEpisodePublished } from "../series/episodes.ts";
-
-type DbConnection = ReturnType<typeof createHubConnection>;
-type PostRow = typeof posts.$inferSelect;
 
 /**
  * Helper to mark a post as failed with a reason.
@@ -106,7 +103,11 @@ export async function updateBrandPreferenceIfCompany(db: DbConnection, post: Pos
 				.set({ topFormats, topPillars, updatedAt: new Date() })
 				.where(eq(preferenceModel.userId, hubId));
 
-			logger.info("Brand preference model updated", { hubId, format: postFormat, pillar: postPillar });
+			logger.info("Brand preference model updated", {
+				hubId,
+				format: postFormat,
+				pillar: postPillar,
+			});
 		}
 	} catch (error) {
 		logger.error("Failed to update brand preference model (publish succeeded)", {
