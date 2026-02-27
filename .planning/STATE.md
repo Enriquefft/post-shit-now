@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Milestone
 status: unknown
-last_updated: "2026-02-27T17:30:59.062Z"
+last_updated: "2026-02-27T23:39:37.017Z"
 progress:
-  total_phases: 29
+  total_phases: 30
   completed_phases: 28
-  total_plans: 100
-  completed_plans: 96
+  total_plans: 102
+  completed_plans: 97
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
-**Current focus:** Phase 26 -- Tweet Validation
+**Current focus:** Phase 27 -- X OAuth Callback Server
 
 ## Current Position
 
-Phase: 26 of 30 (Tweet Validation) -- COMPLETE
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-02-27 -- Completed 26-02 (X handler pre-flight validation + duplicate detection)
+Phase: 27 of 30 (X OAuth Callback Server)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-02-27 -- Completed 27-01 (OAuth callback server module + URL constants)
 
-Progress: [██████████] 100% (2/2 plans in phase 26)
+Progress: [█████-----] 50% (1/2 plans in phase 27)
 
 ## Performance Metrics
 
@@ -52,12 +52,14 @@ Progress: [██████████] 100% (2/2 plans in phase 26)
 | 22.1 | 1/1 | ~5min | ~5min |
 | 25 | 2/2 | ~8min | ~4min |
 | 26 | 2/2 | ~5min | ~2.5min |
+| 27 | 1/2 | ~1min | ~1min |
 
 **Recent Trend:**
 - v1.1 complete, v1.2 architecture complete
 - Trend: Starting v1.3
 
 *Updated after each plan completion*
+| Phase 27 P01 | 1min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -76,6 +78,8 @@ Recent decisions affecting current work:
 - [v1.3]: Notification provider vars (WAHA/Twilio) remain conditionally checked, not forced via requireEnvVars
 - [v1.3]: Duplicate detection uses Jaccard similarity (0.8 threshold) on word sets over 7-day window
 - [v1.3]: All tweet soft warnings (mentions, hashtags, duplicates) logged but never block publishing
+- [v1.3]: Promise.withResolvers pattern for ephemeral callback server lifecycle
+- [v1.3]: queueMicrotask for server shutdown after response sent
 
 ### Pending Todos
 
@@ -89,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-27T17:27:09Z
-Stopped at: Completed 26-02-PLAN.md
+Last session: 2026-02-27T23:39:00Z
+Stopped at: Completed 27-01-PLAN.md
 Resume file: None

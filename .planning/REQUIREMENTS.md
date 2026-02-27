@@ -21,9 +21,9 @@ Requirements for real-world reliability fixes. Derived from 342-turn trial sessi
 
 ### OAuth Flow
 
-- [ ] **OAUTH-01**: X OAuth callback server captures authorization code automatically via localhost (127.0.0.1:18923)
-- [ ] **OAUTH-02**: Callback URL is defined in a single constant used by all code paths (no hardcoded duplicates)
-- [ ] **OAUTH-03**: OAuth state parameter is validated to prevent CSRF attacks
+- [x] **OAUTH-01**: X OAuth callback server captures authorization code automatically via localhost (127.0.0.1:18923)
+- [x] **OAUTH-02**: Callback URL is defined in a single constant used by all code paths (no hardcoded duplicates)
+- [x] **OAUTH-03**: OAuth state parameter is validated to prevent CSRF attacks
 - [ ] **OAUTH-04**: Callback server falls back to manual code entry if port is unavailable
 
 ### Thread Resilience
@@ -76,9 +76,9 @@ Requirements for real-world reliability fixes. Derived from 342-turn trial sessi
 | TVAL-01 | Phase 26 | Complete |
 | TVAL-02 | Phase 26 | Complete |
 | TVAL-03 | Phase 26 | Complete |
-| OAUTH-01 | Phase 27 | Pending |
-| OAUTH-02 | Phase 27 | Pending |
-| OAUTH-03 | Phase 27 | Pending |
+| OAUTH-01 | Phase 27 | Complete |
+| OAUTH-02 | Phase 27 | Complete |
+| OAUTH-03 | Phase 27 | Complete |
 | OAUTH-04 | Phase 27 | Pending |
 | THREAD-01 | Phase 28 | Pending |
 | THREAD-02 | Phase 28 | Pending |
