@@ -413,7 +413,11 @@ Plans:
   3. Interface compliance tests validate behavioral contracts
   4. Integration tests cover end-to-end publishing flows
   5. JSDoc comments include behavioral contracts on public APIs
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 27-01-PLAN.md — Create OAuth callback server module and X callback URL constants
+- [ ] 27-02-PLAN.md — Integrate callback server into setup flow and eliminate hardcoded duplicates
 
 #### Phase 24: Context Management and Validation
 **Status**: Carried to v1.3 as Phase 30
@@ -426,7 +430,11 @@ Plans:
   3. Pre-commit hooks validate CLAUDE.md compliance
   4. Pre-commit hooks enforce file size limits (<200 lines)
   5. Documentation validation prevents context rot
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 27-01-PLAN.md — Create OAuth callback server module and X callback URL constants
+- [ ] 27-02-PLAN.md — Integrate callback server into setup flow and eliminate hardcoded duplicates
 
 ## v1.3 Milestone (Real-World Reliability)
 
@@ -496,7 +504,11 @@ Plans:
   2. The callback URL `http://127.0.0.1:18923/callback` is defined in exactly one constant -- `grep -r` finds zero hardcoded duplicates
   3. OAuth state parameter is generated, sent with the auth request, and validated on callback to prevent CSRF
   4. If port 18923 is unavailable, the user is prompted to manually paste the authorization code (graceful fallback)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 27-01-PLAN.md — Create OAuth callback server module and X callback URL constants
+- [ ] 27-02-PLAN.md — Integrate callback server into setup flow and eliminate hardcoded duplicates
 
 #### Phase 28: Thread Publishing Resilience
 **Goal**: Partial thread failures are recoverable -- no lost tweet IDs, no duplicate tweets on retry
@@ -507,7 +519,11 @@ Plans:
   2. When a thread publish is retried (via Trigger.dev), posting resumes from the last checkpoint -- already-posted tweets are skipped
   3. If a checkpoint DB write fails, it retries 2-3 times before surfacing the error -- checkpoint failures are never swallowed
   4. X Error 187 (duplicate status) received during retry is treated as "already posted" and the thread continues
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 27-01-PLAN.md — Create OAuth callback server module and X callback URL constants
+- [ ] 27-02-PLAN.md — Integrate callback server into setup flow and eliminate hardcoded duplicates
 
 #### Phase 29: Testing Infrastructure
 **Goal**: Validate all v1.3 fixes with automated tests and establish mock infrastructure for ongoing development
@@ -520,7 +536,11 @@ Plans:
   3. Interface compliance tests verify each PlatformPublisher handler satisfies behavioral contracts (preconditions, postconditions, error handling)
   4. Unit tests cover tweet validation (`countTweetChars` edge cases) and thread checkpoint logic (resume, duplicate detection)
   5. Public API functions in platforms/ and core/ have JSDoc comments with behavioral contracts
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 27-01-PLAN.md — Create OAuth callback server module and X callback URL constants
+- [ ] 27-02-PLAN.md — Integrate callback server into setup flow and eliminate hardcoded duplicates
 
 #### Phase 30: Context Management
 **Goal**: Automated code quality gates at commit time and consolidated project state documentation
@@ -532,7 +552,11 @@ Plans:
   2. Pre-commit hooks run typecheck in parallel with biome, completing in under 3 seconds total
   3. Circular dependency detection (madge) runs at commit time and blocks commits that introduce cycles
   4. A documented consolidation process exists for keeping PROJECT.md and MEMORY.md in sync
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 27-01-PLAN.md — Create OAuth callback server module and X callback URL constants
+- [ ] 27-02-PLAN.md — Integrate callback server into setup flow and eliminate hardcoded duplicates
 
 ### Requirements Coverage (v1.3)
 
@@ -599,7 +623,7 @@ Phases execute in numeric order: 21 → 22 → 22.1 → 25 → 26 → 27 → 28 
 | 24. Context Management | v1.2 | - | Carried to v1.3 Phase 30 | - |
 | 25. Trigger.dev Env Var Delivery | 2/2 | Complete    | 2026-02-27 | - |
 | 26. Tweet Validation | 2/2 | Complete    | 2026-02-27 | - |
-| 27. X OAuth Callback Server | v1.3 | 0/0 | Not started | - |
+| 27. X OAuth Callback Server | v1.3 | 0/2 | Planned | - |
 | 28. Thread Publishing Resilience | v1.3 | 0/0 | Not started | - |
 | 29. Testing Infrastructure | v1.3 | 0/0 | Not started | - |
 | 30. Context Management | v1.3 | 0/0 | Not started | - |
