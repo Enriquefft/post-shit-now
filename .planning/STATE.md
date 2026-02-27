@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Milestone
 status: unknown
-last_updated: "2026-02-27T23:39:37.017Z"
+last_updated: "2026-02-27T23:45:01.284Z"
 progress:
   total_phases: 30
-  completed_phases: 28
+  completed_phases: 29
   total_plans: 102
-  completed_plans: 97
+  completed_plans: 98
 ---
 
 # Project State
@@ -23,11 +23,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 27 of 30 (X OAuth Callback Server)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-02-27 -- Completed 27-01 (OAuth callback server module + URL constants)
+Plan: 2 of 2 in current phase
+Status: Complete
+Last activity: 2026-02-27 -- Completed 27-02 (OAuth integration + callback URL deduplication)
 
-Progress: [█████-----] 50% (1/2 plans in phase 27)
+Progress: [██████████] 100% (2/2 plans in phase 27)
 
 ## Performance Metrics
 
@@ -52,7 +52,7 @@ Progress: [█████-----] 50% (1/2 plans in phase 27)
 | 22.1 | 1/1 | ~5min | ~5min |
 | 25 | 2/2 | ~8min | ~4min |
 | 26 | 2/2 | ~5min | ~2.5min |
-| 27 | 1/2 | ~1min | ~1min |
+| 27 | 2/2 | ~3min | ~1.5min |
 
 **Recent Trend:**
 - v1.1 complete, v1.2 architecture complete
@@ -60,6 +60,7 @@ Progress: [█████-----] 50% (1/2 plans in phase 27)
 
 *Updated after each plan completion*
 | Phase 27 P01 | 1min | 2 tasks | 2 files |
+| Phase 27 P02 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,7 @@ Recent decisions affecting current work:
 - [v1.3]: All tweet soft warnings (mentions, hashtags, duplicates) logged but never block publishing
 - [v1.3]: Promise.withResolvers pattern for ephemeral callback server lifecycle
 - [v1.3]: queueMicrotask for server shutdown after response sent
+- [Phase 27]: Auto-capture proceeds directly to token exchange on success, manual fallback shows callback server error
 
 ### Pending Todos
 
@@ -93,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-27T23:39:00Z
-Stopped at: Completed 27-01-PLAN.md
+Last session: 2026-02-27T23:43:00Z
+Stopped at: Completed 27-02-PLAN.md
 Resume file: None
