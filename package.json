@@ -37,6 +37,7 @@
 		"@fal-ai/client": "^1.9.1",
 		"@neondatabase/serverless": "^1.0.2",
 		"@runwayml/sdk": "^3.11.0",
+		"@trigger.dev/build": "^4.3.3",
 		"@trigger.dev/sdk": "^4.3.3",
 		"arctic": "^3.7.0",
 		"diff": "^8.0.3",
