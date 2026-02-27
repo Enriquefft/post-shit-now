@@ -396,7 +396,10 @@ Plans:
   2. `CLAUDE.md` Module Map shows `@psn/trigger/*` (not bare `@psn/trigger`)
   3. `PostSubStatus` union in `src/core/types/index.ts` includes `"partial_failure"` member
   4. `bun run typecheck` error count unchanged (no new errors introduced)
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 22.1-01-PLAN.md — Fix canonical type imports in publish-helpers.ts, add partial_failure to PostSubStatus, correct CLAUDE.md alias label
 
 #### Phase 23: Testing Infrastructure
 **Goal**: Establish testing infrastructure with interface compliance validation and mock infrastructure
@@ -431,7 +434,7 @@ Phases execute in numeric order: 21 → 22 → 22.1 → 23 → 24
 |-------|-----------|----------------|--------|-----------|
 | 21. Foundation and Architecture Cleanup | v1.2 | 2/2 | Complete | 2026-02-27 |
 | 22. Documentation and Module Boundaries | v1.2 | 3/3 | Complete | 2026-02-27 |
-| 22.1. Tech Debt Cleanup | v1.2 | 0/0 | Not started | - |
+| 22.1. Tech Debt Cleanup | v1.2 | 0/1 | Not started | - |
 | 23. Testing Infrastructure | v1.2 | 0/0 | Not started | - |
 | 24. Context Management and Validation | v1.2 | 0/0 | Not started | - |
 
