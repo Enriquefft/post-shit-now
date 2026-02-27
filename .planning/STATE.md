@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
-**Current focus:** Phase 25 -- Trigger.dev Env Var Delivery
+**Current focus:** Phase 26 -- Tweet Validation
 
 ## Current Position
 
