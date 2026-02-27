@@ -17,9 +17,9 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 
 ### Documentation
 
-- [ ] **DOC-01**: Create root CLAUDE.md (100-200 lines) for project guidance
-- [ ] **ARCH-06**: Add CLAUDE.md files at module boundaries (platforms/, core/)
-- [ ] **DOC-02**: Document architecture overview with component relationships
+- [x] **DOC-01**: Create root CLAUDE.md (100-200 lines) for project guidance
+- [x] **ARCH-06**: Add CLAUDE.md files at module boundaries (platforms/, core/)
+- [x] **DOC-02**: Document architecture overview with component relationships
 - [ ] **DOC-03**: Add JSDoc with behavioral contracts (preconditions, postconditions)
 
 ### Module Boundaries
@@ -69,10 +69,10 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 | ARCH-03 | Phase 21 | Complete |
 | ARCH-04 | Phase 21 | Complete |
 | ARCH-05 | Phase 21 | Complete |
-| DOC-01 | Phase 22 | Pending |
-| DOC-02 | Phase 22 | Pending |
+| DOC-01 | Phase 22 | Complete |
+| DOC-02 | Phase 22 | Complete |
 | DOC-03 | Phase 23 | Pending |
-| ARCH-06 | Phase 22 | Pending |
+| ARCH-06 | Phase 22 | Complete |
 | ARCH-07 | Phase 22 | Complete |
 | ARCH-08 | Phase 22 | Pending |
 | ARCH-09 | Phase 22 | Pending |
