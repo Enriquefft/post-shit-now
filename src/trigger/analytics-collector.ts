@@ -28,7 +28,7 @@ import {
 import { TikTokClient } from "../platforms/tiktok/client.ts";
 import { createTikTokOAuthClient, refreshTikTokToken } from "../platforms/tiktok/oauth.ts";
 import { XClient } from "../platforms/x/client.ts";
-import { createXOAuthClient, refreshAccessToken as refreshXToken } from "../platforms/x/oauth.ts";
+import { createXOAuthClient, refreshAccessToken as refreshXToken, X_CALLBACK_URL } from "../platforms/x/oauth.ts";
 
 /**
  * Daily analytics collector.
@@ -147,7 +147,7 @@ async function collectXAnalytics(
 		const xOAuthClient = createXOAuthClient({
 			clientId: xEnv.X_CLIENT_ID,
 			clientSecret: xEnv.X_CLIENT_SECRET,
-			callbackUrl: "https://example.com/callback",
+			callbackUrl: X_CALLBACK_URL,
 		});
 
 		const decryptedRefresh = decrypt(token.refreshToken, encKey);

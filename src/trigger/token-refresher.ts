@@ -17,7 +17,7 @@ import {
 	refreshAccessToken as refreshLinkedInToken,
 } from "../platforms/linkedin/oauth.ts";
 import { createTikTokOAuthClient, refreshTikTokToken } from "../platforms/tiktok/oauth.ts";
-import { createXOAuthClient, refreshAccessToken as refreshXToken } from "../platforms/x/oauth.ts";
+import { createXOAuthClient, refreshAccessToken as refreshXToken, X_CALLBACK_URL } from "../platforms/x/oauth.ts";
 import { notificationDispatcherTask } from "./notification-dispatcher.ts";
 
 export interface TokenRefresherResult {
@@ -114,7 +114,7 @@ export const tokenRefresher = schedules.task({
 						xOAuthClient = createXOAuthClient({
 							clientId: xEnv.X_CLIENT_ID,
 							clientSecret: xEnv.X_CLIENT_SECRET,
-							callbackUrl: "https://example.com/callback",
+							callbackUrl: X_CALLBACK_URL,
 						});
 					}
 

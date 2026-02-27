@@ -11,7 +11,7 @@ import { splitIntoThread } from "../../core/utils/thread-splitter.ts";
 import { validateTweet, countTweetChars } from "../../core/utils/tweet-validator.ts";
 import { XClient } from "../x/client.ts";
 import { uploadMedia } from "../x/media.ts";
-import { createXOAuthClient, refreshAccessToken as refreshXToken } from "../x/oauth.ts";
+import { createXOAuthClient, refreshAccessToken as refreshXToken, X_CALLBACK_URL } from "../x/oauth.ts";
 import { RateLimitError } from "../x/types.ts";
 
 const stringArraySchema = z.array(z.string());
@@ -52,7 +52,7 @@ export class XHandler implements PlatformPublisher {
 			const xOAuthClient = createXOAuthClient({
 				clientId: xClientId,
 				clientSecret: xClientSecret,
-				callbackUrl: "https://example.com/callback",
+				callbackUrl: X_CALLBACK_URL,
 			});
 			const decryptedRefresh = decrypt(token.refreshToken, encKey);
 			const newTokens = await refreshXToken(xOAuthClient, decryptedRefresh);
