@@ -27,6 +27,7 @@
 		}
 	},
 	"files": {
-		"includes": ["src/**/*", "*.config.ts", "trigger.config.ts"]
+		"includes": ["src/**/*", "*.config.ts", "trigger.config.ts"],
+		"maxSize": 204800
 	}
 }
