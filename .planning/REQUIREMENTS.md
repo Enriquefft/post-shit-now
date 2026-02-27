@@ -9,9 +9,9 @@ Requirements for real-world reliability fixes. Derived from 342-turn trial sessi
 
 ### Deployment Infrastructure
 
-- [ ] **DEPLOY-01**: Trigger.dev workers receive all required env vars (DATABASE_URL, HUB_ENCRYPTION_KEY, platform credentials) via syncEnvVars build extension
+- [x] **DEPLOY-01**: Trigger.dev workers receive all required env vars (DATABASE_URL, HUB_ENCRYPTION_KEY, platform credentials) via syncEnvVars build extension
 - [ ] **DEPLOY-02**: Missing env vars produce actionable error messages listing each missing variable at task start
-- [ ] **DEPLOY-03**: syncEnvVars reads from local hub config files at deploy time without requiring manual .env hacking
+- [x] **DEPLOY-03**: syncEnvVars reads from local hub config files at deploy time without requiring manual .env hacking
 
 ### Tweet Validation
 
@@ -70,9 +70,9 @@ Requirements for real-world reliability fixes. Derived from 342-turn trial sessi
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEPLOY-01 | Phase 25 | Pending |
+| DEPLOY-01 | Phase 25 | Complete |
 | DEPLOY-02 | Phase 25 | Pending |
-| DEPLOY-03 | Phase 25 | Pending |
+| DEPLOY-03 | Phase 25 | Complete |
 | TVAL-01 | Phase 26 | Pending |
 | TVAL-02 | Phase 26 | Pending |
 | TVAL-03 | Phase 26 | Pending |
