@@ -378,7 +378,12 @@ This milestone transforms the codebase for AI-assisted development by:
   3. TypeScript path aliases configured (@psn/platforms, @psn/core)
   4. Barrel exports exist at all module boundaries (index.ts)
   5. Public APIs clearly distinguished from internal modules
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 22-01-PLAN.md — Create root CLAUDE.md and module-level CLAUDE.md files for platforms/ and core/
+- [ ] 22-02-PLAN.md — Replace wildcard tsconfig path alias with specific @psn/core, @psn/platforms, @psn/trigger aliases
+- [ ] 22-03-PLAN.md — Create public API barrel exports for src/platforms/index.ts and src/core/index.ts
 
 #### Phase 23: Testing Infrastructure
 **Goal**: Establish testing infrastructure with interface compliance validation and mock infrastructure
