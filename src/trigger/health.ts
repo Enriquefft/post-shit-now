@@ -1,5 +1,6 @@
 import { logger, task } from "@trigger.dev/sdk";
 import { createHubConnection } from "../core/db/connection.ts";
+import { CORE_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 
 export interface HealthReport {
 	database: "ok" | "error";
@@ -24,31 +25,19 @@ export const healthCheck = task({
 		};
 
 		// Check critical env vars
-		const requiredEnvVars = ["DATABASE_URL"];
-		const missingEnv = requiredEnvVars.filter((v) => !process.env[v]);
-
-		if (missingEnv.length === 0) {
-			report.env = "ok";
-		} else {
-			report.details.missingEnv = missingEnv.join(", ");
-			logger.error("Missing environment variables", { missing: missingEnv });
-		}
+		const env = requireEnvVars(CORE_ENV_VARS, "health-check");
+		report.env = "ok";
 
 		// Test DB connection
-		const databaseUrl = process.env.DATABASE_URL;
-		if (databaseUrl) {
-			try {
-				const db = createHubConnection(databaseUrl);
-				await db.execute("SELECT 1 as health_check");
-				report.database = "ok";
-				logger.info("Database connection healthy");
-			} catch (err) {
-				const msg = err instanceof Error ? err.message : String(err);
-				report.details.databaseError = msg;
-				logger.error("Database connection failed", { error: msg });
-			}
-		} else {
-			report.details.databaseError = "DATABASE_URL not set";
+		try {
+			const db = createHubConnection(env.DATABASE_URL);
+			await db.execute("SELECT 1 as health_check");
+			report.database = "ok";
+			logger.info("Database connection healthy");
+		} catch (err) {
+			const msg = err instanceof Error ? err.message : String(err);
+			report.details.databaseError = msg;
+			logger.error("Database connection failed", { error: msg });
 		}
 
 		logger.info("Health check complete", { ...report });

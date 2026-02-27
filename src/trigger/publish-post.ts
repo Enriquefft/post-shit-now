@@ -7,6 +7,7 @@ import { keyFromHex } from "../core/utils/crypto.ts";
 import { createHandler } from "../core/utils/publisher-factory.ts";
 // Side-effect imports: register all platform handlers with the factory
 import "../platforms/handlers/index.ts";
+import { CRYPTO_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 import { notificationDispatcherTask } from "./notification-dispatcher.ts";
 import { advanceSeriesState, markFailed, updateBrandPreferenceIfCompany } from "./publish-helpers.ts";
 
@@ -37,15 +38,10 @@ export const publishPost = task({
 	maxDuration: 300,
 	run: async (payload: PublishPostPayload) => {
 		// 1. Load env
-		const databaseUrl = process.env.DATABASE_URL;
-		const encryptionKeyHex = process.env.HUB_ENCRYPTION_KEY;
+		const env = requireEnvVars(CRYPTO_ENV_VARS, "publish-post");
 
-		if (!databaseUrl || !encryptionKeyHex) {
-			throw new Error("Missing required env vars: DATABASE_URL, HUB_ENCRYPTION_KEY");
-		}
-
-		const encKey = keyFromHex(encryptionKeyHex);
-		const db = createHubConnection(databaseUrl);
+		const encKey = keyFromHex(env.HUB_ENCRYPTION_KEY);
+		const db = createHubConnection(env.DATABASE_URL);
 
 		// 2. Fetch post
 		const [post] = await db.select().from(posts).where(eq(posts.id, payload.postId)).limit(1);

@@ -2,6 +2,7 @@ import { logger, schedules } from "@trigger.dev/sdk";
 import { and, eq, lt, sql } from "drizzle-orm";
 import { createHubConnection } from "../core/db/connection.ts";
 import { posts } from "../core/db/schema.ts";
+import { CORE_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 import { publishPost } from "./publish-post.ts";
 
 const MAX_WATCHDOG_RETRIES = 3;
@@ -48,13 +49,9 @@ export const postWatchdog = schedules.task({
 	id: "post-watchdog",
 	maxDuration: 60,
 	run: async () => {
-		const databaseUrl = process.env.DATABASE_URL;
-		if (!databaseUrl) {
-			logger.error("DATABASE_URL not set — cannot run watchdog");
-			return { checked: 0, stuck: 0, retried: 0, failed: 0 };
-		}
+		const env = requireEnvVars(CORE_ENV_VARS, "post-watchdog");
 
-		const db = createHubConnection(databaseUrl);
+		const db = createHubConnection(env.DATABASE_URL);
 		const result: WatchdogResult = { checked: 0, stuck: 0, retried: 0, failed: 0 };
 
 		// Find posts stuck in "scheduled" state

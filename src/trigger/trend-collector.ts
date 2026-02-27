@@ -7,6 +7,7 @@ import { decrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { collectTrends } from "../intelligence/collector.ts";
 import { scoreTrends } from "../intelligence/scoring.ts";
 import type { Pillar } from "../intelligence/types.ts";
+import { CRYPTO_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 
 // ─── Strategy YAML helpers ───────────────────────────────────────────────────
 
@@ -85,15 +86,9 @@ export const trendCollector = schedules.task({
 	cron: "0 6 * * *",
 	maxDuration: 300, // 5 minutes
 	run: async () => {
-		const databaseUrl = process.env.DATABASE_URL;
-		const encryptionKeyHex = process.env.HUB_ENCRYPTION_KEY;
+		const env = requireEnvVars(CRYPTO_ENV_VARS, "trend-collector");
 
-		if (!databaseUrl) {
-			logger.error("DATABASE_URL not set -- cannot run trend collector");
-			return { status: "error", reason: "missing_env" };
-		}
-
-		const db = createHubConnection(databaseUrl);
+		const db = createHubConnection(env.DATABASE_URL);
 		const userId = "default";
 
 		// Load pillars from strategy.yaml
@@ -106,9 +101,9 @@ export const trendCollector = schedules.task({
 
 		// Get X access token if available (for X trending source)
 		let xAccessToken: string | undefined;
-		if (encryptionKeyHex) {
+		{
 			try {
-				const encKey = keyFromHex(encryptionKeyHex);
+				const encKey = keyFromHex(env.HUB_ENCRYPTION_KEY);
 				const [token] = await db
 					.select()
 					.from(oauthTokens)

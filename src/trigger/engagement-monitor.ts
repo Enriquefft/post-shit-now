@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { createHubConnection } from "../core/db/connection.ts";
 import { oauthTokens } from "../core/db/schema.ts";
 import { decrypt, keyFromHex } from "../core/utils/crypto.ts";
+import { CRYPTO_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 import { deriveNicheKeywords, loadEngagementConfig } from "../engagement/config.ts";
 import type { PlatformClients } from "../engagement/monitor.ts";
 import { discoverOpportunities, expireOldOpportunities } from "../engagement/monitor.ts";
@@ -26,15 +27,9 @@ export const engagementMonitor = schedules.task({
 	cron: "0 */3 * * *",
 	maxDuration: 300, // 5 minutes
 	run: async () => {
-		const databaseUrl = process.env.DATABASE_URL;
-		const encryptionKeyHex = process.env.HUB_ENCRYPTION_KEY;
+		const env = requireEnvVars(CRYPTO_ENV_VARS, "engagement-monitor");
 
-		if (!databaseUrl) {
-			logger.error("DATABASE_URL not set -- cannot run engagement monitor");
-			return { status: "error", reason: "missing_env" };
-		}
-
-		const db = createHubConnection(databaseUrl);
+		const db = createHubConnection(env.DATABASE_URL);
 		const userId = "default";
 
 		// Load engagement config
@@ -59,8 +54,8 @@ export const engagementMonitor = schedules.task({
 		// Create platform clients for enabled platforms
 		const platformClients: PlatformClients = {};
 
-		if (encryptionKeyHex) {
-			const encKey = keyFromHex(encryptionKeyHex);
+		{
+			const encKey = keyFromHex(env.HUB_ENCRYPTION_KEY);
 
 			// X client
 			try {

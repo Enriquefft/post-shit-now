@@ -7,6 +7,7 @@ import { decrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { collectBreakingNews } from "../intelligence/collector.ts";
 import { scoreTrends } from "../intelligence/scoring.ts";
 import type { Pillar } from "../intelligence/types.ts";
+import { CRYPTO_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 
 // ─── Pillar Loader (lightweight, same as trend-collector) ────────────────────
 
@@ -78,15 +79,9 @@ export const trendPoller = schedules.task({
 	cron: "0 8-20/3 * * *",
 	maxDuration: 120, // 2 minutes
 	run: async () => {
-		const databaseUrl = process.env.DATABASE_URL;
-		const encryptionKeyHex = process.env.HUB_ENCRYPTION_KEY;
+		const env = requireEnvVars(CRYPTO_ENV_VARS, "trend-poller");
 
-		if (!databaseUrl) {
-			logger.error("DATABASE_URL not set -- cannot run trend poller");
-			return { status: "error", reason: "missing_env" };
-		}
-
-		const db = createHubConnection(databaseUrl);
+		const db = createHubConnection(env.DATABASE_URL);
 		const userId = "default";
 
 		// Load pillars for scoring
@@ -94,9 +89,9 @@ export const trendPoller = schedules.task({
 
 		// Get X access token if available
 		let xAccessToken: string | undefined;
-		if (encryptionKeyHex) {
+		{
 			try {
-				const encKey = keyFromHex(encryptionKeyHex);
+				const encKey = keyFromHex(env.HUB_ENCRYPTION_KEY);
 				const [token] = await db
 					.select()
 					.from(oauthTokens)
