@@ -24,7 +24,7 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 
 ### Module Boundaries
 
-- [ ] **ARCH-07**: Configure TypeScript path aliases (@psn/platforms, @psn/core)
+- [x] **ARCH-07**: Configure TypeScript path aliases (@psn/platforms, @psn/core)
 - [ ] **ARCH-08**: Create barrel exports (index.ts) at directory boundaries
 - [ ] **ARCH-09**: Define explicit public APIs vs internal modules
 - [ ] **ARCH-10**: Enforce file size limits (<200 lines) for AI context
@@ -73,7 +73,7 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 | DOC-02 | Phase 22 | Pending |
 | DOC-03 | Phase 23 | Pending |
 | ARCH-06 | Phase 22 | Pending |
-| ARCH-07 | Phase 22 | Pending |
+| ARCH-07 | Phase 22 | Complete |
 | ARCH-08 | Phase 22 | Pending |
 | ARCH-09 | Phase 22 | Pending |
 | ARCH-10 | Phase 22 | Pending |

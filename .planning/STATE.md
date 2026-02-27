@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v1.1
+milestone_name: Milestone
+status: unknown
+last_updated: "2026-02-27T07:47:06.835Z"
+progress:
+  total_phases: 26
+  completed_phases: 24
+  total_plans: 95
+  completed_plans: 90
+---
+
 # Project State
 
 ## Project Reference
@@ -9,10 +22,10 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 
 ## Current Position
 
-Phase: 21 complete
-Plan: 2/2 complete
-Status: Phase complete — ready for verify or next phase
-Last activity: 2026-02-26 — Phase 21 fully complete (interface + handlers + orchestration refactor)
+Phase: 22-documentation-and-module-boundaries
+Plan: 2/3 complete
+Status: In progress — plan 22-02 complete, continuing phase
+Last activity: 2026-02-27 — Plan 22-02 complete (tsconfig path alias specificity)
 
 Progress: [████░░░░░░] 25%
 
@@ -42,6 +55,7 @@ Progress: [████░░░░░░] 25%
 - Trend: Starting v1.2
 
 *Updated after each plan completion*
+| Phase 22 P01 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -62,6 +76,10 @@ Recent decisions affecting current work:
 - [21-02]: publish-helpers.ts created to hold shared DB helpers (markFailed, advanceSeriesState, updateBrandPreferenceIfCompany) — orchestration + helpers exceeded 200-line limit in single file
 - [21-02]: Side-effect auto-registration pattern: handlers/index.ts barrel causes all handlers to self-register on import; orchestrator imports once
 - [21-02]: Integration tests mock handlers/index.ts barrel to control handler registry and prevent real side-effect registration from overwriting mock handlers
+- [22-02]: No bare @psn/trigger alias — src/trigger/index.ts barrel does not exist yet; bare alias would silently fail to resolve
+- [22-02]: Pre-existing 24 typecheck errors out of scope — confirmed predated the plan via git stash check
+- [Phase 22]: Root CLAUDE.md scoped to orientation only: project overview, ASCII flow diagram, module map, dev commands, slash commands — no tooling rules or extension recipes
+- [Phase 22]: Module CLAUDE.md files use strict two-section structure (Ownership + Key Files) — no extension recipes, no tooling rules
 
 ### Pending Todos
 
@@ -80,6 +98,6 @@ None yet for v1.2.
 
 ## Session Continuity
 
-Last session: 2026-02-26T19:11:00Z
-Stopped at: Phase 21 complete — all 2 plans executed, 189 tests passing
+Last session: 2026-02-27T07:46:00Z
+Stopped at: Completed 22-02-PLAN.md (tsconfig path aliases — 1 task, 1 file modified)
 Resume file: None
