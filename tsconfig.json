@@ -23,7 +23,11 @@
 
 		"baseUrl": ".",
 		"paths": {
-			"@psn/*": ["./src/*"]
+			"@psn/core":        ["./src/core/index.ts"],
+			"@psn/core/*":      ["./src/core/*"],
+			"@psn/platforms":   ["./src/platforms/index.ts"],
+			"@psn/platforms/*": ["./src/platforms/*"],
+			"@psn/trigger/*":   ["./src/trigger/*"]
 		},
 		"types": ["bun-types"]
 	},
