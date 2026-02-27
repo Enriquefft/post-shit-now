@@ -10,10 +10,10 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 ### Code Splitting
 
 - [x] **ARCH-01**: Extract PlatformPublisher interface with behavioral contracts
-- [ ] **ARCH-02**: Split publish-post.ts into platform-specific handlers (<200 lines each)
+- [x] **ARCH-02**: Split publish-post.ts into platform-specific handlers (<200 lines each)
 - [x] **ARCH-03**: Create handler factory for platform selection
-- [ ] **ARCH-04**: Refactor orchestration layer to use interface-based handlers
-- [ ] **ARCH-05**: Move platform clients to use interface pattern
+- [x] **ARCH-04**: Refactor orchestration layer to use interface-based handlers
+- [x] **ARCH-05**: Move platform clients to use interface pattern
 
 ### Documentation
 
@@ -47,7 +47,7 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 
 - [x] **TOOL-01**: Configure TypeScript (noUnusedLocals, noUnusedParameters)
 - [x] **TOOL-02**: Set up circular dependency checker (madge)
-- [ ] **TOOL-03**: Configure Biome linting for file size enforcement
+- [x] **TOOL-03**: Configure Biome linting for file size enforcement
 - [ ] **TOOL-04**: Add pre-commit hooks for doc compliance
 
 ## Out of Scope
@@ -65,10 +65,10 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | ARCH-01 | Phase 21 | Complete |
-| ARCH-02 | Phase 21 | Pending |
+| ARCH-02 | Phase 21 | Complete |
 | ARCH-03 | Phase 21 | Complete |
-| ARCH-04 | Phase 21 | Pending |
-| ARCH-05 | Phase 21 | Pending |
+| ARCH-04 | Phase 21 | Complete |
+| ARCH-05 | Phase 21 | Complete |
 | DOC-01 | Phase 22 | Pending |
 | DOC-02 | Phase 22 | Pending |
 | DOC-03 | Phase 23 | Pending |
@@ -87,7 +87,7 @@ Requirements for agentic architecture improvements. Each maps to roadmap phases.
 | CTX-04 | Phase 24 | Pending |
 | TOOL-01 | Phase 21 | Complete |
 | TOOL-02 | Phase 21 | Complete |
-| TOOL-03 | Phase 21 | Pending |
+| TOOL-03 | Phase 21 | Complete |
 | TOOL-04 | Phase 24 | Pending |
 
 **Coverage:**

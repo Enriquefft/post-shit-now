@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 Phase: 1 of 4 (Foundation and Architecture Cleanup)
-Plan: 1 of 4 in current phase (21-01 complete)
+Plan: 2 of 4 in current phase (21-02 complete)
 Status: In progress
-Last activity: 2026-02-26 — 21-01 complete (PlatformPublisher interface + factory)
+Last activity: 2026-02-27 — 21-02 complete (platform handlers + orchestration refactor)
 
-Progress: [██░░░░░░░░] 6%
+Progress: [███░░░░░░░] 9%
 
 ## Performance Metrics
 
@@ -34,6 +34,7 @@ Progress: [██░░░░░░░░] 6%
 | 18 | 4/4 | - | - |
 | 19 | 7/7 | - | - |
 | 20 | 3/3 | - | - |
+| 21 | 2/4 | ~66min | ~33min |
 
 **Recent Trend:**
 - v1.1 all phases complete
@@ -58,6 +59,9 @@ Recent decisions affecting current work:
 - [21-01]: Registration pattern chosen for handler factory to avoid circular imports
 - [21-01]: PlatformPublisher interface with JSDoc behavioral contracts (preconditions, postconditions, throws)
 - [21-01]: DbConnection and PostRow type aliases co-located in publisher.ts for single-import handlers
+- [21-02]: publish-helpers.ts created to hold shared DB helpers (markFailed, advanceSeriesState, updateBrandPreferenceIfCompany) — orchestration + helpers exceeded 200-line limit in single file
+- [21-02]: Side-effect auto-registration pattern: handlers/index.ts barrel causes all handlers to self-register on import; orchestrator imports once
+- [21-02]: Integration tests mock handlers/index.ts barrel to control handler registry and prevent real side-effect registration from overwriting mock handlers
 
 ### Pending Todos
 
@@ -76,6 +80,6 @@ None yet for v1.2.
 
 ## Session Continuity
 
-Last session: 2026-02-26T23:59:21Z
-Stopped at: Completed 21-01-PLAN.md (PlatformPublisher interface and handler factory)
+Last session: 2026-02-27T00:34:00Z
+Stopped at: Completed 21-02-PLAN.md (platform handlers + publish-post.ts orchestration refactor)
 Resume file: None
