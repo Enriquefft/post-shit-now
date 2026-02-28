@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Milestone
 status: unknown
-last_updated: "2026-02-28T02:47:31.264Z"
+last_updated: "2026-02-28T12:13:00Z"
 progress:
   total_phases: 31
   completed_phases: 30
   total_plans: 104
-  completed_plans: 100
+  completed_plans: 101
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
-**Current focus:** Phase 28 -- Thread Publishing Resilience
+**Current focus:** Phase 29 -- Testing Infrastructure
 
 ## Current Position
 
-Phase: 28 of 30 (Thread Publishing Resilience)
-Plan: 2 of 2 in current phase
-Status: Phase Complete
-Last activity: 2026-02-28 -- Completed 28-02 (thread retry orchestration + checkpoint resume)
+Phase: 29 of 30 (Testing Infrastructure)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-02-28 -- Completed 29-01 (mock clients, tweet-validator tests, JSDoc contracts)
 
-Progress: [██████████] 100% (2/2 plans in phase 28)
+Progress: [█████░░░░░] 50% (1/2 plans in phase 29)
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [██████████] 100% (2/2 plans in phase 28)
 | Phase 27 P02 | 2min | 2 tasks | 4 files |
 | Phase 28 P01 | 3min | 2 tasks | 3 files |
 | Phase 28 P02 | 2min | 2 tasks | 1 files |
+| Phase 29 P01 | 4min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,9 @@ Recent decisions affecting current work:
 - [Phase 28]: Typed SkipRetryError class for domain-specific error bypass in retry.onThrow (biome-compliant)
 - [Phase 28]: Checkpoint DB write failure halts thread (never swallowed) -- retry.onThrow throws after 3 attempts
 - [Phase 28]: Failure path checks threadProgress in metadata to decide markPartiallyPosted vs markFailed (preserves checkpoint for retry)
+- [Phase 29]: Mock at class boundary (not HTTP/fetch layer) -- simpler, faster tests
+- [Phase 29]: Fixtures use real X API v2 response shapes for realistic test data
+- [Phase 29]: JSDoc contracts on interface only (single source of truth) -- implementations inherit
 
 ### Pending Todos
 
@@ -100,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-28T02:42:45Z
-Stopped at: Completed 28-02-PLAN.md
+Last session: 2026-02-28T12:13:00Z
+Stopped at: Completed 29-01-PLAN.md
 Resume file: None
