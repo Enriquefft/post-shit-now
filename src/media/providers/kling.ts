@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { getApiKey } from "../../core/db/api-keys";
 import type { DbClient } from "../../core/db/connection.ts";
-import type { GeneratedVideo, VideoGenParams, VideoProvider } from "../video-gen.ts";
+import type { GeneratedVideo, VideoGenParams, VideoProvider } from "../types.ts";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

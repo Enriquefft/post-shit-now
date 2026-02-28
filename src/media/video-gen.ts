@@ -1,38 +1,13 @@
-import type { DbClient } from "../core/db/connection.ts";
 import type { Platform } from "../core/types/index.ts";
 import { PLATFORM_VIDEO_SPECS } from "./platform-specs.ts";
 import { klingProvider } from "./providers/kling.ts";
 import { pikaProvider } from "./providers/pika.ts";
 import { runwayProvider } from "./providers/runway.ts";
+import type { GeneratedVideo, VideoGenParams, VideoMode, VideoProvider } from "./types.ts";
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// ─── Re-export shared types for backward compatibility ──────────────────────
 
-export type VideoMode = "text-to-video" | "image-to-video";
-
-export interface VideoProvider {
-	name: string;
-	strengths: string[];
-	supportedModes: VideoMode[];
-	generate(params: VideoGenParams, db: DbClient, hubId: string): Promise<GeneratedVideo>;
-}
-
-export interface VideoGenParams {
-	prompt: string;
-	mode: VideoMode;
-	sourceImage?: string;
-	duration: number;
-	aspectRatio?: string;
-	withAudio?: boolean;
-}
-
-export interface GeneratedVideo {
-	url: string;
-	buffer?: Buffer;
-	mimeType: string;
-	duration: number;
-	provider: string;
-	hasAudio: boolean;
-}
+export type { GeneratedVideo, VideoGenParams, VideoMode, VideoProvider } from "./types.ts";
 
 // ─── Provider Registry ──────────────────────────────────────────────────────
 

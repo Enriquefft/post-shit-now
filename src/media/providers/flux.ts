@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import { getApiKey } from "../../core/db/api-keys";
 import type { DbClient } from "../../core/db/connection.ts";
-import type { GeneratedImage, ImageGenOptions, ImageProvider } from "../image-gen.ts";
+import type { GeneratedImage, ImageGenOptions, ImageProvider } from "../types.ts";
 
 // ─── Size Mapping ────────────────────────────────────────────────────────────
 

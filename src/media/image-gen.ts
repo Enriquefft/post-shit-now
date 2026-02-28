@@ -1,37 +1,13 @@
-import type { DbClient } from "../core/db/connection.ts";
 import type { Platform } from "../core/types/index.ts";
 import { type ProcessedImage, processImageForPlatform } from "./processor.ts";
 import { fluxProvider } from "./providers/flux.ts";
 import { gptImageProvider } from "./providers/gpt-image.ts";
 import { ideogramProvider } from "./providers/ideogram.ts";
+import type { GeneratedImage, ImageGenOptions, ImageProvider } from "./types.ts";
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// ─── Re-export shared types for backward compatibility ──────────────────────
 
-export interface ImageProvider {
-	name: string;
-	strengths: string[];
-	generate(
-		prompt: string,
-		options: ImageGenOptions,
-		db: DbClient,
-		hubId: string,
-	): Promise<GeneratedImage>;
-}
-
-export interface ImageGenOptions {
-	aspectRatio?: string;
-	style?: string;
-	negativePrompt?: string;
-	size?: { width: number; height: number };
-}
-
-export interface GeneratedImage {
-	buffer: Buffer;
-	mimeType: string;
-	width: number;
-	height: number;
-	provider: string;
-}
+export type { GeneratedImage, ImageGenOptions, ImageProvider } from "./types.ts";
 
 // ─── Provider Registry ──────────────────────────────────────────────────────
 

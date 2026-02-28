@@ -18,7 +18,7 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
-		"check:circular": "madge --circular src/"
+		"check:circular": "madge --circular --extensions ts src/"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.2",
