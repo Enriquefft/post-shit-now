@@ -416,8 +416,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 27-01-PLAN.md â Create OAuth callback server module and X callback URL constants
-- [ ] 27-02-PLAN.md â Integrate callback server into setup flow and eliminate hardcoded duplicates
+- [ ] 30-01-PLAN.md — Fix pre-existing code quality issues (circular deps, TS errors, biome) to establish clean baseline for hooks
+- [ ] 30-02-PLAN.md — Install lefthook pre-commit hooks, enable incremental typecheck, add state consolidation to CLAUDE.md
 
 #### Phase 24: Context Management and Validation
 **Status**: Carried to v1.3 as Phase 30
@@ -433,8 +433,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 27-01-PLAN.md â Create OAuth callback server module and X callback URL constants
-- [ ] 27-02-PLAN.md â Integrate callback server into setup flow and eliminate hardcoded duplicates
+- [ ] 30-01-PLAN.md — Fix pre-existing code quality issues (circular deps, TS errors, biome) to establish clean baseline for hooks
+- [ ] 30-02-PLAN.md — Install lefthook pre-commit hooks, enable incremental typecheck, add state consolidation to CLAUDE.md
 
 ## v1.3 Milestone (Real-World Reliability)
 
@@ -507,8 +507,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 27-01-PLAN.md â Create OAuth callback server module and X callback URL constants
-- [ ] 27-02-PLAN.md â Integrate callback server into setup flow and eliminate hardcoded duplicates
+- [ ] 30-01-PLAN.md — Fix pre-existing code quality issues (circular deps, TS errors, biome) to establish clean baseline for hooks
+- [ ] 30-02-PLAN.md — Install lefthook pre-commit hooks, enable incremental typecheck, add state consolidation to CLAUDE.md
 
 #### Phase 28: Thread Publishing Resilience
 **Goal**: Partial thread failures are recoverable -- no lost tweet IDs, no duplicate tweets on retry
@@ -522,8 +522,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 27-01-PLAN.md â Create OAuth callback server module and X callback URL constants
-- [ ] 27-02-PLAN.md â Integrate callback server into setup flow and eliminate hardcoded duplicates
+- [ ] 30-01-PLAN.md — Fix pre-existing code quality issues (circular deps, TS errors, biome) to establish clean baseline for hooks
+- [ ] 30-02-PLAN.md — Install lefthook pre-commit hooks, enable incremental typecheck, add state consolidation to CLAUDE.md
 
 #### Phase 29: Testing Infrastructure
 **Goal**: Validate all v1.3 fixes with automated tests and establish mock infrastructure for ongoing development
@@ -555,8 +555,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 27-01-PLAN.md â Create OAuth callback server module and X callback URL constants
-- [ ] 27-02-PLAN.md â Integrate callback server into setup flow and eliminate hardcoded duplicates
+- [ ] 30-01-PLAN.md — Fix pre-existing code quality issues (circular deps, TS errors, biome) to establish clean baseline for hooks
+- [ ] 30-02-PLAN.md — Install lefthook pre-commit hooks, enable incremental typecheck, add state consolidation to CLAUDE.md
 
 ### Requirements Coverage (v1.3)
 
