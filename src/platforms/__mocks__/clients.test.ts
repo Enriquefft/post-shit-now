@@ -36,8 +36,8 @@ describe("MockXClient", () => {
 		await client.createTweet({ text: "Second" });
 		const timeline = await client.getTimeline();
 		expect(timeline.data).toHaveLength(2);
-		expect(timeline.data[0].text).toBe("First");
-		expect(timeline.data[1].text).toBe("Second");
+		expect(timeline.data[0]?.text).toBe("First");
+		expect(timeline.data[1]?.text).toBe("Second");
 	});
 
 	it("setFailure causes next createTweet to throw", async () => {
@@ -68,8 +68,8 @@ describe("MockXClient", () => {
 		await client.createTweet({ text: "B" });
 		const posted = client.getPostedTweets();
 		expect(posted).toHaveLength(2);
-		expect(posted[0].text).toBe("A");
-		expect(posted[1].text).toBe("B");
+		expect(posted[0]?.text).toBe("A");
+		expect(posted[1]?.text).toBe("B");
 	});
 });
 

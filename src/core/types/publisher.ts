@@ -70,8 +70,13 @@ export interface PlatformPublisher {
 	 * @postcondition Returns `{ status: "published", externalPostId }` on success
 	 * @postcondition Returns `{ status: "skipped" }` for posts that should not publish
 	 * @postcondition Returns `{ status: "failed", error }` for non-retryable errors
+	 * @postcondition On thread partial failure, checkpoint is persisted before throwing (enables resume on retry)
 	 * @throws Error starting with "RATE_LIMIT:" when rate limited (for orchestrator retry)
 	 * @throws Error starting with "AUTH_EXPIRED:" when credentials cannot be refreshed
+	 * @throws Implementations may throw SkipRetryError internally for duplicate detection (Error 187) -- callers see recovered tweet IDs, not the error
+	 * @sideeffect Saves thread checkpoint to DB after each successful tweet in a thread
+	 * @sideeffect Sets post subStatus to "thread_partial" during thread posting
+	 * @sideeffect Sets post subStatus to "media_uploading"/"media_uploaded" during media upload
 	 *
 	 * @param db - Active database connection for reading/writing post and token data
 	 * @param post - The post row from the database to publish
@@ -91,6 +96,7 @@ export interface PlatformPublisher {
 	 * or "get me") to confirm the token is accepted by the platform. This is
 	 * used by health-check tasks — not called before every publish.
 	 *
+	 * @sideeffect None -- read-only API call
 	 * @returns true if the platform accepts the current credentials, false otherwise
 	 */
 	validateCredentials(): Promise<boolean>;
@@ -115,6 +121,7 @@ export interface PlatformPublisher {
 	 *
 	 * @precondition A valid refresh token exists in the database for this user/platform
 	 * @postcondition New access token is persisted to `db` before returning
+	 * @sideeffect Persists new access token (and rotated refresh token) to DB before returning
 	 * @throws Error if no refresh token is stored
 	 * @throws Error if the platform rejects the refresh request (e.g., token revoked)
 	 *
