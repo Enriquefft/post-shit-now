@@ -6,6 +6,46 @@ import { posts, preferenceModel } from "../core/db/schema.ts";
 import { recordEpisodePublished } from "../series/episodes.ts";
 
 /**
+ * Helper to mark a post as partially posted (thread interrupted mid-publish).
+ */
+export async function markPartiallyPosted(
+	db: DbConnection,
+	postId: string,
+	tweetIds: string[],
+	totalTweets: number,
+	failReason: string,
+) {
+	const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
+	const existingMetadata = post?.metadata ?? {};
+
+	await db
+		.update(posts)
+		.set({
+			status: "partially_posted",
+			subStatus: "thread_partial",
+			failReason,
+			updatedAt: new Date(),
+			metadata: {
+				...existingMetadata,
+				threadProgress: JSON.stringify({
+					posted: tweetIds.length,
+					total: totalTweets,
+					lastPostedId: tweetIds[tweetIds.length - 1] ?? "",
+					tweetIds,
+				}),
+			},
+		})
+		.where(eq(posts.id, postId));
+
+	logger.warn("Post marked as partially posted", {
+		postId,
+		posted: tweetIds.length,
+		total: totalTweets,
+		failReason,
+	});
+}
+
+/**
  * Helper to mark a post as failed with a reason.
  */
 export async function markFailed(

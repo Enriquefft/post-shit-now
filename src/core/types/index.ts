@@ -25,7 +25,7 @@ export interface ValidationSummary {
 	results: ValidationResult[];
 }
 
-export type PostStatus = "draft" | "scheduled" | "publishing" | "published" | "failed" | "retry";
+export type PostStatus = "draft" | "scheduled" | "publishing" | "published" | "failed" | "retry" | "partially_posted";
 
 export type PostSubStatus =
 	| "retry_1"
