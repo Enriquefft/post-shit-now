@@ -117,8 +117,7 @@ describe("splitIntoThread", () => {
 	});
 
 	it("respects custom maxLen parameter", () => {
-		const text =
-			"First sentence here. Second sentence follows. Third sentence ends.";
+		const text = "First sentence here. Second sentence follows. Third sentence ends.";
 		const result = splitIntoThread(text, 40);
 		expect(result.length).toBeGreaterThan(1);
 		for (const tweet of result) {
@@ -158,9 +157,7 @@ describe("formatThreadPreview", () => {
 		expect(result.tweetCount).toBe(1);
 		expect(result.warning).toBeNull();
 		expect(result.preview).toContain("1/1");
-		expect(result.preview).toContain(
-			`${countTweetChars("Hello world")} chars`,
-		);
+		expect(result.preview).toContain(`${countTweetChars("Hello world")} chars`);
 		expect(result.preview).toContain("Hello world");
 	});
 
@@ -190,9 +187,7 @@ describe("formatThreadPreview", () => {
 	it("returns warning for more than 10 tweets", () => {
 		const tweets = Array(11).fill("Tweet content");
 		const result = formatThreadPreview(tweets);
-		expect(result.warning).toBe(
-			"Thread has 11 tweets (recommended max: 10)",
-		);
+		expect(result.warning).toBe("Thread has 11 tweets (recommended max: 10)");
 	});
 
 	it("uses weighted counting for emoji tweets", () => {

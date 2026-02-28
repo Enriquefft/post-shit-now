@@ -1,6 +1,7 @@
 import process from "node:process";
 import * as readline from "node:readline/promises";
 import { loadKeysEnv } from "../core/utils/env.ts";
+import { isValidTimezone } from "../core/utils/timezone.ts";
 import type { ContentAnalysis } from "../voice/import.ts";
 import {
 	analyzeImportedContent,
@@ -28,7 +29,6 @@ import {
 } from "../voice/interview.ts";
 import { generateStrategy, loadProfile, saveProfile, saveStrategy } from "../voice/profile.ts";
 import type { VoiceProfile } from "../voice/types.ts";
-import { isValidTimezone } from "../core/utils/timezone.ts";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -145,13 +145,15 @@ export async function submitAnswersInteractive(interviewId?: string): Promise<{
 	questions: InterviewQuestion[];
 }> {
 	// Load existing state or start fresh
-	let state = await loadInterviewState(interviewId);
-	if (!state) {
-		state = createInterviewState();
+	let stateOrNull = await loadInterviewState(interviewId);
+	if (!stateOrNull) {
+		stateOrNull = createInterviewState();
 		// Save initial state if we're creating it fresh
 		const newId = interviewId ?? generateInterviewId();
-		await saveInterviewState(state, newId);
+		await saveInterviewState(stateOrNull, newId);
 	}
+
+	let state: InterviewState = stateOrNull;
 
 	const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
@@ -186,7 +188,7 @@ export async function submitAnswersInteractive(interviewId?: string): Promise<{
 
 				console.log(`Phase ${phaseLabel} • Question ${questionNumber}/${totalQuestions}`);
 
-				let answer: string;
+				let answer = "";
 				let attempts = 0;
 				const maxAttempts = 3;
 
@@ -447,15 +449,17 @@ if (import.meta.main) {
 
 					const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 					try {
-						const selectionInput = await rl.question("\nWhich interview to complete? [id or number]: ");
+						const selectionInput = await rl.question(
+							"\nWhich interview to complete? [id or number]: ",
+						);
 						rl.close();
 
 						const trimmed = selectionInput.trim();
 						// Check if it's a number
 						const num = Number.parseInt(trimmed, 10);
 						if (!Number.isNaN(num) && num >= 1 && num <= interviews.length) {
-							const selected = interviews[num - 1];
-							interviewId = selected.id === "default" ? undefined : selected.id;
+							const selected = interviews.find((_, idx) => idx === num - 1);
+							interviewId = selected?.id === "default" ? undefined : selected?.id;
 						} else {
 							// Use as ID
 							const selected = interviews.find((interview) => interview.id === trimmed);

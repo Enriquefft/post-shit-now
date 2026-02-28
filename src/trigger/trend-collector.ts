@@ -101,23 +101,21 @@ export const trendCollector = schedules.task({
 
 		// Get X access token if available (for X trending source)
 		let xAccessToken: string | undefined;
-		{
-			try {
-				const encKey = keyFromHex(env.HUB_ENCRYPTION_KEY);
-				const [token] = await db
-					.select()
-					.from(oauthTokens)
-					.where(sql`${oauthTokens.userId} = ${userId} AND ${oauthTokens.platform} = 'x'`)
-					.limit(1);
+		try {
+			const encKey = keyFromHex(env.HUB_ENCRYPTION_KEY);
+			const [token] = await db
+				.select()
+				.from(oauthTokens)
+				.where(sql`${oauthTokens.userId} = ${userId} AND ${oauthTokens.platform} = 'x'`)
+				.limit(1);
 
-				if (token) {
-					xAccessToken = decrypt(token.accessToken, encKey);
-				}
-			} catch (err) {
-				logger.warn("Could not load X token for trending -- skipping X source", {
-					error: err instanceof Error ? err.message : String(err),
-				});
+			if (token) {
+				xAccessToken = decrypt(token.accessToken, encKey);
 			}
+		} catch (err) {
+			logger.warn("Could not load X token for trending -- skipping X source", {
+				error: err instanceof Error ? err.message : String(err),
+			});
 		}
 
 		// Collect trends from all available sources

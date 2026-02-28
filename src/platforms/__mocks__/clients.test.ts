@@ -1,11 +1,11 @@
-import { describe, expect, it, beforeEach } from "vitest";
-import {
-	MockXClient,
-	MockLinkedInClient,
-	MockInstagramClient,
-	MockTikTokClient,
-} from "./clients.ts";
+import { beforeEach, describe, expect, it } from "vitest";
 import { XApiError } from "../x/types.ts";
+import {
+	MockInstagramClient,
+	MockLinkedInClient,
+	MockTikTokClient,
+	MockXClient,
+} from "./clients.ts";
 
 describe("MockXClient", () => {
 	let client: MockXClient;

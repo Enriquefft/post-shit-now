@@ -3,8 +3,12 @@ import { sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { type OAuthTokenMetadata, oauthTokens, posts } from "../../core/db/schema.ts";
 import type { PlatformPublishResult, PostMetadata } from "../../core/types/index.ts";
-import type { DbConnection, PostRow, RateLimitInfo } from "../../core/types/publisher.ts";
-import type { PlatformPublisher } from "../../core/types/publisher.ts";
+import type {
+	DbConnection,
+	PlatformPublisher,
+	PostRow,
+	RateLimitInfo,
+} from "../../core/types/publisher.ts";
 import { decrypt, encrypt } from "../../core/utils/crypto.ts";
 import { registerHandler } from "../../core/utils/publisher-factory.ts";
 import { InstagramClient } from "../instagram/client.ts";
@@ -31,7 +35,11 @@ export class InstagramHandler implements PlatformPublisher {
 		const instagramAppId = process.env.INSTAGRAM_APP_ID;
 		const instagramAppSecret = process.env.INSTAGRAM_APP_SECRET;
 		if (!instagramAppId || !instagramAppSecret) {
-			return { platform: "instagram", status: "failed", error: "INSTAGRAM_APP_ID or INSTAGRAM_APP_SECRET not set" };
+			return {
+				platform: "instagram",
+				status: "failed",
+				error: "INSTAGRAM_APP_ID or INSTAGRAM_APP_SECRET not set",
+			};
 		}
 
 		// Fetch OAuth token
@@ -40,7 +48,8 @@ export class InstagramHandler implements PlatformPublisher {
 			.from(oauthTokens)
 			.where(sql`${oauthTokens.userId} = ${userId} AND ${oauthTokens.platform} = 'instagram'`)
 			.limit(1);
-		if (!token) return { platform: "instagram", status: "failed", error: "no_instagram_oauth_token" };
+		if (!token)
+			return { platform: "instagram", status: "failed", error: "no_instagram_oauth_token" };
 
 		// Refresh token if expired (Instagram uses access token itself, not refresh token)
 		let accessTokenEncrypted = token.accessToken;
@@ -73,7 +82,11 @@ export class InstagramHandler implements PlatformPublisher {
 		const tokenMetadata: OAuthTokenMetadata = token.metadata ?? {};
 		const accountId = tokenMetadata.accountId;
 		if (!accountId) {
-			return { platform: "instagram", status: "failed", error: "instagram_account_id_not_in_token_metadata" };
+			return {
+				platform: "instagram",
+				status: "failed",
+				error: "instagram_account_id_not_in_token_metadata",
+			};
 		}
 
 		// Check daily post limit
@@ -82,9 +95,15 @@ export class InstagramHandler implements PlatformPublisher {
 		const todayPosts = await db
 			.select()
 			.from(posts)
-			.where(sql`${posts.userId} = ${userId} AND ${posts.platform} = 'instagram' AND ${posts.status} = 'published' AND ${posts.publishedAt} >= ${todayStart}`);
+			.where(
+				sql`${posts.userId} = ${userId} AND ${posts.platform} = 'instagram' AND ${posts.status} = 'published' AND ${posts.publishedAt} >= ${todayStart}`,
+			);
 		if (todayPosts.length >= MAX_POSTS_PER_DAY) {
-			return { platform: "instagram", status: "failed", error: `instagram_daily_limit_reached_${MAX_POSTS_PER_DAY}` };
+			return {
+				platform: "instagram",
+				status: "failed",
+				error: `instagram_daily_limit_reached_${MAX_POSTS_PER_DAY}`,
+			};
 		}
 
 		const client = new InstagramClient(accessToken, accountId);
@@ -100,12 +119,24 @@ export class InstagramHandler implements PlatformPublisher {
 		const instagramFormat = metadata.instagramFormat ?? metadata.format ?? "image-post";
 
 		try {
-			const publishedMediaId = await this.publishByFormat(client, instagramFormat, mediaUrls, caption);
-			logger.info("Instagram post published", { postId, publishedMediaId, format: instagramFormat });
+			const publishedMediaId = await this.publishByFormat(
+				client,
+				instagramFormat,
+				mediaUrls,
+				caption,
+			);
+			logger.info("Instagram post published", {
+				postId,
+				publishedMediaId,
+				format: instagramFormat,
+			});
 			return { platform: "instagram", status: "published", externalPostId: publishedMediaId };
 		} catch (error) {
 			if (error instanceof InstagramRateLimitError && error.rateLimit) {
-				logger.warn("Instagram rate limited, waiting", { postId, resetAt: error.rateLimit.resetAt.toISOString() });
+				logger.warn("Instagram rate limited, waiting", {
+					postId,
+					resetAt: error.rateLimit.resetAt.toISOString(),
+				});
 				await wait.until({ date: error.rateLimit.resetAt });
 				throw error;
 			}
@@ -152,10 +183,16 @@ export class InstagramHandler implements PlatformPublisher {
 		}
 	}
 
-	async validateCredentials(): Promise<boolean> { return true; }
-	getRateLimitInfo(): RateLimitInfo | null { return this.currentRateLimit; }
+	async validateCredentials(): Promise<boolean> {
+		return true;
+	}
+	getRateLimitInfo(): RateLimitInfo | null {
+		return this.currentRateLimit;
+	}
 	async refreshCredentials(_db: DbConnection, _encKey: Buffer): Promise<void> {}
-	isRateLimited(): boolean { return this.currentRateLimit?.remaining === 0; }
+	isRateLimited(): boolean {
+		return this.currentRateLimit?.remaining === 0;
+	}
 	getRetryAfter(): number {
 		if (!this.currentRateLimit) return 0;
 		return Math.max(0, Math.ceil((this.currentRateLimit.resetAt.getTime() - Date.now()) / 1000));
@@ -163,4 +200,9 @@ export class InstagramHandler implements PlatformPublisher {
 }
 
 // Auto-register
-registerHandler("instagram", InstagramHandler as unknown as new (...args: unknown[]) => PlatformPublisher);
+registerHandler(
+	"instagram",
+	InstagramHandler as unknown as new (
+		...args: unknown[]
+	) => PlatformPublisher,
+);

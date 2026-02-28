@@ -197,11 +197,11 @@ function isRetryableError(error: string): boolean {
 function extractTableInfo(error: string): string | null {
 	// Pattern 1: relation "table_name" does not exist
 	const relationMatch = error.match(/relation "([^"]+)" does not exist/i);
-	if (relationMatch) return relationMatch[1];
+	if (relationMatch) return relationMatch[1] ?? null;
 
 	// Pattern 2: table "table_name"
 	const tableMatch = error.match(/table "([^"]+)"/i);
-	if (tableMatch) return tableMatch[1];
+	if (tableMatch) return tableMatch[1] ?? null;
 
 	return null;
 }

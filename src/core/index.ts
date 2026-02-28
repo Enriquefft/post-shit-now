@@ -6,6 +6,9 @@
  * Internal: schema, migration scripts, env utils, thread-splitter, timezone.
  */
 
+export type { DbClient, HubDb } from "./db/connection.ts";
+// --- Database connection ---
+export { createHubConnection } from "./db/connection.ts";
 // --- Core types (selective re-export — cross-module types excluded to prevent circular deps) ---
 // DO NOT add: ApprovalAction, ApprovalStatus, MessageResult, NotificationEvent,
 // NotificationEventType, NotificationPreference, NotificationTier, WhatsAppProvider,
@@ -24,7 +27,6 @@ export type {
 	ValidationSummary,
 	XOAuthConfig,
 } from "./types/index.ts";
-
 // --- Publisher contract types ---
 export type {
 	DbConnection,
@@ -32,10 +34,6 @@ export type {
 	PostRow,
 	RateLimitInfo,
 } from "./types/publisher.ts";
-
-// --- Database connection ---
-export { createHubConnection } from "./db/connection.ts";
-export type { DbClient, HubDb } from "./db/connection.ts";
 
 // --- Crypto utilities ---
 export { decrypt, encrypt, keyFromHex } from "./utils/crypto.ts";

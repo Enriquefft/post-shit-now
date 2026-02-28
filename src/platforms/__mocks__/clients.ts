@@ -23,14 +23,12 @@ interface PostedTweet {
  * Tracks posted tweets in memory and supports failure injection for error path testing.
  */
 export class MockXClient {
-	private accessToken: string;
 	private tweets: PostedTweet[] = [];
 	private nextId = 1;
 	private pendingFailure: Error | null = null;
 
-	constructor(accessToken: string) {
-		this.accessToken = accessToken;
-	}
+	// biome-ignore lint/correctness/noUnusedPrivateClassMembers: stored for potential future use
+	constructor(private readonly accessToken: string) {}
 
 	/**
 	 * Create a tweet. Returns incrementing tweet_N IDs.
@@ -111,33 +109,25 @@ export class MockXClient {
 
 /** Minimal stub -- LinkedIn publish flow not in current test scope. */
 export class MockLinkedInClient {
-	private accessToken: string;
-
-	constructor(accessToken: string) {
-		this.accessToken = accessToken;
-	}
+	// biome-ignore lint/correctness/noUnusedPrivateClassMembers: stored for potential future use
+	constructor(private readonly accessToken: string) {}
 }
 
 // ─── MockInstagramClient ─────────────────────────────────────────────────────
 
 /** Minimal stub -- Instagram publish flow not in current test scope. */
 export class MockInstagramClient {
-	private accessToken: string;
-	private accountId: string;
-
-	constructor(accessToken: string, accountId: string) {
-		this.accessToken = accessToken;
-		this.accountId = accountId;
-	}
+	// biome-ignore lint/correctness/noUnusedPrivateClassMembers: stored for potential future use
+	constructor(
+		private readonly accessToken: string,
+		private readonly accountId: string,
+	) {}
 }
 
 // ─── MockTikTokClient ────────────────────────────────────────────────────────
 
 /** Minimal stub -- TikTok publish flow not in current test scope. */
 export class MockTikTokClient {
-	private accessToken: string;
-
-	constructor(accessToken: string) {
-		this.accessToken = accessToken;
-	}
+	// biome-ignore lint/correctness/noUnusedPrivateClassMembers: stored for potential future use
+	constructor(private readonly accessToken: string) {}
 }

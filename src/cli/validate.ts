@@ -3,7 +3,6 @@ import { createHubConnection } from "../core/db/connection.ts";
 import type { ValidationResult, ValidationSummary } from "../core/types/index.ts";
 import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
 import { verifyTriggerProject } from "./setup-trigger.ts";
-import { maskApiKey } from "./utils/masking.ts";
 
 /**
  * Validate all Hub connections and configuration.

@@ -9,7 +9,8 @@
  *   import "../platforms/handlers/index.ts"; // registers all handlers
  *   const handler = createHandler("x");
  */
-export { XHandler } from "./x.handler.ts";
-export { LinkedInHandler } from "./linkedin.handler.ts";
+
 export { InstagramHandler } from "./instagram.handler.ts";
+export { LinkedInHandler } from "./linkedin.handler.ts";
 export { TikTokHandler } from "./tiktok.handler.ts";
+export { XHandler } from "./x.handler.ts";

@@ -53,7 +53,11 @@ export function maskApiKey(key: string): string {
  */
 export function formatErrorWithMasking(
 	message: string,
-	context?: { databaseUrl?: string; apiKey?: string; [key: string]: string | number | boolean | null },
+	context?: {
+		databaseUrl?: string;
+		apiKey?: string;
+		[key: string]: string | number | boolean | null | undefined;
+	},
 ): string {
 	let formatted = message;
 

@@ -2,7 +2,6 @@ import { logger, task } from "@trigger.dev/sdk";
 import { sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
-import { CORE_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 import { dispatchNotification, routeCompanyNotification } from "../notifications/dispatcher.ts";
 import { createWhatsAppProvider } from "../notifications/provider.ts";
 import type {
@@ -10,6 +9,7 @@ import type {
 	NotificationEventType,
 	NotificationPreference,
 } from "../notifications/types.ts";
+import { CORE_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 
 // ─── Notification Dispatcher Task ──────────────────────────────────────────
 // Trigger.dev task for async notification dispatch.

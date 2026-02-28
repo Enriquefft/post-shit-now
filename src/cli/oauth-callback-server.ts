@@ -1,8 +1,5 @@
 import { exec } from "node:child_process";
-import {
-	OAUTH_CALLBACK_HOSTNAME,
-	OAUTH_CALLBACK_PORT,
-} from "../platforms/x/oauth.ts";
+import { OAUTH_CALLBACK_HOSTNAME, OAUTH_CALLBACK_PORT } from "../platforms/x/oauth.ts";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -119,11 +116,7 @@ export function startCallbackServer(
  */
 export function canOpenBrowser(): boolean {
 	if (process.env.SSH_CLIENT || process.env.SSH_TTY) return false;
-	if (
-		process.platform === "linux" &&
-		!process.env.DISPLAY &&
-		!process.env.WAYLAND_DISPLAY
-	) {
+	if (process.platform === "linux" && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) {
 		return false;
 	}
 	return true;

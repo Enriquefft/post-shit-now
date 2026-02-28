@@ -11,6 +11,7 @@ export interface SetupResult {
 	step: string;
 	status: "success" | "error" | "skipped" | "need_input";
 	message: string;
+	suggestedAction?: string;
 	data?: Record<string, unknown>;
 }
 
@@ -18,6 +19,7 @@ export interface ValidationResult {
 	check: string;
 	status: "pass" | "fail";
 	message: string;
+	suggestedAction?: string;
 }
 
 export interface ValidationSummary {
@@ -25,7 +27,14 @@ export interface ValidationSummary {
 	results: ValidationResult[];
 }
 
-export type PostStatus = "draft" | "scheduled" | "publishing" | "published" | "failed" | "retry" | "partially_posted";
+export type PostStatus =
+	| "draft"
+	| "scheduled"
+	| "publishing"
+	| "published"
+	| "failed"
+	| "retry"
+	| "partially_posted";
 
 export type PostSubStatus =
 	| "retry_1"

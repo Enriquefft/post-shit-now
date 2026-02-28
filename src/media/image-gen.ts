@@ -1,9 +1,10 @@
+import type { DbClient } from "../core/db/connection.ts";
 import type { Platform } from "../core/types/index.ts";
 import { type ProcessedImage, processImageForPlatform } from "./processor.ts";
 import { fluxProvider } from "./providers/flux.ts";
 import { gptImageProvider } from "./providers/gpt-image.ts";
 import { ideogramProvider } from "./providers/ideogram.ts";
-import type { GeneratedImage, ImageGenOptions, ImageProvider } from "./types.ts";
+import type { ImageProvider } from "./types.ts";
 
 // ─── Re-export shared types for backward compatibility ──────────────────────
 

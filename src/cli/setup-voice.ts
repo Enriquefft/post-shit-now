@@ -87,8 +87,7 @@ export async function getSetupStatus(
 				.limit(1);
 
 			// Interview is complete if profile has identity pillars defined
-			hasCompletedInterview =
-				firstEntity[0]?.profileData?.identity?.pillars?.length > 0;
+			hasCompletedInterview = (firstEntity[0]?.profileData?.identity?.pillars?.length ?? 0) > 0;
 		}
 
 		status.hasVoiceProfile = hasCompletedInterview;

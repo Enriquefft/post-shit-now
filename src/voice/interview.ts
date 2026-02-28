@@ -1,14 +1,7 @@
-import {
-	mkdir,
-	readFile,
-	readdir,
-	rename,
-	rm,
-	stat,
-	writeFile,
-} from "node:fs/promises";
+import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
+import { isValidTimezone } from "../core/utils/timezone.ts";
 import type { ImportedContent } from "./import.ts";
 import {
 	createBlankSlateProfile,
@@ -17,7 +10,6 @@ import {
 	type VoiceProfile,
 	voiceProfileSchema,
 } from "./types.ts";
-import { isValidTimezone } from "../core/utils/timezone.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -51,7 +43,7 @@ export interface InterviewQuestion {
 const interviewStateSchema = z.object({
 	phase: z.enum(["identity", "style", "platforms", "language", "review"]),
 	questionIndex: z.number().int().min(0),
-	answers: z.record(z.string()),
+	answers: z.record(z.string(), z.string()),
 	detectedExperience: z.enum(["beginner", "intermediate", "advanced"]).nullable(),
 	maturityLevel: z.enum(["never_posted", "sporadic", "consistent", "very_active"]).nullable(),
 	languages: z.array(z.enum(["en", "es"])),
@@ -76,10 +68,7 @@ const interviewStateSchema = z.object({
  * @throws Error if directories cannot be created (e.g., permission denied)
  */
 export async function ensureVoiceDirectories(): Promise<void> {
-	const directories = [
-		"content/voice/profiles",
-		"content/voice/strategies",
-	];
+	const directories = ["content/voice/profiles", "content/voice/strategies"];
 
 	for (const dir of directories) {
 		try {
@@ -529,7 +518,7 @@ export function generateQuestions(state: InterviewState): InterviewQuestion[] {
 			return state.detectedExperience === "advanced"
 				? STYLE_QUESTIONS_ADVANCED
 				: STYLE_QUESTIONS_BEGINNER;
-		case "platforms":
+		case "platforms": {
 			// Filter platform questions based on platform_select answer
 			const platformSelectAnswer = state.answers.get("platform_select");
 			if (platformSelectAnswer) {
@@ -537,7 +526,10 @@ export function generateQuestions(state: InterviewState): InterviewQuestion[] {
 				const questions: InterviewQuestion[] = [PLATFORM_SELECT_QUESTION];
 
 				// Add platform-specific questions based on selected platforms
-				if (platformSelectAnswer.toLowerCase().includes("x") || platformSelectAnswer.toLowerCase().includes("twitter")) {
+				if (
+					platformSelectAnswer.toLowerCase().includes("x") ||
+					platformSelectAnswer.toLowerCase().includes("twitter")
+				) {
 					questions.push(...PLATFORM_X_QUESTIONS);
 				}
 				if (platformSelectAnswer.toLowerCase().includes("linkedin")) {
@@ -552,6 +544,7 @@ export function generateQuestions(state: InterviewState): InterviewQuestion[] {
 				return questions;
 			}
 			return PLATFORM_QUESTIONS;
+		}
 		case "language":
 			return LANGUAGE_QUESTIONS;
 		case "review":
@@ -797,7 +790,10 @@ export function finalizeProfile(state: InterviewState): VoiceProfile {
 	const platformSelectAnswer = state.answers.get("platform_select") ?? "";
 	const selectedPlatforms: Set<string> = new Set();
 
-	if (platformSelectAnswer.toLowerCase().includes("x") || platformSelectAnswer.toLowerCase().includes("twitter")) {
+	if (
+		platformSelectAnswer.toLowerCase().includes("x") ||
+		platformSelectAnswer.toLowerCase().includes("twitter")
+	) {
 		selectedPlatforms.add("x");
 	}
 	if (platformSelectAnswer.toLowerCase().includes("linkedin")) {
@@ -824,9 +820,16 @@ export function finalizeProfile(state: InterviewState): VoiceProfile {
 	const mapEmojiUsage = (answer: string): "none" | "rare" | "moderate" | "heavy" => {
 		const lower = answer.toLowerCase();
 		if (lower.includes("none") || lower.includes("no")) return "none";
-		if (lower.includes("rare") || lower.includes("sparingly") || lower.includes("for emphasis")) return "rare";
+		if (lower.includes("rare") || lower.includes("sparingly") || lower.includes("for emphasis"))
+			return "rare";
 		if (lower.includes("moderate")) return "moderate";
-		if (lower.includes("heavy") || lower.includes("love") || lower.includes("norm") || lower.includes("culture")) return "heavy";
+		if (
+			lower.includes("heavy") ||
+			lower.includes("love") ||
+			lower.includes("norm") ||
+			lower.includes("culture")
+		)
+			return "heavy";
 		return "rare";
 	};
 
@@ -999,9 +1002,7 @@ export async function saveInterviewState(
  * @returns Interview state or null if file doesn't exist
  * @throws Error if state is corrupted (validation fails)
  */
-export async function loadInterviewState(
-	interviewId?: string,
-): Promise<InterviewState | null> {
+export async function loadInterviewState(interviewId?: string): Promise<InterviewState | null> {
 	const path = getInterviewStatePath(interviewId);
 
 	try {
@@ -1021,7 +1022,7 @@ export async function loadInterviewState(
 		// Convert answers back to Map
 		return {
 			...result.data,
-			answers: new Map(Object.entries(result.data.answers)),
+			answers: new Map<string, string>(Object.entries(result.data.answers)),
 		};
 	} catch (err) {
 		const error = err as { code?: string };
@@ -1037,26 +1038,26 @@ export async function loadInterviewState(
  *
  * @returns Array of interview metadata (id, path, age in milliseconds)
  */
-export async function listInterviews(): Promise<
-	{ id: string; path: string; ageMs: number }[]
-> {
+export async function listInterviews(): Promise<{ id: string; path: string; ageMs: number }[]> {
 	const voiceDir = "content/voice";
 	try {
 		const files = await readdir(voiceDir);
 		const interviews: { id: string; path: string; ageMs: number }[] = [];
 
 		for (const file of files) {
-			const match = file.match(/^\.interview-(.+)\.json$/) ||
-				file === ".interview.json";
-			if (match) {
+			const regexMatch = file.match(/^\.interview-(.+)\.json$/);
+			const isLegacy = file === ".interview.json";
+			if (regexMatch || isLegacy) {
 				const fullPath = join(voiceDir, file);
 				const stats = await stat(fullPath);
 				const ageMs = Date.now() - stats.mtimeMs;
 
-				if (file === ".interview.json") {
+				if (isLegacy) {
 					interviews.push({ id: "default", path: fullPath, ageMs });
 				} else {
-					interviews.push({ id: match[1]!, path: fullPath, ageMs });
+					// regexMatch is non-null in else branch (isLegacy is false and regexMatch || isLegacy was true)
+					const matchId = (regexMatch as RegExpMatchArray)[1] as string;
+					interviews.push({ id: matchId, path: fullPath, ageMs });
 				}
 			}
 		}
@@ -1078,7 +1079,9 @@ export async function listInterviews(): Promise<
  *
  * @param maxAgeMs - Maximum age in milliseconds before cleanup (default: 7 days)
  */
-export async function cleanupOldInterviews(maxAgeMs: number = 7 * 24 * 60 * 60 * 1000): Promise<void> {
+export async function cleanupOldInterviews(
+	maxAgeMs: number = 7 * 24 * 60 * 60 * 1000,
+): Promise<void> {
 	const interviews = await listInterviews();
 	let cleaned = 0;
 
@@ -1086,7 +1089,9 @@ export async function cleanupOldInterviews(maxAgeMs: number = 7 * 24 * 60 * 60 *
 		if (interview.ageMs > maxAgeMs) {
 			await rm(interview.path);
 			cleaned++;
-			console.log(`Cleaned up old interview: ${interview.path} (${(interview.ageMs / 1000 / 60 / 60 / 24).toFixed(1)} days old)`);
+			console.log(
+				`Cleaned up old interview: ${interview.path} (${(interview.ageMs / 1000 / 60 / 60 / 24).toFixed(1)} days old)`,
+			);
 		}
 	}
 

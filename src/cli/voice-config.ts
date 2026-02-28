@@ -4,7 +4,6 @@ import { z } from "zod/v4";
 import type { Platform } from "../core/types/index.ts";
 import { applyTweak, loadProfile, validateProfile } from "../voice/profile.ts";
 import type { VoiceProfile, VoiceTweak } from "../voice/types.ts";
-import { voiceProfileSchema } from "../voice/types.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -210,7 +209,11 @@ if (import.meta.main) {
 					const raw = await readFile(profilePath, "utf-8");
 					profileData = parse(raw);
 				} catch (err) {
-					if (err instanceof Error && "code" in err && (err as NodeJS.ErrnoException).code === "ENOENT") {
+					if (
+						err instanceof Error &&
+						"code" in err &&
+						(err as NodeJS.ErrnoException).code === "ENOENT"
+					) {
 						console.log(
 							JSON.stringify({
 								valid: false,
@@ -261,6 +264,7 @@ if (import.meta.main) {
 					);
 					process.exit(1);
 				}
+				break;
 			}
 
 			default:

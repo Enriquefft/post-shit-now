@@ -32,7 +32,7 @@ const threadProgressSchema = z.object({
 
 /** Wrapper to skip retry.onThrow retries for errors needing domain-specific handling */
 class SkipRetryError extends Error {
-	readonly cause: Error;
+	override readonly cause: Error;
 	constructor(cause: Error) {
 		super("abort_retry");
 		this.name = "SkipRetryError";

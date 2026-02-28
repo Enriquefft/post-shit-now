@@ -4,7 +4,7 @@ import { runMigrationsWithRetry } from "../core/db/migrate.ts";
 import type { SetupResult } from "../core/types/index.ts";
 import { generateEncryptionKey } from "../core/utils/crypto.ts";
 import { loadKeysEnv, migratePersonalHubToHubsDir, validateNeonApiKey } from "../core/utils/env.ts";
-import { formatErrorWithMasking, maskDatabaseUrl } from "./utils/masking.ts";
+import { maskDatabaseUrl } from "./utils/masking.ts";
 import { createProgressStep, runStep } from "./utils/progress.ts";
 
 /**
@@ -17,7 +17,11 @@ export async function setupDatabase(configDir = "config", projectRoot = "."): Pr
 	const personalHubPath = join(hubsDir, "personal.json");
 
 	// Display step list upfront
-	createProgressStep(["Creating Neon project", "Running database migrations", "Saving connection to .hubs/personal.json"]);
+	createProgressStep([
+		"Creating Neon project",
+		"Running database migrations",
+		"Saving connection to .hubs/personal.json",
+	]);
 
 	// Migration check: migrate config/hub.env to .hubs/personal.json if needed
 	const migrateResult = await migratePersonalHubToHubsDir(configDir, projectRoot);
@@ -99,10 +103,7 @@ export async function setupDatabase(configDir = "config", projectRoot = "."): Pr
 			message: "neonctl CLI not found in PATH",
 			data: {
 				suggestion: "Install neonctl to continue with database setup:",
-				commands: [
-					"npm install -g neonctl",
-					"bun add -g neonctl",
-				],
+				commands: ["npm install -g neonctl", "bun add -g neonctl"],
 				docs: "https://neon.tech/docs/reference/cli-reference",
 				troubleshooting: [
 					"After installation, restart your terminal or run: source ~/.bashrc (or ~/.zshrc)",
@@ -189,7 +190,9 @@ export async function setupDatabase(configDir = "config", projectRoot = "."): Pr
 	await runStep("Running database migrations", async () => {
 		const migrationResult = await runMigrationsWithRetry(connectionUri);
 		if (!migrationResult.success) {
-			throw new Error(`Migrations failed: ${migrationResult.error}. personal.json saved — re-run setup to retry migrations.`);
+			throw new Error(
+				`Migrations failed: ${migrationResult.error}. personal.json saved — re-run setup to retry migrations.`,
+			);
 		}
 	});
 

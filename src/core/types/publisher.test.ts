@@ -56,10 +56,7 @@ class MockPublisher implements PlatformPublisher {
 	setRateLimit(info: RateLimitInfo): void {
 		this.rateLimitInfo = info;
 		this.rateLimited = true;
-		const secondsRemaining = Math.max(
-			0,
-			Math.floor((info.resetAt.getTime() - Date.now()) / 1000),
-		);
+		const secondsRemaining = Math.max(0, Math.floor((info.resetAt.getTime() - Date.now()) / 1000));
 		this.retryAfterSeconds = secondsRemaining;
 	}
 
@@ -92,22 +89,14 @@ describe("PlatformPublisher interface compliance", () => {
 	describe("publish()", () => {
 		it("should return a PlatformPublishResult with all required fields", async () => {
 			const publisher = new MockPublisher();
-			const result = await publisher.publish(
-				{} as never,
-				{} as never,
-				Buffer.from("key"),
-			);
+			const result = await publisher.publish({} as never, {} as never, Buffer.from("key"));
 			expect(result).toHaveProperty("platform");
 			expect(result).toHaveProperty("status");
 		});
 
 		it("should return a valid status value", async () => {
 			const publisher = new MockPublisher();
-			const result = await publisher.publish(
-				{} as never,
-				{} as never,
-				Buffer.from("key"),
-			);
+			const result = await publisher.publish({} as never, {} as never, Buffer.from("key"));
 			const validStatuses: Array<"published" | "failed" | "skipped"> = [
 				"published",
 				"failed",
@@ -118,27 +107,14 @@ describe("PlatformPublisher interface compliance", () => {
 
 		it("should return a valid platform value", async () => {
 			const publisher = new MockPublisher();
-			const result = await publisher.publish(
-				{} as never,
-				{} as never,
-				Buffer.from("key"),
-			);
-			const validPlatforms: Platform[] = [
-				"x",
-				"linkedin",
-				"instagram",
-				"tiktok",
-			];
+			const result = await publisher.publish({} as never, {} as never, Buffer.from("key"));
+			const validPlatforms: Platform[] = ["x", "linkedin", "instagram", "tiktok"];
 			expect(validPlatforms).toContain(result.platform);
 		});
 
 		it("should include externalPostId when published successfully", async () => {
 			const publisher = new MockPublisher();
-			const result = await publisher.publish(
-				{} as never,
-				{} as never,
-				Buffer.from("key"),
-			);
+			const result = await publisher.publish({} as never, {} as never, Buffer.from("key"));
 			if (result.status === "published") {
 				expect(result.externalPostId).toBeDefined();
 			}

@@ -1,9 +1,10 @@
+import type { DbClient } from "../core/db/connection.ts";
 import type { Platform } from "../core/types/index.ts";
 import { PLATFORM_VIDEO_SPECS } from "./platform-specs.ts";
 import { klingProvider } from "./providers/kling.ts";
 import { pikaProvider } from "./providers/pika.ts";
 import { runwayProvider } from "./providers/runway.ts";
-import type { GeneratedVideo, VideoGenParams, VideoMode, VideoProvider } from "./types.ts";
+import type { GeneratedVideo, VideoMode, VideoProvider } from "./types.ts";
 
 // ─── Re-export shared types for backward compatibility ──────────────────────
 

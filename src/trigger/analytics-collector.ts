@@ -10,14 +10,6 @@ import {
 import { createHubConnection } from "../core/db/connection.ts";
 import { oauthTokens } from "../core/db/schema.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
-import {
-	CRYPTO_ENV_VARS,
-	INSTAGRAM_ENV_VARS,
-	LINKEDIN_ENV_VARS,
-	TIKTOK_ENV_VARS,
-	X_ENV_VARS,
-	requireEnvVars,
-} from "./env-validation.ts";
 import { InstagramClient } from "../platforms/instagram/client.ts";
 import { refreshInstagramToken } from "../platforms/instagram/oauth.ts";
 import { LinkedInClient } from "../platforms/linkedin/client.ts";
@@ -28,7 +20,19 @@ import {
 import { TikTokClient } from "../platforms/tiktok/client.ts";
 import { createTikTokOAuthClient, refreshTikTokToken } from "../platforms/tiktok/oauth.ts";
 import { XClient } from "../platforms/x/client.ts";
-import { createXOAuthClient, refreshAccessToken as refreshXToken, X_CALLBACK_URL } from "../platforms/x/oauth.ts";
+import {
+	createXOAuthClient,
+	refreshAccessToken as refreshXToken,
+	X_CALLBACK_URL,
+} from "../platforms/x/oauth.ts";
+import {
+	CRYPTO_ENV_VARS,
+	INSTAGRAM_ENV_VARS,
+	LINKEDIN_ENV_VARS,
+	requireEnvVars,
+	TIKTOK_ENV_VARS,
+	X_ENV_VARS,
+} from "./env-validation.ts";
 
 /**
  * Daily analytics collector.
@@ -257,7 +261,7 @@ async function collectInstagramAnalyticsTask(
 	encKey: Buffer,
 	userId: string,
 ): Promise<CollectionSummary | null> {
-	const igEnv = requireEnvVars(INSTAGRAM_ENV_VARS, "analytics-collector/instagram");
+	const _igEnv = requireEnvVars(INSTAGRAM_ENV_VARS, "analytics-collector/instagram");
 
 	// Fetch OAuth token
 	const [token] = await db

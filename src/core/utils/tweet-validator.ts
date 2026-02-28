@@ -137,16 +137,12 @@ export function validateTweet(text: string): TweetValidation {
 
 	const mentionCount = (text.match(/@\w+/g) || []).length;
 	if (mentionCount > 10) {
-		warnings.push(
-			`${mentionCount} mentions detected (recommended max: 10)`,
-		);
+		warnings.push(`${mentionCount} mentions detected (recommended max: 10)`);
 	}
 
 	const hashtagCount = (text.match(/#\w+/g) || []).length;
 	if (hashtagCount > 5) {
-		warnings.push(
-			`${hashtagCount} hashtags detected (recommended max: 5)`,
-		);
+		warnings.push(`${hashtagCount} hashtags detected (recommended max: 5)`);
 	}
 
 	return { valid: errors.length === 0, charCount, maxChars: 280, errors, warnings };

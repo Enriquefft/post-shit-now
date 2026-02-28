@@ -45,7 +45,11 @@ export function detectProjectRef(keysResult: KeysResult): DetectedProjectRef {
 	if (TRIGGER_SECRET_KEY) {
 		const match = TRIGGER_SECRET_KEY.match(/^tr_(dev|prod)_([a-zA-Z0-9]+)_/);
 		if (match) {
-			return { source: "secret-key", projectRef: match[2], environment: match[1] === "prod" ? "prod" : "dev" };
+			return {
+				source: "secret-key",
+				projectRef: match[2],
+				environment: match[1] === "prod" ? "prod" : "dev",
+			};
 		}
 	}
 
@@ -80,7 +84,12 @@ export async function verifyTriggerProject(
 		const stderr = await new Response(proc.stderr).text();
 
 		// Authentication error
-		if (exitCode !== 0 && (stderr.includes("401") || stderr.includes("Unauthorized") || stderr.includes("not authenticated"))) {
+		if (
+			exitCode !== 0 &&
+			(stderr.includes("401") ||
+				stderr.includes("Unauthorized") ||
+				stderr.includes("not authenticated"))
+		) {
 			return {
 				valid: false,
 				error: "Invalid TRIGGER_SECRET_KEY or insufficient permissions",
@@ -89,7 +98,12 @@ export async function verifyTriggerProject(
 		}
 
 		// Network/connectivity error
-		if (exitCode !== 0 && (stderr.includes("ECONNREFUSED") || stderr.includes("network") || stderr.includes("ENOTFOUND"))) {
+		if (
+			exitCode !== 0 &&
+			(stderr.includes("ECONNREFUSED") ||
+				stderr.includes("network") ||
+				stderr.includes("ENOTFOUND"))
+		) {
 			return {
 				valid: false,
 				error: "Cannot connect to Trigger.dev",
@@ -112,7 +126,8 @@ export async function verifyTriggerProject(
 			return {
 				valid: false,
 				error: `Configured project ref (${projectRef}) does not match Trigger.dev project`,
-				suggestedAction: "Update trigger.config.ts with the correct project ref or run /psn:setup trigger to reconfigure",
+				suggestedAction:
+					"Update trigger.config.ts with the correct project ref or run /psn:setup trigger to reconfigure",
 			};
 		}
 
@@ -139,7 +154,11 @@ export async function verifyTriggerProject(
  */
 export async function setupTrigger(configDir = "config"): Promise<SetupResult> {
 	// Display step list upfront
-	createProgressStep(["Detecting project ref", "Verifying Trigger.dev connectivity", "Updating trigger.config.ts"]);
+	createProgressStep([
+		"Detecting project ref",
+		"Verifying Trigger.dev connectivity",
+		"Updating trigger.config.ts",
+	]);
 
 	// Check if trigger.config.ts already has a real project ref
 	const configContent = readFileSync(TRIGGER_CONFIG_PATH, "utf-8");
@@ -212,7 +231,10 @@ export async function setupTrigger(configDir = "config"): Promise<SetupResult> {
 	}
 
 	// Project ref detected - verify it
-	const projectRef = detected.projectRef!;
+	if (!detected.projectRef) {
+		throw new Error("Project ref not found despite detection — unexpected state");
+	}
+	const projectRef = detected.projectRef;
 	await runStep("Verifying Trigger.dev project connectivity", async () => {
 		const verification = await verifyTriggerProject(projectRef, secretKey);
 		if (!verification.valid) {
@@ -270,12 +292,20 @@ export async function verifyTriggerSetup(configDir = "config"): Promise<SetupRes
 			step: "trigger",
 			status: "error",
 			message: "No project ref detected from config file or secret key",
-			suggestedAction: "Set TRIGGER_PROJECT_REF in keys.env or ensure your secret key has the correct format (tr_dev_PROJECTREF_...)",
+			suggestedAction:
+				"Set TRIGGER_PROJECT_REF in keys.env or ensure your secret key has the correct format (tr_dev_PROJECTREF_...)",
 			data: { secretKeyFormat: maskApiKey(secretKey) },
 		};
 	}
 
-	const projectRef = detected.projectRef!;
+	if (!detected.projectRef) {
+		return {
+			step: "trigger",
+			status: "error",
+			message: "Project ref not found despite detection — unexpected state",
+		};
+	}
+	const projectRef = detected.projectRef;
 
 	// Verify project via Trigger.dev CLI
 	const verification = await verifyTriggerProject(projectRef, secretKey);

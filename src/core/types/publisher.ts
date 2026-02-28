@@ -83,11 +83,7 @@ export interface PlatformPublisher {
 	 * @param encKey - AES-256 encryption key for decrypting stored OAuth tokens
 	 * @returns PlatformPublishResult with status and optional externalPostId
 	 */
-	publish(
-		db: DbConnection,
-		post: PostRow,
-		encKey: Buffer,
-	): Promise<PlatformPublishResult>;
+	publish(db: DbConnection, post: PostRow, encKey: Buffer): Promise<PlatformPublishResult>;
 
 	/**
 	 * Validate that stored credentials are still usable.

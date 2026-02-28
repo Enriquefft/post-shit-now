@@ -4,7 +4,12 @@ import { oauthTokens } from "../core/db/schema.ts";
 import type { SetupResult } from "../core/types/index.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
-import { createXOAuthClient, exchangeCode, generateAuthUrl, X_CALLBACK_URL } from "../platforms/x/oauth.ts";
+import {
+	createXOAuthClient,
+	exchangeCode,
+	generateAuthUrl,
+	X_CALLBACK_URL,
+} from "../platforms/x/oauth.ts";
 import { captureOAuthCallback } from "./oauth-callback-server.ts";
 
 /**

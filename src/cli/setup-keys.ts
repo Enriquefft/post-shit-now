@@ -40,10 +40,7 @@ const PROVIDER_KEYS = [
  * @param service - Display name of service (e.g., "Perplexity AI")
  * @returns The validated API key, or null if user cancels
  */
-export async function promptForKey(
-	keyName: string,
-	service: string,
-): Promise<string | null> {
+export async function promptForKey(keyName: string, service: string): Promise<string | null> {
 	// Display source info if available
 	const PROVIDER_SOURCE_MAP: Record<string, string> = {
 		perplexity: "https://www.perplexity.ai/settings/api",
@@ -62,13 +59,10 @@ export async function promptForKey(
 	}
 
 	// Prompt with masked input
-	const apiKey = readlineSync.question(
-		`\nEnter ${service} API key (input will be hidden): `,
-		{
-			hideEchoBack: true, // Hide typed characters
-			mask: "*", // Show asterisks instead of nothing
-		},
-	);
+	const apiKey = readlineSync.question(`\nEnter ${service} API key (input will be hidden): `, {
+		hideEchoBack: true, // Hide typed characters
+		mask: "*", // Show asterisks instead of nothing
+	});
 
 	// Allow user to cancel
 	if (!apiKey || apiKey.trim() === "") {
@@ -110,9 +104,7 @@ export async function promptForKey(
  * @param configDir - Directory for config files (default: "config")
  * @returns SetupResult with success/error status
  */
-export async function collectKeysInteractively(
-	configDir = "config",
-): Promise<SetupResult> {
+export async function collectKeysInteractively(configDir = "config"): Promise<SetupResult> {
 	const results: { name: string; saved: boolean; error?: string }[] = [];
 
 	// Collect Phase 1 keys (NEON_API_KEY, TRIGGER_SECRET_KEY)

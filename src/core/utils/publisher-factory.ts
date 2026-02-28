@@ -36,10 +36,7 @@ const handlerRegistry: HandlerRegistry = {};
  * @param platform - The platform identifier to register the handler for
  * @param handler  - The handler constructor that implements PlatformPublisher
  */
-export function registerHandler(
-	platform: Platform,
-	handler: HandlerConstructor,
-): void {
+export function registerHandler(platform: Platform, handler: HandlerConstructor): void {
 	handlerRegistry[platform] = handler;
 }
 
@@ -61,10 +58,7 @@ export function registerHandler(
  * registerHandler("x", XHandler);
  * const handler = createHandler("x", { userId: "u_123", db });
  */
-export function createHandler(
-	platform: Platform,
-	...args: unknown[]
-): PlatformPublisher {
+export function createHandler(platform: Platform, ...args: unknown[]): PlatformPublisher {
 	const HandlerClass = handlerRegistry[platform];
 	if (!HandlerClass) {
 		throw new Error(

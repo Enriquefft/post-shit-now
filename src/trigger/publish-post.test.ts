@@ -13,10 +13,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Platform } from "../core/types/index.ts";
 import type { PlatformPublisher, RateLimitInfo } from "../core/types/publisher.ts";
-import {
-	registerHandler,
-	unregisterHandler,
-} from "../core/utils/publisher-factory.ts";
+import { registerHandler, unregisterHandler } from "../core/utils/publisher-factory.ts";
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
@@ -67,11 +64,19 @@ function createSuccessHandler(platform: Platform): new () => PlatformPublisher {
 		async publish() {
 			return { platform, status: "published" as const, externalPostId: `ext-${platform}-123` };
 		}
-		async validateCredentials() { return true; }
-		getRateLimitInfo(): RateLimitInfo | null { return null; }
+		async validateCredentials() {
+			return true;
+		}
+		getRateLimitInfo(): RateLimitInfo | null {
+			return null;
+		}
 		async refreshCredentials() {}
-		isRateLimited() { return false; }
-		getRetryAfter() { return 0; }
+		isRateLimited() {
+			return false;
+		}
+		getRetryAfter() {
+			return 0;
+		}
 	};
 }
 
@@ -81,11 +86,19 @@ function createFailHandler(platform: Platform, error = "mock_error"): new () => 
 		async publish() {
 			return { platform, status: "failed" as const, error };
 		}
-		async validateCredentials() { return false; }
-		getRateLimitInfo(): RateLimitInfo | null { return null; }
+		async validateCredentials() {
+			return false;
+		}
+		getRateLimitInfo(): RateLimitInfo | null {
+			return null;
+		}
 		async refreshCredentials() {}
-		isRateLimited() { return false; }
-		getRetryAfter() { return 0; }
+		isRateLimited() {
+			return false;
+		}
+		getRetryAfter() {
+			return 0;
+		}
 	};
 }
 
@@ -148,7 +161,9 @@ describe("publish-post orchestration layer", () => {
 
 		const { createHubConnection } = await import("../core/db/connection.ts");
 		const post = buildPost();
-		vi.mocked(createHubConnection).mockReturnValue(buildMockDb(post) as ReturnType<typeof createHubConnection>);
+		vi.mocked(createHubConnection).mockReturnValue(
+			buildMockDb(post) as ReturnType<typeof createHubConnection>,
+		);
 
 		const { publishPost } = await import("./publish-post.ts");
 		const result = await (publishPost as unknown as { run: (p: unknown) => Promise<unknown> }).run({
@@ -161,7 +176,9 @@ describe("publish-post orchestration layer", () => {
 
 	it("skips post not found", async () => {
 		const { createHubConnection } = await import("../core/db/connection.ts");
-		vi.mocked(createHubConnection).mockReturnValue(buildMockDb(null) as ReturnType<typeof createHubConnection>);
+		vi.mocked(createHubConnection).mockReturnValue(
+			buildMockDb(null) as ReturnType<typeof createHubConnection>,
+		);
 
 		const { publishPost } = await import("./publish-post.ts");
 		const result = await (publishPost as unknown as { run: (p: unknown) => Promise<unknown> }).run({
@@ -174,7 +191,9 @@ describe("publish-post orchestration layer", () => {
 	it("skips post with non-publishable status (idempotency check)", async () => {
 		const { createHubConnection } = await import("../core/db/connection.ts");
 		const post = buildPost({ status: "published" });
-		vi.mocked(createHubConnection).mockReturnValue(buildMockDb(post) as ReturnType<typeof createHubConnection>);
+		vi.mocked(createHubConnection).mockReturnValue(
+			buildMockDb(post) as ReturnType<typeof createHubConnection>,
+		);
 
 		const { publishPost } = await import("./publish-post.ts");
 		const result = await (publishPost as unknown as { run: (p: unknown) => Promise<unknown> }).run({
@@ -190,13 +209,21 @@ describe("publish-post orchestration layer", () => {
 
 		const { createHubConnection } = await import("../core/db/connection.ts");
 		const post = buildPost();
-		vi.mocked(createHubConnection).mockReturnValue(buildMockDb(post) as ReturnType<typeof createHubConnection>);
+		vi.mocked(createHubConnection).mockReturnValue(
+			buildMockDb(post) as ReturnType<typeof createHubConnection>,
+		);
 
 		const { publishPost } = await import("./publish-post.ts");
-		const result = await (publishPost as unknown as { run: (p: unknown) => Promise<unknown> }).run({
-			postId: "post-123",
-			targetPlatforms: ["x", "linkedin"],
-		}) as { status: string; partialFailure: boolean; results: Array<{ platform: string; status: string }> };
+		const result = (await (publishPost as unknown as { run: (p: unknown) => Promise<unknown> }).run(
+			{
+				postId: "post-123",
+				targetPlatforms: ["x", "linkedin"],
+			},
+		)) as {
+			status: string;
+			partialFailure: boolean;
+			results: Array<{ platform: string; status: string }>;
+		};
 
 		expect(result.status).toBe("published");
 		expect(result.partialFailure).toBe(true);
@@ -208,7 +235,9 @@ describe("publish-post orchestration layer", () => {
 
 		const { createHubConnection } = await import("../core/db/connection.ts");
 		const post = buildPost();
-		vi.mocked(createHubConnection).mockReturnValue(buildMockDb(post) as ReturnType<typeof createHubConnection>);
+		vi.mocked(createHubConnection).mockReturnValue(
+			buildMockDb(post) as ReturnType<typeof createHubConnection>,
+		);
 
 		const { publishPost } = await import("./publish-post.ts");
 		const result = await (publishPost as unknown as { run: (p: unknown) => Promise<unknown> }).run({
@@ -224,7 +253,9 @@ describe("publish-post orchestration layer", () => {
 	it("skips company post not yet approved (submitted status)", async () => {
 		const { createHubConnection } = await import("../core/db/connection.ts");
 		const post = buildPost({ approvalStatus: "submitted", metadata: { hubId: "hub-789" } });
-		vi.mocked(createHubConnection).mockReturnValue(buildMockDb(post) as ReturnType<typeof createHubConnection>);
+		vi.mocked(createHubConnection).mockReturnValue(
+			buildMockDb(post) as ReturnType<typeof createHubConnection>,
+		);
 
 		const { publishPost } = await import("./publish-post.ts");
 		const result = await (publishPost as unknown as { run: (p: unknown) => Promise<unknown> }).run({

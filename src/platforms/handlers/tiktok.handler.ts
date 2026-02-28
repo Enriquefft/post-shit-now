@@ -3,8 +3,12 @@ import { eq, sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { type OAuthTokenMetadata, oauthTokens, posts } from "../../core/db/schema.ts";
 import type { PlatformPublishResult, PostMetadata } from "../../core/types/index.ts";
-import type { DbConnection, PostRow, RateLimitInfo } from "../../core/types/publisher.ts";
-import type { PlatformPublisher } from "../../core/types/publisher.ts";
+import type {
+	DbConnection,
+	PlatformPublisher,
+	PostRow,
+	RateLimitInfo,
+} from "../../core/types/publisher.ts";
 import { decrypt, encrypt } from "../../core/utils/crypto.ts";
 import { registerHandler } from "../../core/utils/publisher-factory.ts";
 import { TikTokClient } from "../tiktok/client.ts";
@@ -25,12 +29,19 @@ export class TikTokHandler implements PlatformPublisher {
 	async publish(db: DbConnection, post: PostRow, encKey: Buffer): Promise<PlatformPublishResult> {
 		const { id: postId, userId, content } = post;
 		const mediaUrls = post.mediaUrls ?? [];
-		const metadata = (post.metadata ?? {}) as PostMetadata & { tiktokFormat?: string; tiktokTitle?: string };
+		const metadata = (post.metadata ?? {}) as PostMetadata & {
+			tiktokFormat?: string;
+			tiktokTitle?: string;
+		};
 
 		const tiktokClientKey = process.env.TIKTOK_CLIENT_KEY;
 		const tiktokClientSecret = process.env.TIKTOK_CLIENT_SECRET;
 		if (!tiktokClientKey || !tiktokClientSecret) {
-			return { platform: "tiktok", status: "failed", error: "TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET not set" };
+			return {
+				platform: "tiktok",
+				status: "failed",
+				error: "TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET not set",
+			};
 		}
 
 		// Fetch OAuth token
@@ -87,12 +98,29 @@ export class TikTokHandler implements PlatformPublisher {
 		const tiktokFormat = metadata.tiktokFormat ?? metadata.format ?? "video-post";
 
 		try {
-			const publishId = await this.publishByFormat(db, postId, client, tiktokFormat, mediaUrls, title, description, auditStatus);
-			logger.info("TikTok post published", { postId, publishId, format: tiktokFormat, auditStatus });
+			const publishId = await this.publishByFormat(
+				db,
+				postId,
+				client,
+				tiktokFormat,
+				mediaUrls,
+				title,
+				description,
+				auditStatus,
+			);
+			logger.info("TikTok post published", {
+				postId,
+				publishId,
+				format: tiktokFormat,
+				auditStatus,
+			});
 			return { platform: "tiktok", status: "published", externalPostId: publishId };
 		} catch (error) {
 			if (error instanceof TikTokRateLimitError && error.rateLimit) {
-				logger.warn("TikTok rate limited, waiting", { postId, resetAt: error.rateLimit.resetAt.toISOString() });
+				logger.warn("TikTok rate limited, waiting", {
+					postId,
+					resetAt: error.rateLimit.resetAt.toISOString(),
+				});
 				await wait.until({ date: error.rateLimit.resetAt });
 				throw error;
 			}
@@ -116,14 +144,23 @@ export class TikTokHandler implements PlatformPublisher {
 			case "video": {
 				if (!mediaUrls.length) throw new Error("tiktok_video_requires_media");
 				const videoBuffer = Buffer.from(await Bun.file(mediaUrls[0] ?? "").arrayBuffer());
-				await db.update(posts).set({ subStatus: "media_uploading", updatedAt: new Date() }).where(eq(posts.id, postId));
+				await db
+					.update(posts)
+					.set({ subStatus: "media_uploading", updatedAt: new Date() })
+					.where(eq(posts.id, postId));
 				const upload = await initVideoUpload(client, videoBuffer.length);
 				await uploadVideoChunks(upload.uploadUrl, videoBuffer, upload.chunkSize);
-				await db.update(posts).set({ subStatus: "media_uploaded", updatedAt: new Date() }).where(eq(posts.id, postId));
+				await db
+					.update(posts)
+					.set({ subStatus: "media_uploaded", updatedAt: new Date() })
+					.where(eq(posts.id, postId));
 				const status = await checkPublishStatus(client, upload.publishId);
 				const publishId = status.publicPostId ?? upload.publishId;
 				if (auditStatus === "unaudited") {
-					logger.info("TikTok video uploaded as SELF_ONLY draft (unaudited app)", { postId, publishId });
+					logger.info("TikTok video uploaded as SELF_ONLY draft (unaudited app)", {
+						postId,
+						publishId,
+					});
 				}
 				return publishId;
 			}
@@ -131,7 +168,10 @@ export class TikTokHandler implements PlatformPublisher {
 				if (!mediaUrls.length) throw new Error("tiktok_photo_requires_media_urls");
 				const publishId = await postPhotos(client, { title, description, photoUrls: mediaUrls });
 				if (auditStatus === "unaudited") {
-					logger.info("TikTok photo posted as SELF_ONLY draft (unaudited app)", { postId, publishId });
+					logger.info("TikTok photo posted as SELF_ONLY draft (unaudited app)", {
+						postId,
+						publishId,
+					});
 				}
 				return publishId;
 			}
@@ -146,10 +186,16 @@ export class TikTokHandler implements PlatformPublisher {
 		}
 	}
 
-	async validateCredentials(): Promise<boolean> { return true; }
-	getRateLimitInfo(): RateLimitInfo | null { return this.currentRateLimit; }
+	async validateCredentials(): Promise<boolean> {
+		return true;
+	}
+	getRateLimitInfo(): RateLimitInfo | null {
+		return this.currentRateLimit;
+	}
 	async refreshCredentials(_db: DbConnection, _encKey: Buffer): Promise<void> {}
-	isRateLimited(): boolean { return this.currentRateLimit?.remaining === 0; }
+	isRateLimited(): boolean {
+		return this.currentRateLimit?.remaining === 0;
+	}
 	getRetryAfter(): number {
 		if (!this.currentRateLimit) return 0;
 		return Math.max(0, Math.ceil((this.currentRateLimit.resetAt.getTime() - Date.now()) / 1000));
@@ -157,4 +203,9 @@ export class TikTokHandler implements PlatformPublisher {
 }
 
 // Auto-register
-registerHandler("tiktok", TikTokHandler as unknown as new (...args: unknown[]) => PlatformPublisher);
+registerHandler(
+	"tiktok",
+	TikTokHandler as unknown as new (
+		...args: unknown[]
+	) => PlatformPublisher,
+);

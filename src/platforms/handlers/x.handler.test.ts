@@ -98,10 +98,9 @@ const DEFAULT_OAUTH_TOKEN = {
 	updatedAt: new Date(),
 };
 
-function buildMockDb(options: {
-	noToken?: boolean;
-	recentPosts?: Array<{ content: string }>;
-} = {}) {
+function buildMockDb(
+	options: { noToken?: boolean; recentPosts?: Array<{ content: string }> } = {},
+) {
 	const tokenResult = options.noToken ? [] : [DEFAULT_OAUTH_TOKEN];
 	const recentPosts = options.recentPosts ?? [];
 
@@ -114,7 +113,8 @@ function buildMockDb(options: {
 		_setCalls: setCalls,
 		select: vi.fn().mockImplementation((...selectArgs: unknown[]) => {
 			// If select is called with field mapping (e.g. { content: posts.content }), it's the duplicate check
-			const isFieldSelect = selectArgs.length > 0 && typeof selectArgs[0] === "object" && selectArgs[0] !== null;
+			const isFieldSelect =
+				selectArgs.length > 0 && typeof selectArgs[0] === "object" && selectArgs[0] !== null;
 
 			return {
 				from: vi.fn().mockImplementation(() => {
@@ -263,8 +263,10 @@ describe("XHandler", () => {
 
 			// Verify the last checkpoint has all 3 tweet IDs
 			const lastCheckpoint = checkpointCalls[2];
-			const metadata = (lastCheckpoint?.args[0] as Record<string, unknown>)
-				?.metadata as Record<string, unknown>;
+			const metadata = (lastCheckpoint?.args[0] as Record<string, unknown>)?.metadata as Record<
+				string,
+				unknown
+			>;
 			const threadProgress = JSON.parse(metadata?.threadProgress as string);
 			expect(threadProgress.posted).toBe(3);
 			expect(threadProgress.total).toBe(3);
@@ -302,8 +304,10 @@ describe("XHandler", () => {
 
 			// Verify the checkpoint shows 3 posted
 			const checkpoint = checkpointCalls[0];
-			const metadata = (checkpoint?.args[0] as Record<string, unknown>)
-				?.metadata as Record<string, unknown>;
+			const metadata = (checkpoint?.args[0] as Record<string, unknown>)?.metadata as Record<
+				string,
+				unknown
+			>;
 			const progress = JSON.parse(metadata?.threadProgress as string);
 			expect(progress.posted).toBe(3);
 			expect(progress.tweetIds).toEqual(["t1", "t2", "tweet_1"]);
@@ -336,7 +340,7 @@ describe("XHandler", () => {
 				if (callCount === 2) {
 					// First call already happened, now throw duplicate for second
 					// But first, post the tweet so getTimeline can find it
-					const result = await originalCreateTweet.call(this, params);
+					const _result = await originalCreateTweet.call(this, params);
 					// Now set up a duplicate error to be thrown
 					throw new XApiError(403, "You are not allowed to create a Tweet with duplicate content.");
 				}
@@ -398,8 +402,10 @@ describe("XHandler", () => {
 
 			// Last checkpoint (the error checkpoint) should show 2 posted
 			const errorCheckpoint = checkpointCalls[checkpointCalls.length - 1];
-			const metadata = (errorCheckpoint?.args[0] as Record<string, unknown>)
-				?.metadata as Record<string, unknown>;
+			const metadata = (errorCheckpoint?.args[0] as Record<string, unknown>)?.metadata as Record<
+				string,
+				unknown
+			>;
 			const progress = JSON.parse(metadata?.threadProgress as string);
 			expect(progress.posted).toBe(2);
 			expect(progress.total).toBe(4);

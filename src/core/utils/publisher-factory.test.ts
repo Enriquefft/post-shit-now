@@ -4,8 +4,8 @@ import type { PlatformPublisher, RateLimitInfo } from "../types/publisher.ts";
 import {
 	createHandler,
 	hasHandler,
-	registerHandler,
 	registeredPlatforms,
+	registerHandler,
 	unregisterHandler,
 } from "./publisher-factory.ts";
 
@@ -120,9 +120,7 @@ describe("publisher-factory", () => {
 		});
 
 		it("should throw an error when no handler is registered for the platform", () => {
-			expect(() => createHandler("x")).toThrow(
-				/No handler registered for platform: x/,
-			);
+			expect(() => createHandler("x")).toThrow(/No handler registered for platform: x/);
 		});
 
 		it("should include helpful guidance in error message", () => {

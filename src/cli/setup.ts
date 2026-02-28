@@ -6,9 +6,15 @@ import { createEntity, listEntities } from "../voice/entity-profiles.ts";
 import { setupCompanyHub } from "./setup-company-hub.ts";
 import { setupDatabase } from "./setup-db.ts";
 import { setupDisconnect } from "./setup-disconnect.ts";
+import { runHealthCheck } from "./setup-health.ts";
 import { setupInstagramOAuth } from "./setup-instagram-oauth.ts";
 import { setupJoinHub } from "./setup-join.ts";
-import { collectKeysInteractively, listProviderKeys, setupKeys, setupProviderKeys } from "./setup-keys.ts";
+import {
+	collectKeysInteractively,
+	listProviderKeys,
+	setupKeys,
+	setupProviderKeys,
+} from "./setup-keys.ts";
 import { setupLinkedInOAuth } from "./setup-linkedin-oauth.ts";
 import { setupReset } from "./setup-reset.ts";
 import { setupTikTokOAuth } from "./setup-tiktok-oauth.ts";
@@ -16,7 +22,6 @@ import { setupTrigger, verifyTriggerSetup } from "./setup-trigger.ts";
 import { getSetupStatus, setupVoice } from "./setup-voice.ts";
 import { setupXOAuth } from "./setup-x-oauth.ts";
 import { validateAll } from "./validate.ts";
-import { runHealthCheck } from "./setup-health.ts";
 
 interface SetupOutput {
 	steps: SetupResult[];
@@ -495,8 +500,10 @@ export async function runSetupSubcommand(
 					{
 						step: "health",
 						status: result.allPassed ? "success" : "error",
-						message: result.allPassed ? "All health checks passed" : `${result.results.filter((r) => r.status !== "pass").length} checks failed`,
-						data: result,
+						message: result.allPassed
+							? "All health checks passed"
+							: `${result.results.filter((r) => r.status !== "pass").length} checks failed`,
+						data: result as unknown as Record<string, unknown>,
 					},
 				],
 				validation: null,
@@ -569,7 +576,9 @@ export async function runSetup(configDir = "config", dryRun = false): Promise<Se
 		const keysResult = await setupKeys(configDir);
 		if (Array.isArray(keysResult)) {
 			console.log("\nValidation failed: Missing required keys");
-			keysResult.forEach((r) => console.log(`  ✗ ${r.message}`));
+			for (const r of keysResult) {
+				console.log(`  ✗ ${r.message}`);
+			}
 			return { steps: keysResult, validation: null, completed: false };
 		}
 

@@ -16,7 +16,7 @@ export function nanoid(size = DEFAULT_LENGTH): string {
 	let result = "";
 
 	for (let i = 0; i < size; i++) {
-		result += ALPHABET[bytes[i] & 63];
+		result += ALPHABET[(bytes[i] ?? 0) & 63];
 	}
 
 	return result;

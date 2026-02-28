@@ -1,11 +1,10 @@
 import { readFileSync } from "node:fs";
-import type { HealthReport } from "../trigger/health.ts";
+import { maskApiKey, maskDatabaseUrl } from "../cli/utils/masking.ts";
+import { createProgressStep, runStep } from "../cli/utils/progress.ts";
+import { listKeys } from "../core/db/api-keys";
 import { createHubConnection } from "../core/db/connection.ts";
 import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
-import { listKeys } from "../core/db/api-keys";
 import { discoverAllHubs, getHubDb } from "../team/hub.ts";
-import { maskDatabaseUrl, maskApiKey } from "../cli/utils/masking.ts";
-import { createProgressStep, runStep } from "../cli/utils/progress.ts";
 
 // ─── Health Check Types ─────────────────────────────────────────────────────
 
@@ -28,9 +27,7 @@ export interface HealthCheckSummary {
  * Check database connectivity by executing a simple query.
  * Returns pass/fail based on query execution success.
  */
-export async function checkDatabaseHealth(
-	configDir = "config",
-): Promise<HealthCheckResult> {
+export async function checkDatabaseHealth(configDir = "config"): Promise<HealthCheckResult> {
 	try {
 		const envResult = await loadHubEnv(configDir);
 		if (!envResult.success) {
@@ -74,9 +71,7 @@ export async function checkDatabaseHealth(
  * Check Trigger.dev configuration by verifying secret key and project ref.
  * Returns pass/fail/warning based on configuration status.
  */
-export async function checkTriggerHealth(
-	configDir = "config",
-): Promise<HealthCheckResult> {
+export async function checkTriggerHealth(configDir = "config"): Promise<HealthCheckResult> {
 	try {
 		const keysResult = await loadKeysEnv(configDir);
 
@@ -151,9 +146,7 @@ export async function checkTriggerHealth(
  * Check all hub connections by testing database connectivity for each.
  * Returns pass/fail/warning based on hub connection status.
  */
-export async function checkHubHealth(
-	projectRoot = ".",
-): Promise<HealthCheckResult> {
+export async function checkHubHealth(projectRoot = "."): Promise<HealthCheckResult> {
 	try {
 		const { hubs, error } = await discoverAllHubs(projectRoot);
 
@@ -181,7 +174,7 @@ export async function checkHubHealth(
 			error?: string;
 		}> = [];
 
-		let atLeastOnePass = false;
+		let _atLeastOnePass = false;
 
 		for (const hub of hubs) {
 			try {
@@ -192,7 +185,7 @@ export async function checkHubHealth(
 					slug: hub.slug,
 					status: "pass",
 				});
-				atLeastOnePass = true;
+				_atLeastOnePass = true;
 			} catch (hubErr) {
 				hubStatuses.push({
 					name: hub.displayName,
@@ -237,7 +230,7 @@ export async function checkHubHealth(
  * Returns pass/warning based on key configuration status.
  */
 export async function checkProviderKeysHealth(
-	configDir = "config",
+	_configDir = "config",
 	projectRoot = ".",
 ): Promise<HealthCheckResult> {
 	try {
@@ -252,7 +245,15 @@ export async function checkProviderKeysHealth(
 		}
 
 		// Use the first available hub (Personal Hub is typically first)
+		// hubs.length > 0 is guaranteed by the early return above
 		const hub = connection.hubs[0];
+		if (!hub) {
+			return {
+				check: "provider-keys",
+				status: "warning",
+				message: "No hub available — cannot check provider keys",
+			};
+		}
 		const db = getHubDb(hub);
 		const keys = await listKeys(db, hub.hubId);
 
@@ -350,7 +351,7 @@ export async function runHealthCheck(
 function displayHumanReadableResults(summary: HealthCheckSummary): void {
 	const { allPassed, timestamp, results } = summary;
 
-	console.log("\n" + "=".repeat(60));
+	console.log(`\n${"=".repeat(60)}`);
 	console.log("Health Check Report");
 	console.log("=".repeat(60));
 	console.log(`Timestamp: ${timestamp}`);
@@ -358,9 +359,9 @@ function displayHumanReadableResults(summary: HealthCheckSummary): void {
 	console.log("=".repeat(60));
 
 	for (const result of results) {
-		const symbol =
-			result.status === "pass" ? "✓" : result.status === "fail" ? "✗" : "⚠";
-		const color = result.status === "pass" ? "\x1b[32m" : result.status === "fail" ? "\x1b[31m" : "\x1b[33m";
+		const symbol = result.status === "pass" ? "✓" : result.status === "fail" ? "✗" : "⚠";
+		const color =
+			result.status === "pass" ? "\x1b[32m" : result.status === "fail" ? "\x1b[31m" : "\x1b[33m";
 		const reset = "\x1b[0m";
 
 		console.log(`\n${color}${symbol} ${result.check.toUpperCase()}${reset}`);
@@ -389,7 +390,7 @@ function displayHumanReadableResults(summary: HealthCheckSummary): void {
 			console.log(`  Hubs:`);
 			for (const hub of hubs) {
 				const hubSymbol = hub.status === "pass" ? "✓" : "✗";
-				console.log(`    ${hubSymbol} ${hub.displayName} (${hub.slug})`);
+				console.log(`    ${hubSymbol} ${hub.name} (${hub.slug})`);
 				if (hub.error) {
 					console.log(`      Error: ${hub.error}`);
 				}
@@ -406,7 +407,7 @@ function displayHumanReadableResults(summary: HealthCheckSummary): void {
 		}
 	}
 
-	console.log("\n" + "=".repeat(60));
+	console.log(`\n${"=".repeat(60)}`);
 
 	// Show next steps for failed checks
 	const failedChecks = results.filter((r) => r.status !== "pass");

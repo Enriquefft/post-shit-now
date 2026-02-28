@@ -183,10 +183,7 @@ export function formatThreadPreview(tweets: string[]): {
 	const total = tweets.length;
 
 	const preview = tweets
-		.map(
-			(tweet, i) =>
-				`${i + 1}/${total} (${countTweetChars(tweet)} chars)\n${tweet}`,
-		)
+		.map((tweet, i) => `${i + 1}/${total} (${countTweetChars(tweet)} chars)\n${tweet}`)
 		.join("\n\n");
 
 	const warning =

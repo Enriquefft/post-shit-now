@@ -3,12 +3,12 @@ import { sql } from "drizzle-orm";
 import { createHubConnection } from "../core/db/connection.ts";
 import { oauthTokens } from "../core/db/schema.ts";
 import { decrypt, keyFromHex } from "../core/utils/crypto.ts";
-import { CRYPTO_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 import { deriveNicheKeywords, loadEngagementConfig } from "../engagement/config.ts";
 import type { PlatformClients } from "../engagement/monitor.ts";
 import { discoverOpportunities, expireOldOpportunities } from "../engagement/monitor.ts";
 import { InstagramClient } from "../platforms/instagram/client.ts";
 import { XClient } from "../platforms/x/client.ts";
+import { CRYPTO_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 import { notificationDispatcherTask } from "./notification-dispatcher.ts";
 
 // ─── Engagement Monitor Task ────────────────────────────────────────────────

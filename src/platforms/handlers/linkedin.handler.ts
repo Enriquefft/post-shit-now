@@ -3,8 +3,12 @@ import { sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { type OAuthTokenMetadata, oauthTokens } from "../../core/db/schema.ts";
 import type { PlatformPublishResult, PostMetadata } from "../../core/types/index.ts";
-import type { DbConnection, PostRow, RateLimitInfo } from "../../core/types/publisher.ts";
-import type { PlatformPublisher } from "../../core/types/publisher.ts";
+import type {
+	DbConnection,
+	PlatformPublisher,
+	PostRow,
+	RateLimitInfo,
+} from "../../core/types/publisher.ts";
 import { decrypt, encrypt } from "../../core/utils/crypto.ts";
 import { registerHandler } from "../../core/utils/publisher-factory.ts";
 import { LinkedInClient } from "../linkedin/client.ts";
@@ -42,7 +46,11 @@ export class LinkedInHandler implements PlatformPublisher {
 		const linkedInClientId = process.env.LINKEDIN_CLIENT_ID;
 		const linkedInClientSecret = process.env.LINKEDIN_CLIENT_SECRET;
 		if (!linkedInClientId || !linkedInClientSecret) {
-			return { platform: "linkedin", status: "failed", error: "LINKEDIN_CLIENT_ID or LINKEDIN_CLIENT_SECRET not set" };
+			return {
+				platform: "linkedin",
+				status: "failed",
+				error: "LINKEDIN_CLIENT_ID or LINKEDIN_CLIENT_SECRET not set",
+			};
 		}
 
 		// Fetch OAuth token
@@ -57,7 +65,11 @@ export class LinkedInHandler implements PlatformPublisher {
 		let accessTokenEncrypted = token.accessToken;
 		if (token.expiresAt && token.expiresAt < new Date()) {
 			if (!token.refreshToken) {
-				return { platform: "linkedin", status: "failed", error: "linkedin_token_expired_no_refresh" };
+				return {
+					platform: "linkedin",
+					status: "failed",
+					error: "linkedin_token_expired_no_refresh",
+				};
 			}
 			const linkedInOAuthClient = createLinkedInOAuthClient({
 				clientId: linkedInClientId,
@@ -87,7 +99,11 @@ export class LinkedInHandler implements PlatformPublisher {
 		const tokenMetadata: OAuthTokenMetadata = token.metadata ?? {};
 		const personUrn = tokenMetadata.personUrn;
 		if (!personUrn) {
-			return { platform: "linkedin", status: "failed", error: "person_urn_not_found_in_token_metadata" };
+			return {
+				platform: "linkedin",
+				status: "failed",
+				error: "person_urn_not_found_in_token_metadata",
+			};
 		}
 
 		const linkedinFormat = metadata.linkedinFormat ?? metadata.format ?? "text";
@@ -103,13 +119,23 @@ export class LinkedInHandler implements PlatformPublisher {
 
 		try {
 			const linkedInPostId = await this.publishByFormat(
-				client, accessToken, personUrn, commentary, visibility, linkedinFormat, mediaUrls, metadata
+				client,
+				accessToken,
+				personUrn,
+				commentary,
+				visibility,
+				linkedinFormat,
+				mediaUrls,
+				metadata,
 			);
 			logger.info("LinkedIn post published", { postId, linkedInPostId, format: linkedinFormat });
 			return { platform: "linkedin", status: "published", externalPostId: linkedInPostId };
 		} catch (error) {
 			if (error instanceof LinkedInRateLimitError && error.rateLimit) {
-				logger.warn("LinkedIn rate limited, waiting", { postId, resetAt: error.rateLimit.resetAt.toISOString() });
+				logger.warn("LinkedIn rate limited, waiting", {
+					postId,
+					resetAt: error.rateLimit.resetAt.toISOString(),
+				});
 				await wait.until({ date: error.rateLimit.resetAt });
 				throw error;
 			}
@@ -125,7 +151,13 @@ export class LinkedInHandler implements PlatformPublisher {
 		visibility: "PUBLIC" | "CONNECTIONS",
 		format: string,
 		mediaUrls: string[],
-		metadata: { carouselTitle?: string; imageAltText?: string; articleUrl?: string; articleTitle?: string; articleDescription?: string },
+		metadata: {
+			carouselTitle?: string;
+			imageAltText?: string;
+			articleUrl?: string;
+			articleTitle?: string;
+			articleDescription?: string;
+		},
 	): Promise<string> {
 		switch (format) {
 			case "carousel":
@@ -135,7 +167,13 @@ export class LinkedInHandler implements PlatformPublisher {
 				const docUpload = await initializeDocumentUpload(accessToken, personUrn);
 				await uploadDocumentBinary(docUpload.uploadUrl, accessToken, pdfBuffer);
 				await waitForMediaReady(accessToken, docUpload.documentUrn, "document");
-				return client.createDocumentPost(personUrn, commentary, docUpload.documentUrn, metadata.carouselTitle, visibility);
+				return client.createDocumentPost(
+					personUrn,
+					commentary,
+					docUpload.documentUrn,
+					metadata.carouselTitle,
+					visibility,
+				);
 			}
 			case "image-post":
 			case "image": {
@@ -145,7 +183,13 @@ export class LinkedInHandler implements PlatformPublisher {
 					const imgUpload = await initializeImageUpload(accessToken, personUrn);
 					await uploadImageBinary(imgUpload.uploadUrl, accessToken, imgBuffer);
 					await waitForMediaReady(accessToken, imgUpload.imageUrn, "image");
-					return client.createImagePost(personUrn, commentary, imgUpload.imageUrn, metadata.imageAltText, visibility);
+					return client.createImagePost(
+						personUrn,
+						commentary,
+						imgUpload.imageUrn,
+						metadata.imageAltText,
+						visibility,
+					);
 				}
 				const imageUrns: string[] = [];
 				for (const imgPath of mediaUrls) {
@@ -161,17 +205,31 @@ export class LinkedInHandler implements PlatformPublisher {
 			case "linkedin-article": {
 				const articleUrl = metadata.articleUrl ?? "";
 				if (!articleUrl) return client.createTextPost(personUrn, commentary, visibility);
-				return client.createArticlePost(personUrn, commentary, articleUrl, metadata.articleTitle ?? "", metadata.articleDescription ?? "", undefined, visibility);
+				return client.createArticlePost(
+					personUrn,
+					commentary,
+					articleUrl,
+					metadata.articleTitle ?? "",
+					metadata.articleDescription ?? "",
+					undefined,
+					visibility,
+				);
 			}
 			default:
 				return client.createTextPost(personUrn, commentary, visibility);
 		}
 	}
 
-	async validateCredentials(): Promise<boolean> { return true; }
-	getRateLimitInfo(): RateLimitInfo | null { return this.currentRateLimit; }
+	async validateCredentials(): Promise<boolean> {
+		return true;
+	}
+	getRateLimitInfo(): RateLimitInfo | null {
+		return this.currentRateLimit;
+	}
 	async refreshCredentials(_db: DbConnection, _encKey: Buffer): Promise<void> {}
-	isRateLimited(): boolean { return this.currentRateLimit?.remaining === 0; }
+	isRateLimited(): boolean {
+		return this.currentRateLimit?.remaining === 0;
+	}
 	getRetryAfter(): number {
 		if (!this.currentRateLimit) return 0;
 		return Math.max(0, Math.ceil((this.currentRateLimit.resetAt.getTime() - Date.now()) / 1000));
@@ -179,4 +237,9 @@ export class LinkedInHandler implements PlatformPublisher {
 }
 
 // Auto-register
-registerHandler("linkedin", LinkedInHandler as unknown as new (...args: unknown[]) => PlatformPublisher);
+registerHandler(
+	"linkedin",
+	LinkedInHandler as unknown as new (
+		...args: unknown[]
+	) => PlatformPublisher,
+);
