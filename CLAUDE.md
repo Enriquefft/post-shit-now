@@ -40,6 +40,18 @@ Other top-level directories (no alias — relative imports):
 
 Do NOT use `npm`, `npx`, or `yarn` — this project uses Bun exclusively.
 
+## Pre-commit Hooks
+
+Pre-commit hooks run automatically via lefthook. Three parallel quality gates trigger when `src/` files are staged:
+
+| Hook | Command | Behavior |
+|------|---------|----------|
+| `biome` | `biome check --write` | Lint + format, auto-restages fixes |
+| `typecheck` | `tsc --noEmit --incremental` | Type check with cached builds |
+| `circular` | `madge --circular --extensions ts src/` | Detect circular dependencies |
+
+Run `bun install` in a fresh clone to install hooks automatically (via `prepare` script).
+
 ## Slash Commands
 
 All commands are under the `/psn:` namespace:
@@ -56,3 +68,21 @@ All commands are under the `/psn:` namespace:
 | `/psn:review` | Content performance review and learning loop updates |
 | `/psn:engage` | Proactive engagement sessions with triage-then-draft flow |
 | `/psn:setup` | Hub setup, team management, and notifications configuration |
+
+## State Consolidation
+
+At milestone boundaries (triggered by `/gsd:complete-milestone`), synchronize these three files. PROJECT.md is the single source of truth -- when conflicts exist, update the others to match.
+
+**Checklist:**
+
+1. Review `.planning/PROJECT.md` for current architecture, key decisions, and module map
+2. Update `MEMORY.md` to match PROJECT.md:
+   - Remove stale entries (completed phases, resolved concerns)
+   - Add new architectural decisions
+   - Update platform API notes if changed
+3. Update `CLAUDE.md` to match PROJECT.md:
+   - Module Map table reflects current aliases and paths
+   - Dev Commands table reflects current scripts
+   - Architecture diagram reflects current flow
+   - Slash Commands table reflects current commands
+4. Verify all three files agree on: module aliases, dev commands, architecture flow
