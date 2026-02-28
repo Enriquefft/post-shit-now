@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Milestone
 status: unknown
-last_updated: "2026-02-28T12:27:23.554Z"
+last_updated: "2026-02-28T14:48:06.773Z"
 progress:
-  total_phases: 32
+  total_phases: 33
   completed_phases: 31
-  total_plans: 106
-  completed_plans: 102
+  total_plans: 108
+  completed_plans: 103
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
-**Current focus:** Phase 29 -- Testing Infrastructure
+**Current focus:** Phase 30 -- Context Management
 
 ## Current Position
 
-Phase: 29 of 30 (Testing Infrastructure) -- COMPLETE
-Plan: 2 of 2 in current phase
-Status: Phase Complete
-Last activity: 2026-02-28 -- Completed 29-02 (XHandler integration tests, thread checkpoint, duplicate recovery)
+Phase: 30 of 33 (Context Management) -- In Progress
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-02-28 -- Completed 30-01 (code quality baseline: zero TS errors, zero biome errors, zero circular deps)
 
-Progress: [██████████] 100% (2/2 plans in phase 29)
+Progress: [█████     ] 50% (1/2 plans in phase 30)
 
 ## Performance Metrics
 
@@ -65,6 +65,7 @@ Progress: [██████████] 100% (2/2 plans in phase 29)
 | Phase 28 P02 | 2min | 2 tasks | 1 files |
 | Phase 29 P01 | 4min | 3 tasks | 5 files |
 | Phase 29 P02 | 5min | 2 tasks | 1 files |
+| Phase 30 P01 | 15min | 2 tasks | 43 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,9 @@ Recent decisions affecting current work:
 - [Phase 29]: Fixtures use real X API v2 response shapes for realistic test data
 - [Phase 29]: JSDoc contracts on interface only (single source of truth) -- implementations inherit
 - [Phase 29]: Drizzle mock uses field-select discrimination to distinguish table queries (no call-order dependency)
+- [Phase 30]: Use explicit null guards over non-null assertions to satisfy biome noNonNullAssertion
+- [Phase 30]: Constructor parameter properties for mock stubs (private readonly in constructor signature) — clean and biome-compliant
+- [Phase 30]: z.record() in Zod v4 requires two arguments: z.record(keySchema, valueSchema)
 
 ### Pending Todos
 
@@ -106,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-28T12:21:00Z
-Stopped at: Completed 29-02-PLAN.md (Phase 29 complete)
+Last session: 2026-02-28T17:15:00Z
+Stopped at: Completed 30-01-PLAN.md (code quality baseline — pre-commit hooks ready)
 Resume file: None
