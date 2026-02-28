@@ -462,7 +462,7 @@ Zero database migrations. All schema exists -- fixes complete incomplete write p
 - [x] **Phase 26: Tweet Validation** - Weighted character counting and pre-flight validation (completed 2026-02-27)
 - [x] **Phase 27: X OAuth Callback Server** - Automatic authorization code capture via localhost (completed 2026-02-27)
 - [x] **Phase 28: Thread Publishing Resilience** - Per-tweet checkpoint persistence and resume-from-checkpoint (completed 2026-02-28)
-- [ ] **Phase 29: Testing Infrastructure** - Vitest, mocks, interface compliance tests (carried from v1.2 Phase 23)
+- [x] **Phase 29: Testing Infrastructure** - Vitest, mocks, interface compliance tests (carried from v1.2 Phase 23) (completed 2026-02-28)
 - [ ] **Phase 30: Context Management** - Pre-commit hooks and state consolidation (carried from v1.2 Phase 24)
 
 ### Phase Details
@@ -625,7 +625,7 @@ Phases execute in numeric order: 21 â 22 â 22.1 â 25 â 26 â
 | 26. Tweet Validation | 2/2 | Complete    | 2026-02-27 | - |
 | 27. X OAuth Callback Server | 2/2 | Complete    | 2026-02-27 | - |
 | 28. Thread Publishing Resilience | 2/2 | Complete    | 2026-02-28 | - |
-| 29. Testing Infrastructure | 2/2 | Complete   | 2026-02-28 | - |
+| 29. Testing Infrastructure | 2/2 | Complete    | 2026-02-28 | - |
 | 30. Context Management | v1.3 | 0/0 | Not started | - |
 
 ---
