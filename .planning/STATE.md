@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Milestone
 status: unknown
-last_updated: "2026-02-27T23:48:30.773Z"
+last_updated: "2026-02-28T02:38:14Z"
 progress:
   total_phases: 30
   completed_phases: 29
   total_plans: 102
-  completed_plans: 98
+  completed_plans: 99
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** Make it so easy to create and post high-quality, voice-matched content that team members who rarely post start posting consistently.
-**Current focus:** Phase 27 -- X OAuth Callback Server
+**Current focus:** Phase 28 -- Thread Publishing Resilience
 
 ## Current Position
 
-Phase: 27 of 30 (X OAuth Callback Server)
-Plan: 2 of 2 in current phase
-Status: Complete
-Last activity: 2026-02-27 -- Completed 27-02 (OAuth integration + callback URL deduplication)
+Phase: 28 of 30 (Thread Publishing Resilience)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-02-28 -- Completed 28-01 (checkpoint persistence + duplicate detection)
 
-Progress: [██████████] 100% (2/2 plans in phase 27)
+Progress: [█████-----] 50% (1/2 plans in phase 28)
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [██████████] 100% (2/2 plans in phase 27)
 *Updated after each plan completion*
 | Phase 27 P01 | 1min | 2 tasks | 2 files |
 | Phase 27 P02 | 2min | 2 tasks | 4 files |
+| Phase 28 P01 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,8 @@ Recent decisions affecting current work:
 - [v1.3]: Promise.withResolvers pattern for ephemeral callback server lifecycle
 - [v1.3]: queueMicrotask for server shutdown after response sent
 - [Phase 27]: Auto-capture proceeds directly to token exchange on success, manual fallback shows callback server error
+- [Phase 28]: Typed SkipRetryError class for domain-specific error bypass in retry.onThrow (biome-compliant)
+- [Phase 28]: Checkpoint DB write failure halts thread (never swallowed) -- retry.onThrow throws after 3 attempts
 
 ### Pending Todos
 
@@ -95,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-27T23:43:00Z
-Stopped at: Completed 27-02-PLAN.md
+Last session: 2026-02-28T02:38:14Z
+Stopped at: Completed 28-01-PLAN.md
 Resume file: None
