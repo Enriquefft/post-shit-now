@@ -43,10 +43,10 @@ Requirements for real-world reliability fixes. Derived from 342-turn trial sessi
 
 ### Context Management (carried from v1.2)
 
-- [ ] **CTX-01**: Pre-commit hooks run biome on staged files with auto-fix (lefthook)
-- [ ] **CTX-02**: Pre-commit hooks run typecheck in parallel (under 3 seconds total)
+- [x] **CTX-01**: Pre-commit hooks run biome on staged files with auto-fix (lefthook)
+- [x] **CTX-02**: Pre-commit hooks run typecheck in parallel (under 3 seconds total)
 - [x] **CTX-03**: Circular dependency detection at commit time (madge, already configured)
-- [ ] **CTX-04**: State consolidation between PROJECT.md and MEMORY.md documented
+- [x] **CTX-04**: State consolidation between PROJECT.md and MEMORY.md documented
 
 ## v1.4+ Deferred
 
@@ -89,10 +89,10 @@ Requirements for real-world reliability fixes. Derived from 342-turn trial sessi
 | TEST-03 | Phase 29 | Complete |
 | TEST-04 | Phase 29 | Complete |
 | DOC-03 | Phase 29 | Complete |
-| CTX-01 | Phase 30 | Pending |
-| CTX-02 | Phase 30 | Pending |
+| CTX-01 | Phase 30 | Complete |
+| CTX-02 | Phase 30 | Complete |
 | CTX-03 | Phase 30 | Complete |
-| CTX-04 | Phase 30 | Pending |
+| CTX-04 | Phase 30 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 23 total
