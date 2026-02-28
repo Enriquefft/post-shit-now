@@ -10,76 +10,42 @@ Make it so easy to create and post high-quality, voice-matched content that team
 
 ## Current State
 
-### Shipped: v1.0 (February 20, 2026)
+### Shipped: v1.3 Real-World Reliability (February 28, 2026)
+
+✅ **Complete** — 6 phases, 12 plans, 23 requirements
+
+Fixed every friction point from a real-user 342-turn trial session: Trigger.dev credential delivery, tweet validation, OAuth callback automation, thread publishing resilience, testing infrastructure, and pre-commit quality gates.
+
+**What shipped:**
+- syncEnvVars build extension delivers credentials to Trigger.dev workers at deploy time
+- Weighted tweet character counting with Intl.Segmenter (URLs=23, emoji=2, CJK=2)
+- X OAuth callback server on 127.0.0.1:18923 with CSRF protection and manual fallback
+- Thread checkpoint persistence with resume-from-checkpoint and duplicate detection (Jaccard 0.8)
+- Vitest test infrastructure with class-boundary mocks for all 4 platform clients
+- lefthook pre-commit hooks (biome + typecheck + circular dep detection in parallel)
+
+### Shipped: v1.2 Architecture (February 27, 2026)
+
+✅ **Complete** — 3 phases (21-22.1), 6 plans
+
+Split monolithic publish-post.ts into PlatformPublisher interface + per-platform handlers. Established TypeScript path aliases (@psn/core, @psn/platforms, @psn/trigger/*), barrel exports, and CLAUDE.md documentation.
+
+### Shipped: v1.1 Setup Fixes (February 25, 2026)
+
+✅ **Complete** — 7 phases (1, 15-20), 31 plans
+
+Fixed all 30 issues from trial run: setup wizard bugs, migration reliability, voice interview CLI, UX improvements, provider key configuration, health checks.
+
+### Shipped: v1.0 MVP (February 20, 2026)
 
 ✅ **Complete** — 14 phases, 54 plans, 148 requirements
 
-Post Shit Now v1.0 is production-ready with comprehensive feature coverage:
-
-**Platform Support:**
-- Full support for X, LinkedIn, Instagram, and TikTok
-- OAuth authentication with encrypted token storage
-- Platform-specific content adaptation (threads, carousels, Reels, videos)
-- Multi-platform posting with partial failure isolation
-
-**Voice & Content:**
-- Adaptive voice profiling with content import and calibration
-- Entity-scoped profiles for multi-project solo founders
-- Bilingual support (English/Spanish) with language-specific voice sections
-- Three posting personas (personal, brand-operator, brand-ambassador)
-- Academic content support with research archetypes
-
-**Intelligence & Planning:**
-- Daily trend collection from HN, Reddit, Product Hunt, RSS, Google Trends
-- On-demand research (Perplexity, Exa, Tavily, Brave)
-- Idea bank with maturity pipeline (spark → ready → used/killed)
-- Content series with automatic slotting and cadence management
-- Weekly planning engine with pillar balancing and content recycling
-
-**Analytics & Learning:**
-- Multi-platform analytics collection
-- Composite engagement scoring (saves > shares > comments > likes)
-- Weekly performance review with actionable recommendations
-- Autonomous strategy adjustments with transparent changelog
-- Content fatigue detection and deprioritization
-
-**Engagement & Notifications:**
-- Engagement monitor with opportunity scoring
-- Semi-automated reply drafting with human approval
-- Three-tier WhatsApp notifications (push, digest, standard)
-- Notification fatigue prevention with caps and cooldowns
-
-**Team Coordination:**
-- Two-Hub architecture (mandatory Personal Hub, optional Company Hubs)
-- Postgres RLS for per-user data isolation
-- Approval workflows with notification routing
-- Unified calendar with cross-hub slot claiming
-- Invite code onboarding for team members
-
-**Infrastructure:**
-- BYOK model for all APIs (encrypted storage in DB)
-- Trigger.dev Cloud for automation (scheduling, tasks, jobs)
-- Neon Postgres with Drizzle ORM and migration infrastructure
-- Comprehensive error handling with retry logic and backoff
+Full platform coverage (X, LinkedIn, Instagram, TikTok), voice profiling, intelligence layer, analytics, engagement, team coordination, notifications.
 
 See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for complete milestone details
 
-## Current Milestone: v1.3 (Real-World Reliability)
-
-**Goal:** Fix every friction point a real user hit during first PSN session — setup, OAuth, publishing, and Trigger.dev integration
-
-**Context:** v1.2 completed architecture cleanup (Phases 21–22.1). Remaining v1.2 phases (Testing, Context Management) carried into v1.3. A real-user trial session (342 turns, 29 hours) exposed 7 product-level issues through log analysis. None are cosmetic — each one either blocks setup, loses data, or makes retries impossible.
-
-**Focus areas:**
-- Trigger.dev env var delivery — workers get no credentials without manual `.env` hacking
-- X OAuth flow — placeholder callback URL, no callback server, manual code capture
-- Thread publishing resilience — partial failures unrecoverable, tweet IDs lost
-- Tweet validation — X returns misleading 403 for oversized tweets
-- Testing infrastructure — carried from v1.2 (Vitest, mocks, compliance tests)
-- Context management — carried from v1.2 (state consolidation, pre-commit hooks)
-
 <details>
-<summary>v1.0 Archived Requirements</summary>
+<summary>Validated Requirements</summary>
 
 ### Validated (v1.0)
 
@@ -91,9 +57,44 @@ See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for complete milestone deta
 - ✓ Team coordination with approval workflows
 - ✓ Notification system with WhatsApp integration
 
+### Validated (v1.1)
+
+- ✓ All 30 trial-run issues resolved
+- ✓ Setup completes end-to-end without manual workarounds
+- ✓ Voice interview completable via CLI
+- ✓ Database migrations reliable on Neon
+- ✓ Recovery mechanisms functional (reset command)
+- ✓ Security: credential masking in error messages
+
+### Validated (v1.2)
+
+- ✓ PlatformPublisher interface with per-platform handlers (<200 lines each)
+- ✓ publish-post.ts refactored to orchestration-only (<200 lines)
+- ✓ TypeScript path aliases (@psn/core, @psn/platforms, @psn/trigger/*)
+- ✓ Barrel exports at all module boundaries
+- ✓ CLAUDE.md documentation for AI-assisted development
+
+### Validated (v1.3)
+
+- ✓ Trigger.dev workers receive credentials at deploy time via syncEnvVars — v1.3
+- ✓ Tweet validation with accurate weighted character counting — v1.3
+- ✓ X OAuth callback server with automatic code capture — v1.3
+- ✓ Thread checkpoint persistence with resume-from-checkpoint — v1.3
+- ✓ Duplicate tweet detection via Jaccard similarity — v1.3
+- ✓ Vitest test infrastructure with class-boundary mocks — v1.3
+- ✓ Pre-commit hooks via lefthook (biome, typecheck, circular deps) — v1.3
+- ✓ State consolidation process documented (PROJECT.md as single source of truth) — v1.3
+
 </details>
 
 ## Context
+
+### Codebase
+
+- **36,878 LOC** TypeScript across 4 milestones
+- **Tech stack:** Bun runtime, Neon Postgres (Drizzle ORM), Trigger.dev Cloud, Vitest
+- **Quality gates:** lefthook pre-commit hooks (biome, typecheck, circular dep detection)
+- **Test infrastructure:** Vitest with class-boundary mocks for all 4 platform API clients
 
 ### Target Users
 - **Primary:** Individual team members (30+) who have Claude Code, basic CLI comfort, want to grow personal social media but rarely post
@@ -151,10 +152,18 @@ See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for complete milestone deta
 | fal.ai as unified gateway for media gen | One API for Ideogram, Flux, Kling, Pika. Direct SDK for GPT Image and Runway. | ✓ Validated v1.0 |
 | Content-hint keyword scoring for provider selection | Deterministic, no ML needed. Lets Claude pick best tool per content. | ✓ Validated v1.0 |
 | Edit distance for calibration convergence | 10 consecutive posts below 15% edit ratio = calibrated. Dual signals (edits + explicit). | ✓ Validated v1.0 |
-| Pre-migration RLS role creation | RLS policies reference roles that must exist. Create role in migration 0000 before schema migration. | ✓ Validated Phase 1 |
-| Dual-layer API key validation | Fast prefix check for immediate feedback + API call for actual verification. Catch errors early. | ✓ Validated Phase 1 |
-| Unified hub storage (.hubs/*.json) | Personal Hub and Company Hubs use same storage format and API. Eliminates dual-API confusion. | ✓ Validated Phase 1 |
-| Extensible VALIDATORS mapping for keys | Add new provider validators to mapping, no routing logic changes. Graceful degradation for unknown providers. | ✓ Validated Phase 1 |
+| Pre-migration RLS role creation | RLS policies reference roles that must exist. Create role in migration 0000 before schema migration. | ✓ Validated v1.1 |
+| Dual-layer API key validation | Fast prefix check for immediate feedback + API call for actual verification. Catch errors early. | ✓ Validated v1.1 |
+| Unified hub storage (.hubs/*.json) | Personal Hub and Company Hubs use same storage format and API. Eliminates dual-API confusion. | ✓ Validated v1.1 |
+| Extensible VALIDATORS mapping for keys | Add new provider validators to mapping, no routing logic changes. Graceful degradation for unknown providers. | ✓ Validated v1.1 |
+| Intl.Segmenter for grapheme clustering | Built-in API for tweet character counting. No external dependencies. Handles emoji/CJK correctly. | ✓ Validated v1.3 |
+| Custom tweet-validator.ts over twitter-text | ~60-line custom implementation vs unmaintained npm package. Single source of truth for char counting. | ✓ Validated v1.3 |
+| Fixed port 18923 with 127.0.0.1 for OAuth | X rejects "localhost" — must use 127.0.0.1. Fixed port avoids registration changes. Manual fallback if port busy. | ✓ Validated v1.3 |
+| lefthook over husky+lint-staged | Go binary, Biome-recommended, simpler config. Parallel hook execution with glob scoping. | ✓ Validated v1.3 |
+| syncEnvVars for Trigger.dev credentials | Not deprecated resolveEnvVars. Reads from local hub config files at deploy time. | ✓ Validated v1.3 |
+| Jaccard similarity for duplicate detection | 0.8 threshold on word sets over 7-day window. Soft warning only — never blocks publishing. | ✓ Validated v1.3 |
+| Mock at class boundary (not HTTP layer) | Simpler, faster tests. Fixtures use real API response shapes for realism. | ✓ Validated v1.3 |
+| PROJECT.md as single source of truth | MEMORY.md and CLAUDE.md synced at milestone boundaries via State Consolidation checklist. | ✓ Validated v1.3 |
 
 ---
-*Last updated: 2026-02-21 after Phase 1 completion*
+*Last updated: 2026-02-28 after v1.3 completion*
