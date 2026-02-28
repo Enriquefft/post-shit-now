@@ -9,7 +9,12 @@ import { createHandler } from "../core/utils/publisher-factory.ts";
 import "../platforms/handlers/index.ts";
 import { CRYPTO_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 import { notificationDispatcherTask } from "./notification-dispatcher.ts";
-import { advanceSeriesState, markFailed, markPartiallyPosted, updateBrandPreferenceIfCompany } from "./publish-helpers.ts";
+import {
+	advanceSeriesState,
+	markFailed,
+	markPartiallyPosted,
+	updateBrandPreferenceIfCompany,
+} from "./publish-helpers.ts";
 
 interface PublishPostPayload {
 	postId: string;
@@ -120,9 +125,16 @@ export const publishPost = task({
 		const failed = results.filter((r) => r.status === "failed");
 
 		const metadata: PostMetadata = post.metadata ?? {};
-		const platformStatus: Record<string, { status: string; externalPostId?: string; error?: string }> = {};
+		const platformStatus: Record<
+			string,
+			{ status: string; externalPostId?: string; error?: string }
+		> = {};
 		for (const r of results) {
-			platformStatus[r.platform] = { status: r.status, externalPostId: r.externalPostId, error: r.error };
+			platformStatus[r.platform] = {
+				status: r.status,
+				externalPostId: r.externalPostId,
+				error: r.error,
+			};
 		}
 
 		if (succeeded.length > 0) {
