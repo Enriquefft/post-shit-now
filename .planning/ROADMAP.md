@@ -36,9 +36,9 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 **Plans:**
 4/4 plans complete
-- [x] 01-02-PLAN.md — Neon API key validation with prefix check and API verification
-- [x] 01-03-PLAN.md — Hub unification (personal.json + unified getHubConnection)
-- [x] 01-04-PLAN.md — Provider key validation framework (Trigger, Perplexity, Anthropic)
+- [x] 01-02-PLAN.md â Neon API key validation with prefix check and API verification
+- [x] 01-03-PLAN.md â Hub unification (personal.json + unified getHubConnection)
+- [x] 01-04-PLAN.md â Provider key validation framework (Trigger, Perplexity, Anthropic)
 
 **Success Criteria:**
 - Users can complete hub setup without manual intervention
@@ -62,10 +62,10 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 | 15.4 | Add setup reset and recovery flow | M14 |
 
 **Plans:**
-- [x] 15-01-PLAN.md — Migration retry logic with 3 attempts, 2s fixed delay, and table verification
-- [x] 15-02-PLAN.md — Auto-generated hubId using nanoid-style format
-- [x] 15-03-PLAN.md — Unified hub discovery with strict validation and detailed error messages
-- [x] 15-04-PLAN.md — /psn:setup reset command with --db/--files/--all flags
+- [x] 15-01-PLAN.md â Migration retry logic with 3 attempts, 2s fixed delay, and table verification
+- [x] 15-02-PLAN.md â Auto-generated hubId using nanoid-style format
+- [x] 15-03-PLAN.md â Unified hub discovery with strict validation and detailed error messages
+- [x] 15-04-PLAN.md â /psn:setup reset command with --db/--files/--all flags
 
 **Success Criteria:**
 - Migrations retry 3 times with 2s fixed delay on transient failures
@@ -92,9 +92,9 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 **Plans:**
 4/4 plans complete
-- [x] 16-01-PLAN.md — Add submit and complete CLI subcommands
-- [x] 16-03-PLAN.md — Fix setup-keys.ts stdin reading
-- [x] 16-04-PLAN.md — Add voice profile directory creation
+- [x] 16-01-PLAN.md â Add submit and complete CLI subcommands
+- [x] 16-03-PLAN.md â Fix setup-keys.ts stdin reading
+- [x] 16-04-PLAN.md â Add voice profile directory creation
 
 **Success Criteria:**
 - Users can complete interview via CLI commands
@@ -118,11 +118,11 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 **Plans:**
 5/5 plans complete
-- [x] 17-01-PLAN.md — Add progress indicators to setup
-- [x] 17-02-PLAN.md — Mask sensitive data in error messages
-- [x] 17-03-PLAN.md — Add dry-run and preview modes
-- [x] 17-04-PLAN.md — Fix Trigger.dev setup CLI arguments
-- [x] 17-05-PLAN.md — Resolve neonctl PATH issue
+- [x] 17-01-PLAN.md â Add progress indicators to setup
+- [x] 17-02-PLAN.md â Mask sensitive data in error messages
+- [x] 17-03-PLAN.md â Add dry-run and preview modes
+- [x] 17-04-PLAN.md â Fix Trigger.dev setup CLI arguments
+- [x] 17-05-PLAN.md â Resolve neonctl PATH issue
 
 **Success Criteria:**
 - Long-running operations show progress
@@ -146,9 +146,9 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 **Plans:**
 4/4 plans complete
-- [x] 18-02-PLAN.md — Add setup completion validation
-- [x] 18-03-PLAN.md — Document entity creation workflow
-- [x] 18-04-PLAN.md — Verify entity slug collision handling
+- [x] 18-02-PLAN.md â Add setup completion validation
+- [x] 18-03-PLAN.md â Document entity creation workflow
+- [x] 18-04-PLAN.md â Verify entity slug collision handling
 
 **Success Criteria:**
 - Provider keys configured through main setup flow
@@ -174,13 +174,13 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 **Plans:**
 7/7 plans complete
-- [ ] 19-01-PLAN.md — Add voice profile validation command
-- [ ] 19-02-PLAN.md — Implement URL validation function and importBlogContent integration
-- [x] 19-02B-PLAN.md — Integrate URL validation to CLI and update documentation
-- [ ] 19-03-PLAN.md — Add timezone schema and interview
-- [ ] 19-04-PLAN.md — Design platform persona questions
-- [ ] 19-05-PLAN.md — Add timezone strategy and CLI
-- [ ] 19-06-PLAN.md — Integrate platform personas
+- [ ] 19-01-PLAN.md â Add voice profile validation command
+- [ ] 19-02-PLAN.md â Implement URL validation function and importBlogContent integration
+- [x] 19-02B-PLAN.md â Integrate URL validation to CLI and update documentation
+- [ ] 19-03-PLAN.md â Add timezone schema and interview
+- [ ] 19-04-PLAN.md â Design platform persona questions
+- [ ] 19-05-PLAN.md â Add timezone strategy and CLI
+- [ ] 19-06-PLAN.md â Integrate platform personas
 
 **Success Criteria:**
 - Users can validate voice profile schemas
@@ -202,8 +202,8 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 **Plans:**
 3/3 plans complete
-- [ ] 20-02-PLAN.md — Add Trigger project auto-detection
-- [ ] 20-03-PLAN.md — Document architecture compatibility (RLS)
+- [ ] 20-02-PLAN.md â Add Trigger project auto-detection
+- [ ] 20-03-PLAN.md â Document architecture compatibility (RLS)
 
 **Success Criteria:**
 - Health check verifies all components
@@ -215,42 +215,42 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 ### Requirements Coverage
 
 #### Critical (P0) - Phase 1 COMPLETE
-- C1: Setup wizard hub detection bug → Plan 1.1 COMPLETE
-- C2: Migration RLS policy error → Plan 1.2 COMPLETE
-- C3: Provider keys table missing → Plan 1.3 COMPLETE
-- C4: Neon API key permission error → Plan 1.4 COMPLETE
+- C1: Setup wizard hub detection bug â Plan 1.1 COMPLETE
+- C2: Migration RLS policy error â Plan 1.2 COMPLETE
+- C3: Provider keys table missing â Plan 1.3 COMPLETE
+- C4: Neon API key permission error â Plan 1.4 COMPLETE
 
 #### Major High Priority (P1) - Phases 15-16
-- C5: Voice interview CLI incomplete → Plan 16.1 COMPLETE
-- C6: setup-keys.ts stdin reading → Plan 16.3 COMPLETE
-- M1: Migration retry loop → Plan 15.1 COMPLETE
-- M2: Hub ID missing → Plan 15.2 COMPLETE
-- M5: Empty .hubs confusion → Plan 15.3 COMPLETE
-- M6: Voice profile directory → Plan 16.4 COMPLETE
-- M9: Interview state persistence → Plan 16.2 COMPLETE
-- M10: Archetype question handling → Plan 16.1 COMPLETE
-- M12: Database URL exposed → Plan 17.2 COMPLETE
+- C5: Voice interview CLI incomplete â Plan 16.1 COMPLETE
+- C6: setup-keys.ts stdin reading â Plan 16.3 COMPLETE
+- M1: Migration retry loop â Plan 15.1 COMPLETE
+- M2: Hub ID missing â Plan 15.2 COMPLETE
+- M5: Empty .hubs confusion â Plan 15.3 COMPLETE
+- M6: Voice profile directory â Plan 16.4 COMPLETE
+- M9: Interview state persistence â Plan 16.2 COMPLETE
+- M10: Archetype question handling â Plan 16.1 COMPLETE
+- M12: Database URL exposed â Plan 17.2 COMPLETE
 
 #### Major Medium Priority (P2) - Phases 17-18
-- M3: Trigger.dev CLI argument → Plan 17.4 COMPLETE
-- M4: Entity creation flow → Plan 18.3 COMPLETE
-- M7: Setup completion validation → Plan 18.2 COMPLETE
-- M8: Provider key configuration → Plan 18.1 COMPLETE
-- M11: Dry-run mode → Plan 17.3 COMPLETE
-- M13: neonctl PATH issue → Plan 17.5 COMPLETE
-- M14: Recovery flow → Plan 15.4 COMPLETE
+- M3: Trigger.dev CLI argument â Plan 17.4 COMPLETE
+- M4: Entity creation flow â Plan 18.3 COMPLETE
+- M7: Setup completion validation â Plan 18.2 COMPLETE
+- M8: Provider key configuration â Plan 18.1 COMPLETE
+- M11: Dry-run mode â Plan 17.3 COMPLETE
+- M13: neonctl PATH issue â Plan 17.5 COMPLETE
+- M14: Recovery flow â Plan 15.4 COMPLETE
 
 #### Minor (P3) - Phases 19-20
-- m1: Progress indicators → Plan 17.1 COMPLETE
-- m2: Voice profile validation → Plan 19.1 COMPLETE
-- m3: Content import validation → Plan 19.2 COMPLETE
-- m4: Entity slug collision → Plan 18.4 COMPLETE
-- m5: Trigger project auto-detect → Plan 20.2 COMPLETE
-- m6: Content directory structure → Plan 16.4 COMPLETE
-- m7: Platform personas → Plan 19.4 COMPLETE
-- m8: Timezone configuration → Plan 19.3 COMPLETE
-- m9: Health check command → Plan 20.1 COMPLETE
-- m10: RLS compatibility docs → Plan 20.3 COMPLETE
+- m1: Progress indicators â Plan 17.1 COMPLETE
+- m2: Voice profile validation â Plan 19.1 COMPLETE
+- m3: Content import validation â Plan 19.2 COMPLETE
+- m4: Entity slug collision â Plan 18.4 COMPLETE
+- m5: Trigger project auto-detect â Plan 20.2 COMPLETE
+- m6: Content directory structure â Plan 16.4 COMPLETE
+- m7: Platform personas â Plan 19.4 COMPLETE
+- m8: Timezone configuration â Plan 19.3 COMPLETE
+- m9: Health check command â Plan 20.1 COMPLETE
+- m10: RLS compatibility docs â Plan 20.3 COMPLETE
 
 ---
 
@@ -310,7 +310,7 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 ### Notes
 
 - This roadmap addresses all 30 issues from the trial run
-- Phases ordered by priority (P0 → P3) and dependency flow
+- Phases ordered by priority (P0 â P3) and dependency flow
 - Research documents (setup-ux-best-practices, cli-interview-patterns, error-validation-patterns) inform implementation approach
 - Each plan will include atomic commits with clear messages
 - User testing validation after Phase 17 completion
@@ -319,7 +319,7 @@ This milestone addresses all issues identified during the PSN trial run, focusin
 
 ## v1.0 Milestone (Complete)
 
-✅ **Complete** — 14 phases, 54 plans, 148 requirements (100%)
+â **Complete** â 14 phases, 54 plans, 148 requirements (100%)
 See: [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) for full details
 
 Completed: 2026-02-20
@@ -368,7 +368,7 @@ This milestone transforms the codebase for AI-assisted development by:
   4. TypeScript configured with AI-friendly settings (noUnusedLocals: false)
   5. Circular dependency checker configured and passing
 **Plans**: 1/1 plan complete
-- [x] 21-01-PLAN.md — Create PlatformPublisher interface and refactor publish-post.ts into interface-based platform handlers
+- [x] 21-01-PLAN.md â Create PlatformPublisher interface and refactor publish-post.ts into interface-based platform handlers
 
 #### Phase 22: Documentation and Module Boundaries
 **Goal**: Create CLAUDE.md documentation and establish clear module boundaries through path aliases and barrel exports
@@ -383,9 +383,9 @@ This milestone transforms the codebase for AI-assisted development by:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 22-01-PLAN.md — Create root CLAUDE.md and module-level CLAUDE.md files for platforms/ and core/
-- [ ] 22-02-PLAN.md — Replace wildcard tsconfig path alias with specific @psn/core, @psn/platforms, @psn/trigger aliases
-- [ ] 22-03-PLAN.md — Create public API barrel exports for src/platforms/index.ts and src/core/index.ts
+- [ ] 22-01-PLAN.md â Create root CLAUDE.md and module-level CLAUDE.md files for platforms/ and core/
+- [ ] 22-02-PLAN.md â Replace wildcard tsconfig path alias with specific @psn/core, @psn/platforms, @psn/trigger aliases
+- [ ] 22-03-PLAN.md â Create public API barrel exports for src/platforms/index.ts and src/core/index.ts
 
 #### Phase 22.1: Tech Debt Cleanup
 **Goal**: Address actionable tech debt from v1.2 milestone audit before proceeding to testing infrastructure
@@ -400,7 +400,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 22.1-01-PLAN.md — Fix canonical type imports in publish-helpers.ts, add partial_failure to PostSubStatus, correct CLAUDE.md alias label
+- [ ] 22.1-01-PLAN.md â Fix canonical type imports in publish-helpers.ts, add partial_failure to PostSubStatus, correct CLAUDE.md alias label
 
 #### Phase 23: Testing Infrastructure
 **Status**: Carried to v1.3 as Phase 29
@@ -416,8 +416,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 27-01-PLAN.md — Create OAuth callback server module and X callback URL constants
-- [ ] 27-02-PLAN.md — Integrate callback server into setup flow and eliminate hardcoded duplicates
+- [ ] 27-01-PLAN.md â Create OAuth callback server module and X callback URL constants
+- [ ] 27-02-PLAN.md â Integrate callback server into setup flow and eliminate hardcoded duplicates
 
 #### Phase 24: Context Management and Validation
 **Status**: Carried to v1.3 as Phase 30
@@ -433,8 +433,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 27-01-PLAN.md — Create OAuth callback server module and X callback URL constants
-- [ ] 27-02-PLAN.md — Integrate callback server into setup flow and eliminate hardcoded duplicates
+- [ ] 27-01-PLAN.md â Create OAuth callback server module and X callback URL constants
+- [ ] 27-02-PLAN.md â Integrate callback server into setup flow and eliminate hardcoded duplicates
 
 ## v1.3 Milestone (Real-World Reliability)
 
@@ -478,8 +478,8 @@ Zero database migrations. All schema exists -- fixes complete incomplete write p
 **Plans**: 2 plans
 
 Plans:
-- [ ] 25-01-PLAN.md — Install @trigger.dev/build, create env-validation.ts, wire syncEnvVars into trigger.config.ts
-- [ ] 25-02-PLAN.md — Update all 12 trigger tasks to use shared requireEnvVars() utility
+- [ ] 25-01-PLAN.md â Install @trigger.dev/build, create env-validation.ts, wire syncEnvVars into trigger.config.ts
+- [ ] 25-02-PLAN.md â Update all 12 trigger tasks to use shared requireEnvVars() utility
 
 #### Phase 26: Tweet Validation
 **Goal**: Tweets are validated with accurate character counting before submission, producing clear error messages instead of misleading 403s
@@ -492,8 +492,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 26-01-PLAN.md — Create tweet-validator.ts with weighted character counting and refactor thread-splitter
-- [ ] 26-02-PLAN.md — Wire pre-flight validation into X handler with duplicate detection
+- [ ] 26-01-PLAN.md â Create tweet-validator.ts with weighted character counting and refactor thread-splitter
+- [ ] 26-02-PLAN.md â Wire pre-flight validation into X handler with duplicate detection
 
 #### Phase 27: X OAuth Callback Server
 **Goal**: Users complete X OAuth authorization without manually copying codes from browser URLs
@@ -507,8 +507,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 27-01-PLAN.md — Create OAuth callback server module and X callback URL constants
-- [ ] 27-02-PLAN.md — Integrate callback server into setup flow and eliminate hardcoded duplicates
+- [ ] 27-01-PLAN.md â Create OAuth callback server module and X callback URL constants
+- [ ] 27-02-PLAN.md â Integrate callback server into setup flow and eliminate hardcoded duplicates
 
 #### Phase 28: Thread Publishing Resilience
 **Goal**: Partial thread failures are recoverable -- no lost tweet IDs, no duplicate tweets on retry
@@ -522,8 +522,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 27-01-PLAN.md — Create OAuth callback server module and X callback URL constants
-- [ ] 27-02-PLAN.md — Integrate callback server into setup flow and eliminate hardcoded duplicates
+- [ ] 27-01-PLAN.md â Create OAuth callback server module and X callback URL constants
+- [ ] 27-02-PLAN.md â Integrate callback server into setup flow and eliminate hardcoded duplicates
 
 #### Phase 29: Testing Infrastructure
 **Goal**: Validate all v1.3 fixes with automated tests and establish mock infrastructure for ongoing development
@@ -539,8 +539,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 27-01-PLAN.md — Create OAuth callback server module and X callback URL constants
-- [ ] 27-02-PLAN.md — Integrate callback server into setup flow and eliminate hardcoded duplicates
+- [ ] 29-01-PLAN.md — Mock infrastructure, tweet validator tests, and JSDoc behavioral contracts
+- [ ] 29-02-PLAN.md — XHandler thread checkpoint and publish flow tests
 
 #### Phase 30: Context Management
 **Goal**: Automated code quality gates at commit time and consolidated project state documentation
@@ -555,8 +555,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 27-01-PLAN.md — Create OAuth callback server module and X callback URL constants
-- [ ] 27-02-PLAN.md — Integrate callback server into setup flow and eliminate hardcoded duplicates
+- [ ] 27-01-PLAN.md â Create OAuth callback server module and X callback URL constants
+- [ ] 27-02-PLAN.md â Integrate callback server into setup flow and eliminate hardcoded duplicates
 
 ### Requirements Coverage (v1.3)
 
@@ -591,17 +591,17 @@ Plans:
 ### Dependency Chain
 
 ```
-Phase 25 (Env Vars) ─── prerequisite for all production testing
-    │
-    ├── Phase 26 (Tweet Validation) ─── independent, lands before 28 to avoid x.handler.ts conflicts
-    │       │
-    │       └── Phase 28 (Thread Resilience) ─── benefits from pre-validated tweets
-    │
-    └── Phase 27 (OAuth Callback) ─── independent of publishing fixes
-                                        │
-                                        └── Phase 29 (Testing) ─── tests written after code stabilizes
-                                                │
-                                                └── Phase 30 (Context Mgmt) ─── hooks validate stable code
+Phase 25 (Env Vars) âââ prerequisite for all production testing
+    â
+    âââ Phase 26 (Tweet Validation) âââ independent, lands before 28 to avoid x.handler.ts conflicts
+    â       â
+    â       âââ Phase 28 (Thread Resilience) âââ benefits from pre-validated tweets
+    â
+    âââ Phase 27 (OAuth Callback) âââ independent of publishing fixes
+                                        â
+                                        âââ Phase 29 (Testing) âââ tests written after code stabilizes
+                                                â
+                                                âââ Phase 30 (Context Mgmt) âââ hooks validate stable code
 ```
 
 ### Research Flags
@@ -612,7 +612,7 @@ Phase 25 (Env Vars) ─── prerequisite for all production testing
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 21 → 22 → 22.1 → 25 → 26 → 27 → 28 → 29 → 30
+Phases execute in numeric order: 21 â 22 â 22.1 â 25 â 26 â 27 â 28 â 29 â 30
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
