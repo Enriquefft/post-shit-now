@@ -18,7 +18,8 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
-		"check:circular": "madge --circular --extensions ts src/"
+		"check:circular": "madge --circular --extensions ts src/",
+		"prepare": "lefthook install"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.2",
@@ -27,6 +28,7 @@
 		"@types/readline-sync": "^1.4.8",
 		"@types/ws": "8.18.1",
 		"drizzle-kit": "^1.0.0-beta.15-859cf75",
+		"lefthook": "^2.1.1",
 		"madge": "^8.0.0",
 		"vitest": "4.0.18"
 	},

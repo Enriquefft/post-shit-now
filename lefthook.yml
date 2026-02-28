@@ -1,0 +1,16 @@
+# Source: https://biomejs.dev/recipes/git-hooks/ + lefthook v2 docs
+pre-commit:
+  parallel: true
+  jobs:
+    - name: biome
+      glob: "src/**/*.{js,ts,cjs,mjs,jsx,tsx,json,jsonc}"
+      run: bunx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true --colors=off {staged_files}
+      stage_fixed: true
+
+    - name: typecheck
+      glob: "src/**/*.{ts,tsx}"
+      run: bunx tsc --noEmit --incremental
+
+    - name: circular
+      glob: "src/**/*.{ts,tsx}"
+      run: bunx madge --circular --extensions ts src/
