@@ -9,7 +9,7 @@ import { createHandler } from "../core/utils/publisher-factory.ts";
 import "../platforms/handlers/index.ts";
 import { CRYPTO_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 import { notificationDispatcherTask } from "./notification-dispatcher.ts";
-import { advanceSeriesState, markFailed, updateBrandPreferenceIfCompany } from "./publish-helpers.ts";
+import { advanceSeriesState, markFailed, markPartiallyPosted, updateBrandPreferenceIfCompany } from "./publish-helpers.ts";
 
 interface PublishPostPayload {
 	postId: string;
@@ -86,7 +86,7 @@ export const publishPost = task({
 		}
 
 		// 3. Idempotency check — prevent double-publish
-		if (!["scheduled", "retry"].includes(post.status)) {
+		if (!["scheduled", "retry", "partially_posted"].includes(post.status)) {
 			logger.warn("Post not in publishable state", { postId: post.id, status: post.status });
 			return { status: "skipped", reason: `invalid_status_${post.status}` };
 		}
@@ -153,8 +153,21 @@ export const publishPost = task({
 			return { status: "published", results, partialFailure: failed.length > 0 };
 		}
 
-		// All platforms failed
-		await markFailed(db, post.id, "all_platforms_failed", { platformStatus });
+		// All platforms failed -- check if there's partial thread progress to preserve
+		const postMeta = post.metadata ?? {};
+		if (postMeta.threadProgress) {
+			// Thread had partial progress -- mark as partially_posted to preserve checkpoint
+			const progress = JSON.parse(postMeta.threadProgress as string);
+			await markPartiallyPosted(
+				db,
+				post.id,
+				progress.tweetIds ?? [],
+				progress.total ?? 0,
+				"thread_halted_mid_publish",
+			);
+		} else {
+			await markFailed(db, post.id, "all_platforms_failed", { platformStatus });
+		}
 
 		try {
 			await notificationDispatcherTask.trigger({
