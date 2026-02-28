@@ -37,8 +37,8 @@ Requirements for real-world reliability fixes. Derived from 342-turn trial sessi
 
 - [x] **TEST-01**: Vitest configured with TypeScript path alias resolution
 - [x] **TEST-02**: Mock infrastructure exists for all external platform API clients
-- [ ] **TEST-03**: Interface compliance tests validate PlatformPublisher behavioral contracts
-- [ ] **TEST-04**: Unit tests cover tweet validation and thread checkpoint logic
+- [x] **TEST-03**: Interface compliance tests validate PlatformPublisher behavioral contracts
+- [x] **TEST-04**: Unit tests cover tweet validation and thread checkpoint logic
 - [x] **DOC-03**: JSDoc comments include behavioral contracts on public APIs
 
 ### Context Management (carried from v1.2)
@@ -86,8 +86,8 @@ Requirements for real-world reliability fixes. Derived from 342-turn trial sessi
 | THREAD-04 | Phase 28 | Complete |
 | TEST-01 | Phase 29 | Complete |
 | TEST-02 | Phase 29 | Complete |
-| TEST-03 | Phase 29 | Pending |
-| TEST-04 | Phase 29 | Pending |
+| TEST-03 | Phase 29 | Complete |
+| TEST-04 | Phase 29 | Complete |
 | DOC-03 | Phase 29 | Complete |
 | CTX-01 | Phase 30 | Pending |
 | CTX-02 | Phase 30 | Pending |

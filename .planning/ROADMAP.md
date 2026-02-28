@@ -352,8 +352,8 @@ This milestone transforms the codebase for AI-assisted development by:
 - [x] **Phase 21: Foundation and Architecture Cleanup** - Split monolithic code, define interfaces, configure tooling (completed 2026-02-27)
 - [x] **Phase 22: Documentation and Module Boundaries** - CLAUDE.md, path aliases, barrel exports (completed 2026-02-27)
 - [x] **Phase 22.1: Tech Debt Cleanup** - Fix canonical type imports, CLAUDE.md alias label, PostSubStatus union (completed 2026-02-27)
-- [ ] **Phase 23: Testing Infrastructure** - Carried to v1.3 as Phase 29
-- [ ] **Phase 24: Context Management and Validation** - Carried to v1.3 as Phase 30
+- [x] **Phase 23: Testing Infrastructure** - Carried to v1.3 as Phase 29
+- [ ] **Phase 24: Context Management and Validation** - Carried to v1.3 as Phase 30 (completed 2026-02-28)
 
 ### Phase Details
 
@@ -625,7 +625,7 @@ Phases execute in numeric order: 21 â 22 â 22.1 â 25 â 26 â
 | 26. Tweet Validation | 2/2 | Complete    | 2026-02-27 | - |
 | 27. X OAuth Callback Server | 2/2 | Complete    | 2026-02-27 | - |
 | 28. Thread Publishing Resilience | 2/2 | Complete    | 2026-02-28 | - |
-| 29. Testing Infrastructure | 1/2 | In Progress|  | - |
+| 29. Testing Infrastructure | 2/2 | Complete   | 2026-02-28 | - |
 | 30. Context Management | v1.3 | 0/0 | Not started | - |
 
 ---
