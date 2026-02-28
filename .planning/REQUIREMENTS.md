@@ -29,7 +29,7 @@ Requirements for real-world reliability fixes. Derived from 342-turn trial sessi
 ### Thread Resilience
 
 - [x] **THREAD-01**: Thread progress (posted tweet IDs) is persisted to DB after each successful tweet
-- [ ] **THREAD-02**: Thread posting resumes from last checkpoint on retry (no duplicate tweets)
+- [x] **THREAD-02**: Thread posting resumes from last checkpoint on retry (no duplicate tweets)
 - [x] **THREAD-03**: Checkpoint DB writes retry 2-3 times on failure (checkpoint failure is never swallowed)
 - [x] **THREAD-04**: X Error 187 (duplicate) on retry is treated as "already posted" rather than failure
 
@@ -81,7 +81,7 @@ Requirements for real-world reliability fixes. Derived from 342-turn trial sessi
 | OAUTH-03 | Phase 27 | Complete |
 | OAUTH-04 | Phase 27 | Complete |
 | THREAD-01 | Phase 28 | Complete |
-| THREAD-02 | Phase 28 | Pending |
+| THREAD-02 | Phase 28 | Complete |
 | THREAD-03 | Phase 28 | Complete |
 | THREAD-04 | Phase 28 | Complete |
 | TEST-01 | Phase 29 | Pending |

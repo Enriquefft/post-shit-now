@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Milestone
 status: unknown
-last_updated: "2026-02-28T02:38:14Z"
+last_updated: "2026-02-28T02:42:45Z"
 progress:
   total_phases: 30
-  completed_phases: 29
+  completed_phases: 30
   total_plans: 102
-  completed_plans: 99
+  completed_plans: 100
 ---
 
 # Project State
@@ -23,11 +23,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 28 of 30 (Thread Publishing Resilience)
-Plan: 1 of 2 in current phase
-Status: In Progress
-Last activity: 2026-02-28 -- Completed 28-01 (checkpoint persistence + duplicate detection)
+Plan: 2 of 2 in current phase
+Status: Phase Complete
+Last activity: 2026-02-28 -- Completed 28-02 (thread retry orchestration + checkpoint resume)
 
-Progress: [█████-----] 50% (1/2 plans in phase 28)
+Progress: [██████████] 100% (2/2 plans in phase 28)
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [█████-----] 50% (1/2 plans in phase 28)
 | Phase 27 P01 | 1min | 2 tasks | 2 files |
 | Phase 27 P02 | 2min | 2 tasks | 4 files |
 | Phase 28 P01 | 3min | 2 tasks | 3 files |
+| Phase 28 P02 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,7 @@ Recent decisions affecting current work:
 - [Phase 27]: Auto-capture proceeds directly to token exchange on success, manual fallback shows callback server error
 - [Phase 28]: Typed SkipRetryError class for domain-specific error bypass in retry.onThrow (biome-compliant)
 - [Phase 28]: Checkpoint DB write failure halts thread (never swallowed) -- retry.onThrow throws after 3 attempts
+- [Phase 28]: Failure path checks threadProgress in metadata to decide markPartiallyPosted vs markFailed (preserves checkpoint for retry)
 
 ### Pending Todos
 
@@ -98,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-28T02:38:14Z
-Stopped at: Completed 28-01-PLAN.md
+Last session: 2026-02-28T02:42:45Z
+Stopped at: Completed 28-02-PLAN.md
 Resume file: None

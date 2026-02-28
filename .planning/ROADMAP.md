@@ -461,7 +461,7 @@ Zero database migrations. All schema exists -- fixes complete incomplete write p
 - [x] **Phase 25: Trigger.dev Env Var Delivery** - syncEnvVars build extension for credential delivery to workers (completed 2026-02-27)
 - [x] **Phase 26: Tweet Validation** - Weighted character counting and pre-flight validation (completed 2026-02-27)
 - [x] **Phase 27: X OAuth Callback Server** - Automatic authorization code capture via localhost (completed 2026-02-27)
-- [ ] **Phase 28: Thread Publishing Resilience** - Per-tweet checkpoint persistence and resume-from-checkpoint
+- [x] **Phase 28: Thread Publishing Resilience** - Per-tweet checkpoint persistence and resume-from-checkpoint (completed 2026-02-28)
 - [ ] **Phase 29: Testing Infrastructure** - Vitest, mocks, interface compliance tests (carried from v1.2 Phase 23)
 - [ ] **Phase 30: Context Management** - Pre-commit hooks and state consolidation (carried from v1.2 Phase 24)
 
@@ -624,7 +624,7 @@ Phases execute in numeric order: 21 → 22 → 22.1 → 25 → 26 → 27 → 28 
 | 25. Trigger.dev Env Var Delivery | 2/2 | Complete    | 2026-02-27 | - |
 | 26. Tweet Validation | 2/2 | Complete    | 2026-02-27 | - |
 | 27. X OAuth Callback Server | 2/2 | Complete    | 2026-02-27 | - |
-| 28. Thread Publishing Resilience | 1/2 | In Progress|  | - |
+| 28. Thread Publishing Resilience | 2/2 | Complete   | 2026-02-28 | - |
 | 29. Testing Infrastructure | v1.3 | 0/0 | Not started | - |
 | 30. Context Management | v1.3 | 0/0 | Not started | - |
 
