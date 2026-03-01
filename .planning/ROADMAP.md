@@ -58,7 +58,7 @@ See: [v1.3-ROADMAP.md](./milestones/v1.3-ROADMAP.md) for full details
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Critical Setup Fixes | v1.1 | 4/4 | Complete | 2026-02-22 |
+| 1. Critical Setup Fixes | v1.1 | Complete    | 2026-03-01 | 2026-02-22 |
 | 15. Database Stability | v1.1 | 4/4 | Complete | 2026-02-23 |
 | 16. Voice Interview CLI | v1.1 | 4/4 | Complete | 2026-02-23 |
 | 17. Setup UX Improvements | v1.1 | 5/5 | Complete | 2026-02-24 |
@@ -80,13 +80,14 @@ See: [v1.3-ROADMAP.md](./milestones/v1.3-ROADMAP.md) for full details
 **Goal:** Fix critical Instagram integration bugs blocking OAuth, publishing, and engagement flows
 **Requirements**: None (bug fixes)
 **Depends on:** v1.3
-**Plans:** 2/3 plans complete
+**Plans:** 3/3 plans complete ✓
+**Completed:** 2026-03-01
 
 Plans:
 - [x] Plan 01: Fix Instagram OAuth accountId key and callback URL
 - [x] Plan 02: Rate limit tracking and MockInstagramClient expansion
-- [ ] Plan 03: TBD
+- [x] Plan 03: Instagram handler test suite (8 scenarios)
 
 ---
 
-*Last updated: 2026-02-28 after v1.3 milestone*
+*Last updated: 2026-03-01 after Phase 1 completion*
