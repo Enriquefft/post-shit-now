@@ -5,8 +5,9 @@ import type { SetupResult } from "../core/types/index.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
 import { exchangeInstagramCode, generateInstagramAuthUrl } from "../platforms/instagram/oauth.ts";
+import { OAUTH_CALLBACK_HOSTNAME, OAUTH_CALLBACK_PORT } from "../platforms/x/oauth.ts";
 
-const INSTAGRAM_CALLBACK_URL = "https://example.com/callback";
+const INSTAGRAM_CALLBACK_URL = `http://${OAUTH_CALLBACK_HOSTNAME}:${OAUTH_CALLBACK_PORT}/callback`;
 
 /**
  * Instagram OAuth setup step for /psn:setup.
@@ -56,7 +57,7 @@ export async function setupInstagramOAuth(configDir = "config"): Promise<SetupRe
 					"1. Go to https://developers.facebook.com/apps -> Create App -> Other -> Consumer",
 					"2. Add Instagram Platform API product",
 					"3. Configure scopes: instagram_business_basic, instagram_business_content_publish",
-					"4. Set OAuth redirect URL to: https://example.com/callback",
+					"4. Set OAuth redirect URL to: http://127.0.0.1:18923/callback",
 					"5. Copy App ID and App Secret from App Dashboard",
 				].join("\n"),
 			},
@@ -182,7 +183,7 @@ export async function completeInstagramOAuth(
 		.limit(1);
 
 	const metadata: Record<string, unknown> = {
-		userId: tokens.userId,
+		accountId: tokens.userId,
 		expiresAt: expiresAt.toISOString(),
 		lastRefreshedAt: new Date().toISOString(),
 	};
