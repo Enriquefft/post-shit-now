@@ -80,11 +80,11 @@ See: [v1.3-ROADMAP.md](./milestones/v1.3-ROADMAP.md) for full details
 **Goal:** Fix critical Instagram integration bugs blocking OAuth, publishing, and engagement flows
 **Requirements**: None (bug fixes)
 **Depends on:** v1.3
-**Plans:** 1/3 plans complete
+**Plans:** 2/3 plans complete
 
 Plans:
 - [x] Plan 01: Fix Instagram OAuth accountId key and callback URL
-- [ ] Plan 02: TBD
+- [x] Plan 02: Rate limit tracking and MockInstagramClient expansion
 - [ ] Plan 03: TBD
 
 ---

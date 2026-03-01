@@ -24,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 Milestone: Post-v1.3 bug fixes
 Phase: 01-fix-instagram-integration-bugs
-Current Plan: 02
-Status: Executing phase 01 -- plan 01 complete
-Last activity: 2026-03-01 -- Completed 01-01 (Instagram OAuth fix)
+Current Plan: 03
+Status: Executing phase 01 -- plan 02 complete
+Last activity: 2026-03-01 -- Completed 01-02 (Rate limit tracking + mock client)
 
-Progress: [█---------] 1/3 plans in phase 01
+Progress: [██████----] 2/3 plans in phase 01
 
 ## Performance Metrics
 
@@ -56,6 +56,8 @@ All v1.3 decisions have been archived to PROJECT.md Key Decisions table.
 
 - [01-01] Reuse X OAuth callback constants for Instagram rather than duplicating values
 - [01-01] No migration shim for old tokens with wrong key -- users re-run setup
+- [01-02] Increment rate limit by 3 per publish cycle (create + poll + publish API calls)
+- [01-02] Self-track rate limits at handler level since Instagram API lacks headers
 
 ### Pending Todos
 
@@ -72,5 +74,5 @@ None. All v1.3 blockers resolved.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 01-01-PLAN.md (Instagram OAuth fix). Next: 01-02-PLAN.md
+Stopped at: Completed 01-02-PLAN.md (Rate limit tracking + mock client). Next: 01-03-PLAN.md
 Resume file: None
