@@ -75,6 +75,18 @@ See: [v1.3-ROADMAP.md](./milestones/v1.3-ROADMAP.md) for full details
 | 29. Testing Infrastructure | v1.3 | 2/2 | Complete | 2026-02-28 |
 | 30. Context Management | v1.3 | 2/2 | Complete | 2026-02-28 |
 
+### Phase 1: Fix Instagram integration bugs
+
+**Goal:** Fix critical Instagram integration bugs blocking OAuth, publishing, and engagement flows
+**Requirements**: None (bug fixes)
+**Depends on:** v1.3
+**Plans:** 1/3 plans complete
+
+Plans:
+- [x] Plan 01: Fix Instagram OAuth accountId key and callback URL
+- [ ] Plan 02: TBD
+- [ ] Plan 03: TBD
+
 ---
 
 *Last updated: 2026-02-28 after v1.3 milestone*

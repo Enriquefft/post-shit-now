@@ -115,13 +115,98 @@ export class MockLinkedInClient {
 
 // ─── MockInstagramClient ─────────────────────────────────────────────────────
 
-/** Minimal stub -- Instagram publish flow not in current test scope. */
+interface MockContainer {
+	id: string;
+	type: string;
+	caption: string;
+}
+
+/**
+ * Mock Instagram client mirroring InstagramClient public API.
+ * Supports the container workflow (create, poll status, publish) and
+ * failure injection for error path testing.
+ */
 export class MockInstagramClient {
-	// biome-ignore lint/correctness/noUnusedPrivateClassMembers: stored for potential future use
+	private containers: MockContainer[] = [];
+	private nextId = 1;
+	private pendingFailure: Error | null = null;
+
 	constructor(
-		private readonly accessToken: string,
+		_accessToken: string,
 		private readonly accountId: string,
 	) {}
+
+	/**
+	 * Create a media container. Returns incrementing container_N IDs.
+	 * If a failure has been set via setFailure(), throws that error instead.
+	 */
+	async createContainer(params: Record<string, string>): Promise<{ id: string }> {
+		this.checkFailure();
+		const id = `container_${this.nextId++}`;
+		this.containers.push({
+			id,
+			type: params.media_type ?? "IMAGE",
+			caption: params.caption ?? "",
+		});
+		return { id };
+	}
+
+	/**
+	 * Check container processing status. Always returns FINISHED in mock.
+	 */
+	async getContainerStatus(containerId: string): Promise<{ id: string; status_code: string }> {
+		this.checkFailure();
+		return { id: containerId, status_code: "FINISHED" };
+	}
+
+	/**
+	 * Publish a container. Returns incrementing ig_media_N IDs.
+	 */
+	async publishContainer(containerId: string): Promise<{ id: string }> {
+		this.checkFailure();
+		void containerId;
+		return { id: `ig_media_${this.nextId++}` };
+	}
+
+	/**
+	 * Get the authenticated user's profile info.
+	 */
+	async getMe(): Promise<{ id: string; username: string }> {
+		this.checkFailure();
+		return { id: this.accountId, username: "test_user" };
+	}
+
+	// ─── Test Helpers ──────────────────────────────────────────────────────────
+
+	/** Cause the next API call to throw the provided error. */
+	setFailure(error: Error): void {
+		this.pendingFailure = error;
+	}
+
+	/** Restore normal behavior. */
+	clearFailure(): void {
+		this.pendingFailure = null;
+	}
+
+	/** Get all containers created through this mock. */
+	getPublishedContainers(): MockContainer[] {
+		return [...this.containers];
+	}
+
+	/** Reset all state: containers, ID counter, and pending failures. */
+	reset(): void {
+		this.containers = [];
+		this.nextId = 1;
+		this.pendingFailure = null;
+	}
+
+	/** Check and throw pending failure if set. */
+	private checkFailure(): void {
+		if (this.pendingFailure) {
+			const error = this.pendingFailure;
+			throw error;
+		}
+	}
 }
 
 // ─── MockTikTokClient ────────────────────────────────────────────────────────

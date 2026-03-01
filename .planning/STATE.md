@@ -22,11 +22,13 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Current Position
 
-Milestone: v1.3 (Real-World Reliability) -- Complete
-Status: Milestone archived, planning next milestone
-Last activity: 2026-02-28 -- v1.3 milestone archival complete
+Milestone: Post-v1.3 bug fixes
+Phase: 01-fix-instagram-integration-bugs
+Current Plan: 02
+Status: Executing phase 01 -- plan 01 complete
+Last activity: 2026-03-01 -- Completed 01-01 (Instagram OAuth fix)
 
-Progress: [██████████] 100% (all milestones through v1.3 shipped)
+Progress: [█---------] 1/3 plans in phase 01
 
 ## Performance Metrics
 
@@ -51,7 +53,9 @@ Progress: [██████████] 100% (all milestones through v1.3 shi
 ### Decisions
 
 All v1.3 decisions have been archived to PROJECT.md Key Decisions table.
-No pending decisions.
+
+- [01-01] Reuse X OAuth callback constants for Instagram rather than duplicating values
+- [01-01] No migration shim for old tokens with wrong key -- users re-run setup
 
 ### Pending Todos
 
@@ -61,8 +65,12 @@ None.
 
 None. All v1.3 blockers resolved.
 
+### Roadmap Evolution
+
+- Phase 1 added: Fix Instagram integration bugs
+
 ## Session Continuity
 
-Last session: 2026-02-28
-Stopped at: v1.3 milestone archival complete. Ready to plan next milestone.
+Last session: 2026-03-01
+Stopped at: Completed 01-01-PLAN.md (Instagram OAuth fix). Next: 01-02-PLAN.md
 Resume file: None
