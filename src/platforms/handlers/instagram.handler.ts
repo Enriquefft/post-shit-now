@@ -20,12 +20,18 @@ import {
 	waitForContainerReady,
 } from "../instagram/media.ts";
 import { refreshInstagramToken } from "../instagram/oauth.ts";
-import { InstagramRateLimitError, MAX_POSTS_PER_DAY } from "../instagram/types.ts";
+import {
+	InstagramRateLimitError,
+	MAX_POSTS_PER_DAY,
+	MAX_REQUESTS_PER_HOUR,
+} from "../instagram/types.ts";
 
 const stringArraySchema = z.array(z.string());
 
 export class InstagramHandler implements PlatformPublisher {
 	private currentRateLimit: RateLimitInfo | null = null;
+	private requestCount = 0;
+	private windowStart = Date.now();
 
 	async publish(db: DbConnection, post: PostRow, encKey: Buffer): Promise<PlatformPublishResult> {
 		const { id: postId, userId, content } = post;
@@ -125,6 +131,8 @@ export class InstagramHandler implements PlatformPublisher {
 				mediaUrls,
 				caption,
 			);
+			// Each publish cycle involves ~3 API calls (create container, poll status, publish)
+			this.updateRateLimit(3);
 			logger.info("Instagram post published", {
 				postId,
 				publishedMediaId,
@@ -181,6 +189,28 @@ export class InstagramHandler implements PlatformPublisher {
 				return published.id;
 			}
 		}
+	}
+
+	/**
+	 * Update handler-level rate limit tracking after API calls.
+	 * Instagram doesn't return rate limit headers, so we self-track.
+	 */
+	private updateRateLimit(count = 1): void {
+		const now = Date.now();
+		const hourMs = 3_600_000;
+
+		// Reset window if an hour has elapsed
+		if (now - this.windowStart > hourMs) {
+			this.requestCount = 0;
+			this.windowStart = now;
+		}
+
+		this.requestCount += count;
+		this.currentRateLimit = {
+			limit: MAX_REQUESTS_PER_HOUR,
+			remaining: Math.max(0, MAX_REQUESTS_PER_HOUR - this.requestCount),
+			resetAt: new Date(this.windowStart + hourMs),
+		};
 	}
 
 	async validateCredentials(): Promise<boolean> {
