@@ -9,6 +9,16 @@ You are running the Post Shit Now setup wizard. Supports Personal Hub provisioni
 ## Arguments
 $ARGUMENTS
 
+## Default Behavior (no subcommand)
+
+When `/psn:setup` is invoked with no arguments:
+
+1. Run `bun run src/cli/setup.ts status` first
+2. Parse the JSON output and check `data.incompleteSteps`
+3. **If `hasHub` is false** (new user): Skip the menu. Go directly to "Personal Hub Setup" below and walk them through it step-by-step.
+4. **If hub exists but other steps incomplete**: Show the status checklist with recommended next steps. Offer to guide them through the next incomplete step.
+5. **If all steps complete** (existing user): Show the full menu of management options (voice, entity, hub, team, notifications).
+
 ## Usage
 - `/psn:setup` -- Personal Hub setup wizard (default)
 - `/psn:setup status` -- show what's configured and recommended next action
