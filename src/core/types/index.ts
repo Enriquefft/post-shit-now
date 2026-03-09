@@ -1,4 +1,6 @@
-export type Platform = "x" | "linkedin" | "instagram" | "tiktok";
+import type { Platform } from "./platform.ts";
+
+export type { Platform };
 
 export interface HubConfig {
 	databaseUrl: string;
@@ -61,27 +63,7 @@ export interface PlatformStatus {
 	retryCount?: number;
 }
 
-export interface PostMetadata {
-	triggerRunId?: string;
-	scheduledTimezone?: string;
-	threadTweetIds?: string[];
-	failReason?: string;
-	retryCount?: number;
-	rateLimitResetAt?: string;
-	watchdogRetryAt?: string;
-	/** Per-platform publish status for multi-platform posts */
-	platformStatus?: Record<string, PlatformStatus>;
-	/** Group ID linking related cross-platform posts */
-	multiPlatformGroupId?: string;
-	/** LinkedIn-specific format override */
-	linkedinFormat?: string;
-	/** Generic format hint */
-	format?: string;
-	/** Topic for content generation */
-	topic?: string;
-	/** Content pillar */
-	pillar?: string;
-}
+export type { PostMetadata } from "../db/schema.ts";
 
 export interface ThreadTweet {
 	position: number;

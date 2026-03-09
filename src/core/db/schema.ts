@@ -70,19 +70,31 @@ export interface PostMetadata {
 	slotClaimed?: boolean;
 	hubId?: string;
 	// Publishing metadata (for trigger/publish-post.ts)
+	triggerRunId?: string;
 	skippedReason?: string;
 	skippedAt?: string;
-	platformStatus?: Record<string, { status: string; externalPostId?: string; error?: string }>;
+	platformStatus?: Record<
+		string,
+		{ status: string; externalPostId?: string; error?: string; retryCount?: number }
+	>;
 	failedAt?: string;
 	retryCount?: number;
 	failReason?: string;
 	watchdogRetryAt?: string;
+	rateLimitResetAt?: string;
 	lastTriggerRunId?: string;
+	// Scheduling metadata
+	scheduledTimezone?: string;
+	/** Group ID linking related cross-platform posts */
+	multiPlatformGroupId?: string;
 	// Thread progress (for X threads)
 	threadProgress?: string;
+	threadTweetIds?: string[];
 	// LinkedIn-specific metadata
 	linkedinFormat?: string;
 	linkedinVisibility?: "PUBLIC" | "CONNECTIONS";
+	/** LinkedIn author URN override — urn:li:organization:XXX for page posts */
+	linkedinAuthorUrn?: string;
 	carouselTitle?: string;
 	imageAltText?: string;
 	articleUrl?: string;

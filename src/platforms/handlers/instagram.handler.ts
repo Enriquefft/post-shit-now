@@ -36,7 +36,7 @@ export class InstagramHandler implements PlatformPublisher {
 	async publish(db: DbConnection, post: PostRow, encKey: Buffer): Promise<PlatformPublishResult> {
 		const { id: postId, userId, content } = post;
 		const mediaUrls = post.mediaUrls ?? [];
-		const metadata = (post.metadata ?? {}) as PostMetadata & { instagramFormat?: string };
+		const metadata = (post.metadata ?? {}) as PostMetadata;
 
 		const instagramAppId = process.env.INSTAGRAM_APP_ID;
 		const instagramAppSecret = process.env.INSTAGRAM_APP_SECRET;

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Platform } from "../core/types/index.ts";
+import type { Platform } from "../core/types/platform.ts";
 
 // ─── Maturity Level ─────────────────────────────────────────────────────────
 
