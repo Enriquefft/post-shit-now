@@ -83,7 +83,7 @@ export async function checkTriggerHealth(configDir = "config"): Promise<HealthCh
 			};
 		}
 
-		const { TRIGGER_SECRET_KEY } = keysResult.data;
+		const { TRIGGER_SECRET_KEY, TRIGGER_ACCESS_TOKEN } = keysResult.data;
 
 		if (!TRIGGER_SECRET_KEY) {
 			return {
@@ -113,9 +113,9 @@ export async function checkTriggerHealth(configDir = "config"): Promise<HealthCh
 				};
 			}
 
-			// Extract project ref from secret key for comparison
-			const match = TRIGGER_SECRET_KEY.match(/^tr_(?:dev|prod)_([a-zA-Z0-9]+)_/);
-			const projectRef = match?.[1];
+			// Extract project ref from config file
+			const match = config.match(/project:\s*["']([^"']+)["']/);
+			const projectRef = match?.[1] ?? "unknown";
 
 			return {
 				check: "trigger",
@@ -123,7 +123,8 @@ export async function checkTriggerHealth(configDir = "config"): Promise<HealthCh
 				message: "Trigger.dev configured with secret key and project ref",
 				details: {
 					secretKey: maskApiKey(TRIGGER_SECRET_KEY),
-					projectRef: projectRef || "unknown",
+					projectRef,
+					hasPat: Boolean(TRIGGER_ACCESS_TOKEN),
 				},
 			};
 		} catch (configErr) {

@@ -248,10 +248,44 @@ async function validateAnthropicApiKey(apiKey: string): Promise<ValidationResult
 	}
 }
 
+async function validateTriggerPat(apiKey: string): Promise<ValidationResult> {
+	if (!apiKey.startsWith("tr_pat_")) {
+		return {
+			valid: false,
+			error: "Invalid Trigger.dev Personal Access Token format",
+			suggestion:
+				"Personal Access Tokens start with 'tr_pat_'. Get yours from Trigger.dev Dashboard → avatar → Personal Access Tokens.",
+		};
+	}
+
+	try {
+		const response = await fetch("https://api.trigger.dev/api/v1/orgs", {
+			headers: { Authorization: `Bearer ${apiKey}` },
+		});
+
+		if (response.status === 401) {
+			return {
+				valid: false,
+				error: "Trigger.dev Personal Access Token invalid or expired",
+				suggestion: "Regenerate your PAT from Trigger.dev Dashboard.",
+			};
+		}
+
+		return { valid: true };
+	} catch (error) {
+		return {
+			valid: true,
+			warning: `Could not validate PAT: ${error instanceof Error ? error.message : String(error)}`,
+		};
+	}
+}
+
 // Map of provider names to validation functions
 const VALIDATORS: Record<string, (key: string) => Promise<ValidationResult>> = {
 	neon: validateNeonApiKey,
 	trigger: validateTriggerDevApiKey,
+	"trigger-pat": validateTriggerPat,
+	TRIGGER_ACCESS_TOKEN: validateTriggerPat,
 	perplexity: validatePerplexityApiKey,
 	anthropic: validateAnthropicApiKey,
 	// Add more validators as needed

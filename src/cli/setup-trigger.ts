@@ -1,165 +1,31 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import type { SetupResult } from "../core/types/index.ts";
 import { loadKeysEnv } from "../core/utils/env.ts";
-import { formatErrorWithMasking, maskApiKey } from "./utils/masking.ts";
-import { createProgressStep, runStep } from "./utils/progress.ts";
+import {
+	createTriggerProject,
+	findExistingProject,
+	getSecretKeyDashboardUrl,
+	listTriggerOrgs,
+} from "./trigger-api.ts";
+import { maskApiKey } from "./utils/masking.ts";
+import { runStep } from "./utils/progress.ts";
 
 const TRIGGER_CONFIG_PATH = "trigger.config.ts";
 const PLACEHOLDER_REF = "<your-project-ref>";
+const PSN_PROJECT_NAME = "post-shit-now";
 
 /**
- * Interface for detected project ref from various sources.
- */
-export interface DetectedProjectRef {
-	source: "config" | "secret-key" | "env" | "none";
-	projectRef?: string;
-	environment?: "dev" | "prod";
-}
-
-/**
- * Type alias for loadKeysEnv result type.
- */
-type KeysResult = Awaited<ReturnType<typeof loadKeysEnv>>;
-
-/**
- * Detect project ref from multiple sources.
- * Priority: env var > secret key format > none
+ * Set up Trigger.dev project configuration using a Personal Access Token.
  *
- * @param keysResult - Result from loadKeysEnv()
- * @returns DetectedProjectRef with source and details
- */
-export function detectProjectRef(keysResult: KeysResult): DetectedProjectRef {
-	if (!keysResult.success) {
-		return { source: "none" };
-	}
-
-	const { TRIGGER_PROJECT_REF, TRIGGER_SECRET_KEY } = keysResult.data;
-
-	// Priority 1: TRIGGER_PROJECT_REF env var
-	if (TRIGGER_PROJECT_REF) {
-		const environment = TRIGGER_SECRET_KEY?.startsWith("tr_prod_") ? "prod" : "dev";
-		return { source: "env", projectRef: TRIGGER_PROJECT_REF, environment };
-	}
-
-	// Priority 2: Extract from secret key format (tr_dev_PROJECTREF_... or tr_prod_PROJECTREF_...)
-	if (TRIGGER_SECRET_KEY) {
-		const match = TRIGGER_SECRET_KEY.match(/^tr_(dev|prod)_([a-zA-Z0-9]+)_/);
-		if (match) {
-			return {
-				source: "secret-key",
-				projectRef: match[2],
-				environment: match[1] === "prod" ? "prod" : "dev",
-			};
-		}
-	}
-
-	// No project ref found
-	return { source: "none" };
-}
-
-/**
- * Verify Trigger.dev project via CLI whoami command.
- *
- * @param projectRef - Project reference to verify
- * @param secretKey - Trigger.dev secret key for authentication
- * @returns Verification result with status and suggested actions
- */
-export async function verifyTriggerProject(
-	projectRef: string,
-	secretKey: string,
-): Promise<{ valid: boolean; error?: string; suggestedAction?: string }> {
-	try {
-		// Run Trigger.dev CLI whoami command
-		const proc = Bun.spawn(
-			["bunx", "trigger.dev@latest", "whoami", "--api-key", maskApiKey(secretKey)],
-			{
-				stdout: "pipe",
-				stderr: "pipe",
-				env: { ...process.env, TRIGGER_SECRET_KEY: secretKey },
-			},
-		);
-
-		const exitCode = await proc.exited;
-		const stdout = await new Response(proc.stdout).text();
-		const stderr = await new Response(proc.stderr).text();
-
-		// Authentication error
-		if (
-			exitCode !== 0 &&
-			(stderr.includes("401") ||
-				stderr.includes("Unauthorized") ||
-				stderr.includes("not authenticated"))
-		) {
-			return {
-				valid: false,
-				error: "Invalid TRIGGER_SECRET_KEY or insufficient permissions",
-				suggestedAction: "Check your Trigger.dev secret key in keys.env",
-			};
-		}
-
-		// Network/connectivity error
-		if (
-			exitCode !== 0 &&
-			(stderr.includes("ECONNREFUSED") ||
-				stderr.includes("network") ||
-				stderr.includes("ENOTFOUND"))
-		) {
-			return {
-				valid: false,
-				error: "Cannot connect to Trigger.dev",
-				suggestedAction: "Check your internet connection",
-			};
-		}
-
-		// CLI succeeded - verify project ref matches
-		if (exitCode === 0) {
-			// Parse output to check if project ref is found
-			// The whoami output includes project information
-			const output = stdout || stderr;
-
-			// If project ref is mentioned in output, verify it matches
-			if (output.includes(projectRef)) {
-				return { valid: true };
-			}
-
-			// Project ref mismatch
-			return {
-				valid: false,
-				error: `Configured project ref (${projectRef}) does not match Trigger.dev project`,
-				suggestedAction:
-					"Update trigger.config.ts with the correct project ref or run /psn:setup trigger to reconfigure",
-			};
-		}
-
-		// Unknown error
-		return {
-			valid: false,
-			error: "Trigger.dev verification failed",
-			suggestedAction: "Run /psn:setup trigger to reconfigure",
-		};
-	} catch (error) {
-		// Unexpected error
-		return {
-			valid: false,
-			error: `Trigger.dev verification failed: ${error instanceof Error ? error.message : String(error)}`,
-			suggestedAction: "Check your internet connection and Trigger.dev credentials",
-		};
-	}
-}
-
-/**
- * Set up Trigger.dev project configuration.
- * Updates trigger.config.ts with the project ref.
- * Resumes from failure: skips if config already has a real project ref.
+ * Flow:
+ * 1. Skip if trigger.config.ts already configured (idempotent)
+ * 2. Load TRIGGER_ACCESS_TOKEN from keys.env
+ * 3. List orgs — auto-select if one, return need_input if multiple
+ * 4. Find existing PSN project or create a new one
+ * 5. Write project externalRef to trigger.config.ts
+ * 6. Return need_input with direct dashboard link for TRIGGER_SECRET_KEY
  */
 export async function setupTrigger(configDir = "config"): Promise<SetupResult> {
-	// Display step list upfront
-	createProgressStep([
-		"Detecting project ref",
-		"Verifying Trigger.dev connectivity",
-		"Updating trigger.config.ts",
-	]);
-
 	// Check if trigger.config.ts already has a real project ref
 	const configContent = readFileSync(TRIGGER_CONFIG_PATH, "utf-8");
 	if (!configContent.includes(PLACEHOLDER_REF)) {
@@ -170,111 +36,132 @@ export async function setupTrigger(configDir = "config"): Promise<SetupResult> {
 		};
 	}
 
-	// Load Trigger secret key
+	// Load PAT from keys.env
 	const keysResult = await loadKeysEnv(configDir);
 	if (!keysResult.success) {
+		return { step: "trigger", status: "error", message: keysResult.error };
+	}
+
+	const pat = keysResult.data.TRIGGER_ACCESS_TOKEN;
+	if (!pat) {
+		return {
+			step: "trigger",
+			status: "need_input",
+			message: "Provide TRIGGER_ACCESS_TOKEN (Personal Access Token)",
+			data: {
+				key: "TRIGGER_ACCESS_TOKEN",
+				source:
+					"Trigger.dev Dashboard → click your avatar → Personal Access Tokens → Create new token",
+				format: "tr_pat_*",
+			},
+		};
+	}
+
+	// List orgs
+	let orgs: Awaited<ReturnType<typeof listTriggerOrgs>>;
+	await runStep("Fetching Trigger.dev organizations", async () => {
+		orgs = await listTriggerOrgs(pat);
+	});
+
+	// biome-ignore lint/style/noNonNullAssertion: set in runStep above
+	const resolvedOrgs = orgs!;
+
+	if (resolvedOrgs.length === 0) {
 		return {
 			step: "trigger",
 			status: "error",
-			message: keysResult.error,
+			message: "No organizations found for this PAT. Create an org on Trigger.dev first.",
 		};
 	}
 
-	const secretKey = keysResult.data.TRIGGER_SECRET_KEY;
-	if (!secretKey) {
+	// If multiple orgs, ask user to select
+	if (resolvedOrgs.length > 1) {
 		return {
 			step: "trigger",
-			status: "error",
-			message: "TRIGGER_SECRET_KEY not found in keys.env. Run key setup first.",
+			status: "need_input",
+			message: "Multiple Trigger.dev organizations found. Which one should PSN use?",
+			data: {
+				key: "TRIGGER_ORG_ID",
+				orgs: resolvedOrgs.map((o) => ({ id: o.id, title: o.title, slug: o.slug })),
+				instructions:
+					"Re-run setup with TRIGGER_ORG_ID set to the organization ID you want to use.",
+			},
 		};
 	}
 
-	// Detect project ref from available sources
-	const detected = detectProjectRef(keysResult);
+	// resolvedOrgs.length === 1 at this point (multi-org handled above)
+	const org = resolvedOrgs[0] as (typeof resolvedOrgs)[0];
 
-	// If no project ref detected, run trigger.dev init
-	if (detected.source === "none") {
-		// Run trigger.dev init to create/link project (long-running operation)
-		await runStep("Initializing Trigger.dev project", async () => {
-			const proc = Bun.spawn(["bunx", "trigger.dev@latest", "init", "--skip-package-install"], {
-				stdout: "pipe",
-				stderr: "pipe",
-				env: { ...process.env, TRIGGER_SECRET_KEY: secretKey },
-			});
+	// Find or create the PSN project
+	let projectRef: string;
+	let projectSlug: string;
+	let projectAction: "found" | "created";
 
-			const exitCode = await proc.exited;
-			const stderr = await new Response(proc.stderr).text();
-
-			if (exitCode !== 0) {
-				throw new Error(
-					formatErrorWithMasking(
-						`trigger.dev init failed: ${stderr.trim()}. You can manually set TRIGGER_PROJECT_REF in keys.env.`,
-						{ apiKey: secretKey },
-					),
-				);
-			}
-
-			// Re-read config to check if init updated it
-			const updatedConfig = readFileSync(TRIGGER_CONFIG_PATH, "utf-8");
-			if (updatedConfig.includes(PLACEHOLDER_REF)) {
-				throw new Error(
-					"Could not auto-detect project ref. Please provide your Trigger.dev project ref (starts with proj_).",
-				);
-			}
-		});
-
-		return {
-			step: "trigger",
-			status: "success",
-			message: "Trigger.dev project initialized via CLI",
-		};
-	}
-
-	// Project ref detected - verify it
-	if (!detected.projectRef) {
-		throw new Error("Project ref not found despite detection — unexpected state");
-	}
-	const projectRef = detected.projectRef;
-	await runStep("Verifying Trigger.dev project connectivity", async () => {
-		const verification = await verifyTriggerProject(projectRef, secretKey);
-		if (!verification.valid) {
-			throw new Error(
-				`${verification.error}. ${verification.suggestedAction || "Run /psn:setup trigger --verify for more details."}`,
-			);
+	await runStep("Setting up post-shit-now project", async () => {
+		const existing = await findExistingProject(pat, org.id, PSN_PROJECT_NAME);
+		if (existing) {
+			projectRef = existing.externalRef;
+			projectSlug = existing.slug;
+			projectAction = "found";
+		} else {
+			const created = await createTriggerProject(pat, org.id, PSN_PROJECT_NAME);
+			projectRef = created.externalRef;
+			projectSlug = created.slug;
+			projectAction = "created";
 		}
 	});
 
-	// Update trigger.config.ts with the project ref
-	const updated = configContent.replace(PLACEHOLDER_REF, projectRef);
+	// biome-ignore lint/style/noNonNullAssertion: set in runStep above
+	const resolvedRef = projectRef!;
+	// biome-ignore lint/style/noNonNullAssertion: set in runStep above
+	const resolvedSlug = projectSlug!;
+	// biome-ignore lint/style/noNonNullAssertion: set in runStep above
+	const resolvedAction = projectAction!;
+
+	// Write project ref to trigger.config.ts
+	const updated = configContent.replace(PLACEHOLDER_REF, resolvedRef);
 	writeFileSync(TRIGGER_CONFIG_PATH, updated);
 
+	// Check if secret key already exists (e.g. re-running after partial setup)
+	const secretKey = keysResult.data.TRIGGER_SECRET_KEY;
+	if (secretKey) {
+		return {
+			step: "trigger",
+			status: "success",
+			message: `Trigger.dev configured — project ${resolvedRef} (${resolvedAction})`,
+			data: { projectRef: resolvedRef, action: resolvedAction },
+		};
+	}
+
+	// Prompt for secret key with direct dashboard link
+	const dashboardUrl = getSecretKeyDashboardUrl(org.slug, resolvedSlug);
 	return {
 		step: "trigger",
-		status: "success",
-		message: `Trigger.dev configured with project ref: ${projectRef} (detected from ${detected.source})`,
-		data: { projectRef, source: detected.source },
+		status: "need_input",
+		message: `Project ${resolvedAction}: ${resolvedRef}. Now provide the dev secret key.`,
+		data: {
+			key: "TRIGGER_SECRET_KEY",
+			source: dashboardUrl,
+			format: "tr_dev_* or tr_prod_*",
+			projectRef: resolvedRef,
+			instructions: `Copy your dev secret key from: ${dashboardUrl}`,
+		},
 	};
 }
 
 /**
  * Verify Trigger.dev setup and return detailed status.
  * Used by /psn:setup trigger --verify command.
- *
- * @param configDir - Configuration directory
- * @returns SetupResult with verification details
  */
 export async function verifyTriggerSetup(configDir = "config"): Promise<SetupResult> {
-	// Load Trigger secret key
 	const keysResult = await loadKeysEnv(configDir);
 	if (!keysResult.success) {
-		return {
-			step: "trigger",
-			status: "error",
-			message: keysResult.error,
-		};
+		return { step: "trigger", status: "error", message: keysResult.error };
 	}
 
+	const pat = keysResult.data.TRIGGER_ACCESS_TOKEN;
 	const secretKey = keysResult.data.TRIGGER_SECRET_KEY;
+
 	if (!secretKey) {
 		return {
 			step: "trigger",
@@ -284,46 +171,44 @@ export async function verifyTriggerSetup(configDir = "config"): Promise<SetupRes
 		};
 	}
 
-	// Detect project ref
-	const detected = detectProjectRef(keysResult);
-
-	if (detected.source === "none") {
+	if (!secretKey.startsWith("tr_dev_") && !secretKey.startsWith("tr_prod_")) {
 		return {
 			step: "trigger",
 			status: "error",
-			message: "No project ref detected from config file or secret key",
-			suggestedAction:
-				"Set TRIGGER_PROJECT_REF in keys.env or ensure your secret key has the correct format (tr_dev_PROJECTREF_...)",
-			data: { secretKeyFormat: maskApiKey(secretKey) },
+			message: "TRIGGER_SECRET_KEY has invalid format (must start with tr_dev_ or tr_prod_)",
 		};
 	}
 
-	if (!detected.projectRef) {
+	// Read project ref from trigger.config.ts
+	let projectRef: string | null = null;
+	try {
+		const config = readFileSync(TRIGGER_CONFIG_PATH, "utf-8");
+		if (config.includes(PLACEHOLDER_REF)) {
+			return {
+				step: "trigger",
+				status: "error",
+				message: "trigger.config.ts still has placeholder project ref. Run /psn:setup.",
+			};
+		}
+		const match = config.match(/project:\s*["']([^"']+)["']/);
+		projectRef = match?.[1] ?? null;
+	} catch {
 		return {
 			step: "trigger",
 			status: "error",
-			message: "Project ref not found despite detection — unexpected state",
-		};
-	}
-	const projectRef = detected.projectRef;
-
-	// Verify project via Trigger.dev CLI
-	const verification = await verifyTriggerProject(projectRef, secretKey);
-
-	if (!verification.valid) {
-		return {
-			step: "trigger",
-			status: "error",
-			message: verification.error || "Trigger.dev verification failed",
-			suggestedAction: verification.suggestedAction,
-			data: { projectRef, source: detected.source, environment: detected.environment },
+			message: "trigger.config.ts not found",
 		};
 	}
 
 	return {
 		step: "trigger",
 		status: "success",
-		message: `Trigger.dev verified successfully - project ref: ${projectRef} (from ${detected.source})`,
-		data: { projectRef, source: detected.source, environment: detected.environment },
+		message: `Trigger.dev configured — project ref: ${projectRef ?? "unknown"}`,
+		data: {
+			projectRef,
+			secretKey: maskApiKey(secretKey),
+			hasPat: Boolean(pat),
+			environment: secretKey.startsWith("tr_prod_") ? "prod" : "dev",
+		},
 	};
 }

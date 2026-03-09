@@ -8,8 +8,9 @@ import { loadHubEnv, parseEnvFile, validateProviderKey } from "../core/utils/env
 const REQUIRED_KEYS_PHASE1 = [
 	{ name: "NEON_API_KEY", source: "Neon Console -> Settings -> API Keys -> Generate new key" },
 	{
-		name: "TRIGGER_SECRET_KEY",
-		source: "Trigger.dev Dashboard -> Project Settings -> API Keys",
+		name: "TRIGGER_ACCESS_TOKEN",
+		source:
+			"Trigger.dev Dashboard -> click your avatar -> Personal Access Tokens -> Create new token",
 	},
 ];
 
@@ -107,7 +108,7 @@ export async function promptForKey(keyName: string, service: string): Promise<st
 export async function collectKeysInteractively(configDir = "config"): Promise<SetupResult> {
 	const results: { name: string; saved: boolean; error?: string }[] = [];
 
-	// Collect Phase 1 keys (NEON_API_KEY, TRIGGER_SECRET_KEY)
+	// Collect Phase 1 keys (NEON_API_KEY, TRIGGER_ACCESS_TOKEN)
 	for (const keyDef of REQUIRED_KEYS_PHASE1) {
 		console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 		console.log(`Key: ${keyDef.name}`);
@@ -285,6 +286,22 @@ export async function writeKey(
 				step: "keys",
 				status: "error",
 				message: `NEON_API_KEY validation failed: ${validation.error}`,
+				data: {
+					error: validation.error,
+					suggestion: validation.suggestion,
+				},
+			};
+		}
+	}
+
+	// Validate TRIGGER_ACCESS_TOKEN specifically
+	if (key === "TRIGGER_ACCESS_TOKEN") {
+		const validation = await validateProviderKey("TRIGGER_ACCESS_TOKEN", value);
+		if (!validation.valid) {
+			return {
+				step: "keys",
+				status: "error",
+				message: `TRIGGER_ACCESS_TOKEN validation failed: ${validation.error}`,
 				data: {
 					error: validation.error,
 					suggestion: validation.suggestion,

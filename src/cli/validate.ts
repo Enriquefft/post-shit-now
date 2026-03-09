@@ -2,7 +2,6 @@ import { existsSync, readFileSync } from "node:fs";
 import { createHubConnection } from "../core/db/connection.ts";
 import type { ValidationResult, ValidationSummary } from "../core/types/index.ts";
 import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
-import { verifyTriggerProject } from "./setup-trigger.ts";
 
 /**
  * Validate all Hub connections and configuration.
@@ -89,7 +88,7 @@ async function checkTrigger(configDir: string): Promise<ValidationResult> {
 		}
 
 		// Extract project ref from config
-		const refMatch = config.match(/projectId:\s*["']([^"']+)["']/);
+		const refMatch = config.match(/project:\s*["']([^"']+)["']/);
 		if (refMatch?.[1]) {
 			projectRef = refMatch[1];
 		}
@@ -101,23 +100,10 @@ async function checkTrigger(configDir: string): Promise<ValidationResult> {
 		};
 	}
 
-	// Verify project via Trigger.dev API
-	if (projectRef) {
-		const verification = await verifyTriggerProject(projectRef, secretKey);
-		if (!verification.valid) {
-			return {
-				check: "trigger",
-				status: "fail",
-				message: verification.error || "Trigger.dev project verification failed",
-				suggestedAction: verification.suggestedAction,
-			};
-		}
-	}
-
 	return {
 		check: "trigger",
 		status: "pass",
-		message: "Trigger.dev configured and verified",
+		message: `Trigger.dev configured — project ref: ${projectRef ?? "unknown"}`,
 	};
 }
 
@@ -147,7 +133,7 @@ async function checkApiKeys(configDir: string): Promise<ValidationResult> {
 		return { check: "api-keys", status: "fail", message: keysResult.error };
 	}
 
-	const required = ["NEON_API_KEY", "TRIGGER_SECRET_KEY"];
+	const required = ["NEON_API_KEY", "TRIGGER_ACCESS_TOKEN", "TRIGGER_SECRET_KEY"];
 	const missing = required.filter((k) => !keysResult.data[k]);
 
 	if (missing.length > 0) {
