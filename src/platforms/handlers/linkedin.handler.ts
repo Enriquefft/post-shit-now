@@ -21,6 +21,7 @@ import {
 } from "../linkedin/media.ts";
 import {
 	createLinkedInOAuthClient,
+	LINKEDIN_CALLBACK_URL,
 	refreshAccessToken as refreshLinkedInToken,
 } from "../linkedin/oauth.ts";
 import { LinkedInRateLimitError } from "../linkedin/types.ts";
@@ -33,15 +34,7 @@ export class LinkedInHandler implements PlatformPublisher {
 	async publish(db: DbConnection, post: PostRow, encKey: Buffer): Promise<PlatformPublishResult> {
 		const { id: postId, userId, content } = post;
 		const mediaUrls = post.mediaUrls ?? [];
-		const metadata = (post.metadata ?? {}) as PostMetadata & {
-			linkedinFormat?: string;
-			linkedinVisibility?: string;
-			carouselTitle?: string;
-			imageAltText?: string;
-			articleUrl?: string;
-			articleTitle?: string;
-			articleDescription?: string;
-		};
+		const metadata = (post.metadata ?? {}) as PostMetadata;
 
 		const linkedInClientId = process.env.LINKEDIN_CLIENT_ID;
 		const linkedInClientSecret = process.env.LINKEDIN_CLIENT_SECRET;
@@ -64,7 +57,7 @@ export class LinkedInHandler implements PlatformPublisher {
 		// Refresh token if expired
 		let accessTokenEncrypted = token.accessToken;
 		if (token.expiresAt && token.expiresAt < new Date()) {
-			if (!token.refreshToken) {
+			if (!token.refreshToken?.trim()) {
 				return {
 					platform: "linkedin",
 					status: "failed",
@@ -74,12 +67,14 @@ export class LinkedInHandler implements PlatformPublisher {
 			const linkedInOAuthClient = createLinkedInOAuthClient({
 				clientId: linkedInClientId,
 				clientSecret: linkedInClientSecret,
-				callbackUrl: "https://example.com/callback",
+				callbackUrl: LINKEDIN_CALLBACK_URL,
 			});
 			const decryptedRefresh = decrypt(token.refreshToken, encKey);
 			const newTokens = await refreshLinkedInToken(linkedInOAuthClient, decryptedRefresh);
 			const encryptedAccess = encrypt(newTokens.accessToken, encKey);
-			const encryptedRefresh = encrypt(newTokens.refreshToken, encKey);
+			const encryptedRefresh = newTokens.refreshToken
+				? encrypt(newTokens.refreshToken, encKey)
+				: null;
 			await db.execute(sql`
 				UPDATE oauth_tokens
 				SET access_token = ${encryptedAccess},
@@ -97,14 +92,21 @@ export class LinkedInHandler implements PlatformPublisher {
 		const client = new LinkedInClient(accessToken);
 
 		const tokenMetadata: OAuthTokenMetadata = token.metadata ?? {};
-		const personUrn = tokenMetadata.personUrn;
-		if (!personUrn) {
+		const rawPersonUrn = tokenMetadata.personUrn;
+		if (!rawPersonUrn) {
 			return {
 				platform: "linkedin",
 				status: "failed",
 				error: "person_urn_not_found_in_token_metadata",
 			};
 		}
+		// Normalize URN format (defensive — handles legacy data without prefix)
+		const personUrn = rawPersonUrn.startsWith("urn:li:person:")
+			? rawPersonUrn
+			: `urn:li:person:${rawPersonUrn}`;
+
+		// Resolve author: org URN for page posts, person URN for personal posts
+		const authorUrn = metadata.linkedinAuthorUrn ?? personUrn;
 
 		const linkedinFormat = metadata.linkedinFormat ?? metadata.format ?? "text";
 		const visibility = (metadata.linkedinVisibility ?? "PUBLIC") as "PUBLIC" | "CONNECTIONS";
@@ -121,7 +123,7 @@ export class LinkedInHandler implements PlatformPublisher {
 			const linkedInPostId = await this.publishByFormat(
 				client,
 				accessToken,
-				personUrn,
+				authorUrn,
 				commentary,
 				visibility,
 				linkedinFormat,
@@ -146,7 +148,7 @@ export class LinkedInHandler implements PlatformPublisher {
 	private async publishByFormat(
 		client: LinkedInClient,
 		accessToken: string,
-		personUrn: string,
+		authorUrn: string,
 		commentary: string,
 		visibility: "PUBLIC" | "CONNECTIONS",
 		format: string,
@@ -162,13 +164,13 @@ export class LinkedInHandler implements PlatformPublisher {
 		switch (format) {
 			case "carousel":
 			case "document": {
-				if (!mediaUrls.length) return client.createTextPost(personUrn, commentary, visibility);
+				if (!mediaUrls.length) return client.createTextPost(authorUrn, commentary, visibility);
 				const pdfBuffer = new Uint8Array(await Bun.file(mediaUrls[0] ?? "").arrayBuffer());
-				const docUpload = await initializeDocumentUpload(accessToken, personUrn);
+				const docUpload = await initializeDocumentUpload(accessToken, authorUrn);
 				await uploadDocumentBinary(docUpload.uploadUrl, accessToken, pdfBuffer);
 				await waitForMediaReady(accessToken, docUpload.documentUrn, "document");
 				return client.createDocumentPost(
-					personUrn,
+					authorUrn,
 					commentary,
 					docUpload.documentUrn,
 					metadata.carouselTitle,
@@ -177,14 +179,14 @@ export class LinkedInHandler implements PlatformPublisher {
 			}
 			case "image-post":
 			case "image": {
-				if (!mediaUrls.length) return client.createTextPost(personUrn, commentary, visibility);
+				if (!mediaUrls.length) return client.createTextPost(authorUrn, commentary, visibility);
 				if (mediaUrls.length === 1) {
 					const imgBuffer = new Uint8Array(await Bun.file(mediaUrls[0] ?? "").arrayBuffer());
-					const imgUpload = await initializeImageUpload(accessToken, personUrn);
+					const imgUpload = await initializeImageUpload(accessToken, authorUrn);
 					await uploadImageBinary(imgUpload.uploadUrl, accessToken, imgBuffer);
 					await waitForMediaReady(accessToken, imgUpload.imageUrn, "image");
 					return client.createImagePost(
-						personUrn,
+						authorUrn,
 						commentary,
 						imgUpload.imageUrn,
 						metadata.imageAltText,
@@ -194,19 +196,19 @@ export class LinkedInHandler implements PlatformPublisher {
 				const imageUrns: string[] = [];
 				for (const imgPath of mediaUrls) {
 					const imgBuffer = new Uint8Array(await Bun.file(imgPath).arrayBuffer());
-					const imgUpload = await initializeImageUpload(accessToken, personUrn);
+					const imgUpload = await initializeImageUpload(accessToken, authorUrn);
 					await uploadImageBinary(imgUpload.uploadUrl, accessToken, imgBuffer);
 					await waitForMediaReady(accessToken, imgUpload.imageUrn, "image");
 					imageUrns.push(imgUpload.imageUrn);
 				}
-				return client.createMultiImagePost(personUrn, commentary, imageUrns, visibility);
+				return client.createMultiImagePost(authorUrn, commentary, imageUrns, visibility);
 			}
 			case "article":
 			case "linkedin-article": {
 				const articleUrl = metadata.articleUrl ?? "";
-				if (!articleUrl) return client.createTextPost(personUrn, commentary, visibility);
+				if (!articleUrl) return client.createTextPost(authorUrn, commentary, visibility);
 				return client.createArticlePost(
-					personUrn,
+					authorUrn,
 					commentary,
 					articleUrl,
 					metadata.articleTitle ?? "",
@@ -216,7 +218,7 @@ export class LinkedInHandler implements PlatformPublisher {
 				);
 			}
 			default:
-				return client.createTextPost(personUrn, commentary, visibility);
+				return client.createTextPost(authorUrn, commentary, visibility);
 		}
 	}
 

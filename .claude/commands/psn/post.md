@@ -50,6 +50,19 @@ If the profile has bilingual configured (both en and es in languages section):
 
 If the profile is monolingual: use the default language silently, skip the prompt.
 
+### 3c. LinkedIn author selection
+If the platform is LinkedIn:
+1. Run `bun run src/cli/linkedin-pages.ts` to check for admin pages
+2. **No pages found:** Proceed normally — post as personal profile
+3. **Pages found:** Ask the user:
+   > "Post as **your personal profile** or as **[Page Name]**?"
+   Show all available pages by name.
+4. If user picks a page:
+   - Store the org URN (`urn:li:organization:XXX`) — pass as `--author-urn` when creating the post
+   - User posts as brand-ambassador (personal voice, company page)
+   - No approval required — same flow as personal posting
+5. If user picks personal profile: proceed normally without `--author-urn`
+
 ### 4. Topic gathering
 If the user already provided a topic or content in $ARGUMENTS, use it directly.
 
@@ -177,6 +190,10 @@ Use the existing scheduling flow:
 - Confirm with user: "Ready to post this immediately?"
 - Run: `bun run src/cli/post.ts now --post-id {UUID}`
 - Confirm: show post ID and that it's been queued for immediate publishing
+
+**LinkedIn page posting:**
+If a LinkedIn author URN was selected in step 3c, include it in the create command:
+- `bun run src/cli/post.ts create --content "..." --platform linkedin --author-urn "urn:li:organization:XXX"`
 
 **Thread handling for X:**
 If the content is a thread on X:

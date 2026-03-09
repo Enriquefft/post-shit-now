@@ -415,6 +415,45 @@ export class LinkedInClient {
 		return this.requestV2("/userinfo", { method: "GET" }, LinkedInUserInfoSchema);
 	}
 
+	// ─── Organization / Page Methods ──────────────────────────────────────
+
+	/**
+	 * Get organizations where the authenticated user is an admin.
+	 * Used to determine if the user can post as a company page.
+	 * Calls /organizationAcls?q=roleAssignee&role=ADMINISTRATOR&state=APPROVED
+	 */
+	async getAdminOrganizations(): Promise<
+		Array<{ organizationUrn: string; organizationName?: string }>
+	> {
+		const { data } = await this.request<{
+			elements: Array<{ organization: string }>;
+		}>(`/organizationAcls?q=roleAssignee&role=ADMINISTRATOR&state=APPROVED`, {
+			method: "GET",
+		});
+
+		const orgs: Array<{ organizationUrn: string; organizationName?: string }> = [];
+
+		for (const element of data.elements ?? []) {
+			const orgUrn = element.organization;
+			let orgName: string | undefined;
+
+			// Try to fetch org name — graceful failure
+			try {
+				const encodedUrn = LinkedInClient.encodeUrn(orgUrn);
+				const { data: orgData } = await this.request<{
+					localizedName?: string;
+				}>(`/organizations/${encodedUrn}`, { method: "GET" });
+				orgName = orgData.localizedName;
+			} catch {
+				// Name lookup is best-effort
+			}
+
+			orgs.push({ organizationUrn: orgUrn, organizationName: orgName });
+		}
+
+		return orgs;
+	}
+
 	// ─── Rate Limit Info ───────────────────────────────────────────────────
 
 	/**

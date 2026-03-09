@@ -2,6 +2,7 @@ import { runs } from "@trigger.dev/sdk";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
+import type { PostMetadata } from "../core/db/schema.ts";
 import { posts } from "../core/db/schema.ts";
 import type { Platform } from "../core/types/index.ts";
 import { loadHubEnv } from "../core/utils/env.ts";
@@ -67,8 +68,9 @@ export async function createPost(params: {
 	scheduledAt?: string;
 	scheduledTime?: string;
 	timezone?: string;
+	authorUrn?: string;
 }): Promise<CreatePostResult> {
-	const { content, platform, mediaFiles } = params;
+	const { content, platform, mediaFiles, authorUrn } = params;
 
 	// Check if thread splitting needed for X
 	if (platform === "x" && content.length > 280) {
@@ -100,6 +102,11 @@ export async function createPost(params: {
 	// For threads that have been approved, store as JSON array
 	// (this path is reached when createPost is called after preview approval)
 
+	const metadata: PostMetadata = {};
+	if (authorUrn) {
+		metadata.linkedinAuthorUrn = authorUrn;
+	}
+
 	const rows = await db
 		.insert(posts)
 		.values({
@@ -108,6 +115,7 @@ export async function createPost(params: {
 			content: contentToStore,
 			mediaUrls: mediaFiles ?? null,
 			status: "draft",
+			...(Object.keys(metadata).length > 0 ? { metadata } : {}),
 		})
 		.returning({ id: posts.id });
 
@@ -420,7 +428,9 @@ if (import.meta.main) {
 					process.exit(1);
 				}
 
-				const result = await createPost({ content, platform, mediaFiles });
+				const authorUrn = getArg("author-urn");
+
+				const result = await createPost({ content, platform, mediaFiles, authorUrn });
 				console.log(JSON.stringify(result, null, 2));
 				break;
 			}
