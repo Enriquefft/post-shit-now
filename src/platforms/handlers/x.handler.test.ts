@@ -24,8 +24,8 @@ vi.mock("../../core/utils/publisher-factory.ts", () => ({
 	registerHandler: () => {},
 }));
 
-vi.mock("../x/client.ts", () => {
-	const { MockXClient } = require("../__mocks__/clients.ts");
+vi.mock("../x/client.ts", async () => {
+	const { MockXClient } = await import("../__mocks__/clients.ts");
 	return { XClient: MockXClient };
 });
 

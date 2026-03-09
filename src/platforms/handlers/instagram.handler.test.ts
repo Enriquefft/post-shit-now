@@ -20,8 +20,8 @@ vi.mock("../../core/utils/publisher-factory.ts", () => ({
 	registerHandler: () => {},
 }));
 
-vi.mock("../instagram/client.ts", () => {
-	const { MockInstagramClient } = require("../__mocks__/clients.ts");
+vi.mock("../instagram/client.ts", async () => {
+	const { MockInstagramClient } = await import("../__mocks__/clients.ts");
 	return { InstagramClient: MockInstagramClient };
 });
 

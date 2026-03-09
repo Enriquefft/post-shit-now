@@ -26,9 +26,12 @@ export class MockXClient {
 	private tweets: PostedTweet[] = [];
 	private nextId = 1;
 	private pendingFailure: Error | null = null;
-
 	// biome-ignore lint/correctness/noUnusedPrivateClassMembers: stored for potential future use
-	constructor(private readonly accessToken: string) {}
+	private readonly accessToken: string;
+
+	constructor(accessToken: string) {
+		this.accessToken = accessToken;
+	}
 
 	/**
 	 * Create a tweet. Returns incrementing tweet_N IDs.
@@ -110,7 +113,11 @@ export class MockXClient {
 /** Minimal stub -- LinkedIn publish flow not in current test scope. */
 export class MockLinkedInClient {
 	// biome-ignore lint/correctness/noUnusedPrivateClassMembers: stored for potential future use
-	constructor(private readonly accessToken: string) {}
+	private readonly accessToken: string;
+
+	constructor(accessToken: string) {
+		this.accessToken = accessToken;
+	}
 }
 
 // ─── MockInstagramClient ─────────────────────────────────────────────────────
@@ -130,11 +137,11 @@ export class MockInstagramClient {
 	private containers: MockContainer[] = [];
 	private nextId = 1;
 	private pendingFailure: Error | null = null;
+	private readonly accountId: string;
 
-	constructor(
-		_accessToken: string,
-		private readonly accountId: string,
-	) {}
+	constructor(_accessToken: string, accountId: string) {
+		this.accountId = accountId;
+	}
 
 	/**
 	 * Create a media container. Returns incrementing container_N IDs.
@@ -214,5 +221,9 @@ export class MockInstagramClient {
 /** Minimal stub -- TikTok publish flow not in current test scope. */
 export class MockTikTokClient {
 	// biome-ignore lint/correctness/noUnusedPrivateClassMembers: stored for potential future use
-	constructor(private readonly accessToken: string) {}
+	private readonly accessToken: string;
+
+	constructor(accessToken: string) {
+		this.accessToken = accessToken;
+	}
 }
