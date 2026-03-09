@@ -133,12 +133,12 @@ bun run src/cli/setup.ts entity --create "My Side Project" --description "My per
 
 The user needs:
 1. A **Neon** account (https://neon.tech) with an API key
-2. A **Trigger.dev** account (https://trigger.dev) with a project and secret key
+2. A **Trigger.dev** account (https://trigger.dev) with a Personal Access Token
 
 ### Step 1: Check existing configuration
 
 Read the following files to determine what's already set up:
-- `config/keys.env` -- API keys (NEON_API_KEY, TRIGGER_SECRET_KEY)
+- `config/keys.env` -- API keys (NEON_API_KEY, TRIGGER_ACCESS_TOKEN, TRIGGER_SECRET_KEY)
 - `config/hub.env` -- Database URL, encryption key
 - `trigger.config.ts` -- Trigger.dev project ref
 
@@ -149,9 +149,11 @@ If `config/keys.env` is missing or incomplete, ask the user for:
 **[1/5] API Keys**
 
 1. **NEON_API_KEY** -- Get from: Neon Console -> Settings -> API Keys -> Generate new key
-2. **TRIGGER_SECRET_KEY** -- Get from: Trigger.dev Dashboard -> Project Settings -> API Keys
+2. **TRIGGER_ACCESS_TOKEN** -- Get from: Trigger.dev Dashboard -> click your avatar -> Personal Access Tokens -> Create new token (starts with `tr_pat_`)
 
 Write each key to `config/keys.env` as `KEY=value` format using `bun run src/cli/setup-keys.ts`.
+
+**Important:** Do NOT ask for `TRIGGER_SECRET_KEY` at this stage. The secret key is collected later, after PSN automatically creates a Trigger.dev project using the PAT.
 
 ### Step 3: Provision database
 
@@ -172,11 +174,24 @@ The database setup automatically runs Drizzle migrations to create tables.
 
 Run: `bun run src/cli/setup-trigger.ts`
 
-**[4/5] Setting up Trigger.dev**
+**[3/5] Setting up Trigger.dev**
 
-This will update `trigger.config.ts` with the project ref.
+This uses the `TRIGGER_ACCESS_TOKEN` (PAT) to:
+1. List the user's Trigger.dev organizations
+2. Find or create a `post-shit-now` project automatically
+3. Write the project ref to `trigger.config.ts`
 
-If auto-detection fails, ask the user for their Trigger.dev project ref (starts with `proj_`).
+Parse the JSON output. If status is `need_input` with `key: "TRIGGER_ORG_ID"`, show the org list and ask the user to pick one, then re-run with `TRIGGER_ORG_ID` set.
+
+If status is `need_input` with `key: "TRIGGER_SECRET_KEY"`, the project was created successfully. Show the user:
+
+**[4/5] Trigger.dev Secret Key**
+
+> "Your Trigger.dev project has been created! Now I need the dev secret key."
+> "Get it from: {data.source}" (a direct link to the project's API keys page)
+> "Copy the dev secret key (starts with `tr_dev_`) and paste it here."
+
+Write the secret key to `config/keys.env` as `TRIGGER_SECRET_KEY=value`.
 
 ### Step 5: Validate
 
