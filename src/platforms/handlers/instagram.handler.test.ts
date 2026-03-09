@@ -298,10 +298,10 @@ describe("InstagramHandler", () => {
 
 			const rateLimit = handler.getRateLimitInfo();
 			expect(rateLimit).not.toBeNull();
-			expect(rateLimit!.limit).toBe(200);
+			expect(rateLimit?.limit).toBe(200);
 			// 200 - 3 = 197 (3 API calls per publish cycle)
-			expect(rateLimit!.remaining).toBe(197);
-			expect(rateLimit!.resetAt).toBeInstanceOf(Date);
+			expect(rateLimit?.remaining).toBe(197);
+			expect(rateLimit?.resetAt).toBeInstanceOf(Date);
 		});
 	});
 });

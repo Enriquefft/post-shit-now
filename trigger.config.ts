@@ -35,8 +35,7 @@ export default defineConfig({
 				// Critical vars must be present -- abort deploy if missing
 				const criticalMissing: string[] = [];
 				if (!process.env.DATABASE_URL) criticalMissing.push("DATABASE_URL");
-				if (!process.env.HUB_ENCRYPTION_KEY)
-					criticalMissing.push("HUB_ENCRYPTION_KEY");
+				if (!process.env.HUB_ENCRYPTION_KEY) criticalMissing.push("HUB_ENCRYPTION_KEY");
 
 				if (criticalMissing.length > 0) {
 					console.error(
