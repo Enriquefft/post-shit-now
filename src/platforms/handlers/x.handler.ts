@@ -114,7 +114,7 @@ export class XHandler implements PlatformPublisher {
 		// Refresh token if expired
 		let accessTokenEncrypted = token.accessToken;
 		if (token.expiresAt && token.expiresAt < new Date()) {
-			if (!token.refreshToken) {
+			if (!token.refreshToken?.trim()) {
 				return { platform: "x", status: "failed", error: "token_expired_no_refresh" };
 			}
 			const xOAuthClient = createXOAuthClient({
@@ -125,7 +125,9 @@ export class XHandler implements PlatformPublisher {
 			const decryptedRefresh = decrypt(token.refreshToken, encKey);
 			const newTokens = await refreshXToken(xOAuthClient, decryptedRefresh);
 			const encryptedAccess = encrypt(newTokens.accessToken, encKey);
-			const encryptedRefresh = encrypt(newTokens.refreshToken, encKey);
+			const encryptedRefresh = newTokens.refreshToken
+				? encrypt(newTokens.refreshToken, encKey)
+				: null;
 			await db.execute(sql`
 				UPDATE oauth_tokens
 				SET access_token = ${encryptedAccess},

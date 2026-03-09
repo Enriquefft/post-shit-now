@@ -15,10 +15,15 @@ import { refreshInstagramToken } from "../platforms/instagram/oauth.ts";
 import { LinkedInClient } from "../platforms/linkedin/client.ts";
 import {
 	createLinkedInOAuthClient,
+	LINKEDIN_CALLBACK_URL,
 	refreshAccessToken as refreshLinkedInToken,
 } from "../platforms/linkedin/oauth.ts";
 import { TikTokClient } from "../platforms/tiktok/client.ts";
-import { createTikTokOAuthClient, refreshTikTokToken } from "../platforms/tiktok/oauth.ts";
+import {
+	createTikTokOAuthClient,
+	refreshTikTokToken,
+	TIKTOK_CALLBACK_URL,
+} from "../platforms/tiktok/oauth.ts";
 import { XClient } from "../platforms/x/client.ts";
 import {
 	createXOAuthClient,
@@ -144,7 +149,7 @@ async function collectXAnalytics(
 	let accessTokenEncrypted = token.accessToken;
 
 	if (token.expiresAt && token.expiresAt < new Date()) {
-		if (!token.refreshToken) {
+		if (!token.refreshToken?.trim()) {
 			throw new Error("X token expired and no refresh token available");
 		}
 
@@ -158,7 +163,9 @@ async function collectXAnalytics(
 		const newTokens = await refreshXToken(xOAuthClient, decryptedRefresh);
 
 		const encryptedAccess = encrypt(newTokens.accessToken, encKey);
-		const encryptedRefresh = encrypt(newTokens.refreshToken, encKey);
+		const encryptedRefresh = newTokens.refreshToken
+			? encrypt(newTokens.refreshToken, encKey)
+			: null;
 
 		await db.execute(sql`
 			UPDATE oauth_tokens
@@ -210,7 +217,7 @@ async function collectLinkedInAnalyticsTask(
 
 	// Check token expiry
 	if (token.expiresAt && token.expiresAt < new Date()) {
-		if (!token.refreshToken) {
+		if (!token.refreshToken?.trim()) {
 			logger.warn("LinkedIn token expired and no refresh token — skipping", { userId });
 			return null;
 		}
@@ -218,14 +225,16 @@ async function collectLinkedInAnalyticsTask(
 		const linkedInOAuthClient = createLinkedInOAuthClient({
 			clientId: liEnv.LINKEDIN_CLIENT_ID,
 			clientSecret: liEnv.LINKEDIN_CLIENT_SECRET,
-			callbackUrl: "https://example.com/callback",
+			callbackUrl: LINKEDIN_CALLBACK_URL,
 		});
 
 		const decryptedRefresh = decrypt(token.refreshToken, encKey);
 		const newTokens = await refreshLinkedInToken(linkedInOAuthClient, decryptedRefresh);
 
 		const encryptedAccess = encrypt(newTokens.accessToken, encKey);
-		const encryptedRefresh = encrypt(newTokens.refreshToken, encKey);
+		const encryptedRefresh = newTokens.refreshToken
+			? encrypt(newTokens.refreshToken, encKey)
+			: null;
 
 		await db.execute(sql`
 			UPDATE oauth_tokens
@@ -355,7 +364,7 @@ async function collectTikTokAnalyticsTask(
 	let accessTokenEncrypted = token.accessToken;
 
 	if (token.expiresAt && token.expiresAt < new Date()) {
-		if (!token.refreshToken) {
+		if (!token.refreshToken?.trim()) {
 			logger.warn("TikTok token expired and no refresh token — skipping", { userId });
 			return null;
 		}
@@ -363,7 +372,7 @@ async function collectTikTokAnalyticsTask(
 		const tiktokOAuthClient = createTikTokOAuthClient({
 			clientKey: ttEnv.TIKTOK_CLIENT_KEY,
 			clientSecret: ttEnv.TIKTOK_CLIENT_SECRET,
-			callbackUrl: "https://example.com/callback",
+			callbackUrl: TIKTOK_CALLBACK_URL,
 		});
 
 		const decryptedRefresh = decrypt(token.refreshToken, encKey);
@@ -371,7 +380,9 @@ async function collectTikTokAnalyticsTask(
 
 		// TikTok rotates BOTH tokens on refresh
 		const encryptedAccess = encrypt(newTokens.accessToken, encKey);
-		const encryptedRefresh = encrypt(newTokens.refreshToken, encKey);
+		const encryptedRefresh = newTokens.refreshToken
+			? encrypt(newTokens.refreshToken, encKey)
+			: null;
 
 		await db.execute(sql`
 			UPDATE oauth_tokens

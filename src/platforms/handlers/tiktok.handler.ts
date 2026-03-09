@@ -18,7 +18,11 @@ import {
 	postPhotos,
 	uploadVideoChunks,
 } from "../tiktok/media.ts";
-import { createTikTokOAuthClient, refreshTikTokToken } from "../tiktok/oauth.ts";
+import {
+	createTikTokOAuthClient,
+	refreshTikTokToken,
+	TIKTOK_CALLBACK_URL,
+} from "../tiktok/oauth.ts";
 import { TikTokRateLimitError } from "../tiktok/types.ts";
 
 const stringArraySchema = z.array(z.string());
@@ -29,10 +33,7 @@ export class TikTokHandler implements PlatformPublisher {
 	async publish(db: DbConnection, post: PostRow, encKey: Buffer): Promise<PlatformPublishResult> {
 		const { id: postId, userId, content } = post;
 		const mediaUrls = post.mediaUrls ?? [];
-		const metadata = (post.metadata ?? {}) as PostMetadata & {
-			tiktokFormat?: string;
-			tiktokTitle?: string;
-		};
+		const metadata = (post.metadata ?? {}) as PostMetadata;
 
 		const tiktokClientKey = process.env.TIKTOK_CLIENT_KEY;
 		const tiktokClientSecret = process.env.TIKTOK_CLIENT_SECRET;
@@ -55,19 +56,21 @@ export class TikTokHandler implements PlatformPublisher {
 		// Refresh token if expired
 		let accessTokenEncrypted = token.accessToken;
 		if (token.expiresAt && token.expiresAt < new Date()) {
-			if (!token.refreshToken) {
+			if (!token.refreshToken?.trim()) {
 				return { platform: "tiktok", status: "failed", error: "tiktok_token_expired_no_refresh" };
 			}
 			const tiktokOAuthClient = createTikTokOAuthClient({
 				clientKey: tiktokClientKey,
 				clientSecret: tiktokClientSecret,
-				callbackUrl: "https://example.com/callback",
+				callbackUrl: TIKTOK_CALLBACK_URL,
 			});
 			const decryptedRefresh = decrypt(token.refreshToken, encKey);
 			const newTokens = await refreshTikTokToken(tiktokOAuthClient, decryptedRefresh);
 			// TikTok rotates BOTH tokens on refresh
 			const encryptedAccess = encrypt(newTokens.accessToken, encKey);
-			const encryptedRefresh = encrypt(newTokens.refreshToken, encKey);
+			const encryptedRefresh = newTokens.refreshToken
+				? encrypt(newTokens.refreshToken, encKey)
+				: null;
 			await db.execute(sql`
 				UPDATE oauth_tokens
 				SET access_token = ${encryptedAccess},

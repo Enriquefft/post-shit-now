@@ -189,7 +189,7 @@ export async function completeXOAuth(
 
 	// Encrypt tokens
 	const encryptedAccess = encrypt(tokens.accessToken, key);
-	const encryptedRefresh = encrypt(tokens.refreshToken, key);
+	const encryptedRefresh = tokens.refreshToken ? encrypt(tokens.refreshToken, key) : null;
 
 	// Upsert into oauth_tokens
 	const db = drizzle(databaseUrl);

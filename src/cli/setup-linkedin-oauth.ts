@@ -8,10 +8,9 @@ import {
 	createLinkedInOAuthClient,
 	exchangeCode,
 	generateAuthUrl,
+	LINKEDIN_CALLBACK_URL,
 } from "../platforms/linkedin/oauth.ts";
 import { LinkedInUserInfoSchema } from "../platforms/linkedin/types.ts";
-
-const LINKEDIN_CALLBACK_URL = "https://example.com/callback";
 
 /**
  * LinkedIn OAuth setup step for /psn:setup.
@@ -60,7 +59,7 @@ export async function setupLinkedInOAuth(configDir = "config"): Promise<SetupRes
 					"Setup steps:",
 					"1. Go to https://www.linkedin.com/developers/apps -> Create App",
 					"2. Enable 'Share on LinkedIn' product (Products tab, self-serve)",
-					"3. Set OAuth redirect URL to: https://example.com/callback (Auth tab)",
+					`3. Set OAuth redirect URL to: ${LINKEDIN_CALLBACK_URL} (Auth tab)`,
 					"4. Copy Client ID and Client Secret from Auth tab",
 				].join("\n"),
 			},
@@ -179,16 +178,19 @@ export async function completeLinkedInOAuth(
 		});
 		if (userinfoResponse.ok) {
 			const userinfo = LinkedInUserInfoSchema.parse(await userinfoResponse.json());
-			personUrn = userinfo.sub;
+			// Ensure URN has required prefix for LinkedIn API
+			personUrn = userinfo.sub.startsWith("urn:li:person:")
+				? userinfo.sub
+				: `urn:li:person:${userinfo.sub}`;
 			userName = userinfo.name ?? undefined;
 		}
 	} catch {
 		// Userinfo fetch failed — proceed without person URN (can be fetched later)
 	}
 
-	// Encrypt tokens
+	// Encrypt tokens (refresh token may be null for dev apps)
 	const encryptedAccess = encrypt(tokens.accessToken, key);
-	const encryptedRefresh = encrypt(tokens.refreshToken, key);
+	const encryptedRefresh = tokens.refreshToken ? encrypt(tokens.refreshToken, key) : null;
 
 	// Upsert into oauth_tokens
 	const db = drizzle(databaseUrl);
@@ -212,7 +214,7 @@ export async function completeLinkedInOAuth(
 				accessToken: encryptedAccess,
 				refreshToken: encryptedRefresh,
 				expiresAt: tokens.expiresAt,
-				scopes: "openid,profile,w_member_social,r_member_postAnalytics",
+				scopes: "openid,profile,w_member_social",
 				metadata,
 				updatedAt: new Date(),
 			})
@@ -224,7 +226,7 @@ export async function completeLinkedInOAuth(
 			accessToken: encryptedAccess,
 			refreshToken: encryptedRefresh,
 			expiresAt: tokens.expiresAt,
-			scopes: "openid,profile,w_member_social,r_member_postAnalytics",
+			scopes: "openid,profile,w_member_social",
 			metadata,
 		});
 	}

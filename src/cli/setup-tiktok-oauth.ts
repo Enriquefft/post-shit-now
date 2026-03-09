@@ -9,9 +9,8 @@ import {
 	createTikTokOAuthClient,
 	exchangeTikTokCode,
 	generateTikTokAuthUrl,
+	TIKTOK_CALLBACK_URL,
 } from "../platforms/tiktok/oauth.ts";
-
-const TIKTOK_CALLBACK_URL = "https://example.com/callback";
 
 /**
  * TikTok OAuth setup step for /psn:setup.
@@ -60,7 +59,7 @@ export async function setupTikTokOAuth(configDir = "config"): Promise<SetupResul
 					"Setup steps:",
 					"1. Go to https://developers.tiktok.com -> Manage Apps -> Create",
 					"2. Enable scopes: user.info.basic, video.list, video.publish, video.upload",
-					"3. Set OAuth redirect URL to: https://example.com/callback",
+					`3. Set OAuth redirect URL to: ${TIKTOK_CALLBACK_URL}`,
 					"4. Copy App Key and App Secret from app settings",
 					"5. (Optional) Submit for API audit — without audit, posts are draft-only (SELF_ONLY visibility)",
 				].join("\n"),
@@ -206,9 +205,9 @@ export async function completeTikTokOAuth(
 		// User info fetch failed — proceed without (can be fetched later)
 	}
 
-	// Encrypt tokens
+	// Encrypt tokens (refresh token may be null)
 	const encryptedAccess = encrypt(tokens.accessToken, key);
-	const encryptedRefresh = encrypt(tokens.refreshToken, key);
+	const encryptedRefresh = tokens.refreshToken ? encrypt(tokens.refreshToken, key) : null;
 
 	// Upsert into oauth_tokens
 	const db = drizzle(databaseUrl);

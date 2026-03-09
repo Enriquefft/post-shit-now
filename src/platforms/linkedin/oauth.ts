@@ -1,5 +1,15 @@
 import { generateState, LinkedIn } from "arctic";
+import { OAUTH_CALLBACK_HOSTNAME, OAUTH_CALLBACK_PORT } from "../x/oauth.ts";
 import type { LinkedInOAuthConfig } from "./types.ts";
+
+/** Single source of truth for LinkedIn OAuth callback URL. */
+export const LINKEDIN_CALLBACK_URL = `http://${OAUTH_CALLBACK_HOSTNAME}:${OAUTH_CALLBACK_PORT}/callback`;
+
+/** Default scopes that work for all LinkedIn app types (including dev apps). */
+const DEFAULT_LINKEDIN_SCOPES = ["openid", "profile", "w_member_social"];
+
+/** Analytics scope — requires partner approval, not available on dev apps. */
+export const LINKEDIN_ANALYTICS_SCOPE = "r_member_postAnalytics";
 
 /**
  * Create an Arctic LinkedIn OAuth 2.0 client.
@@ -12,20 +22,26 @@ export function createLinkedInOAuthClient(config: LinkedInOAuthConfig): LinkedIn
 /**
  * Generate an authorization URL for LinkedIn OAuth 2.0 flow.
  * Returns the URL and state parameter.
- * LinkedIn scopes:
+ *
+ * Default scopes (no partner approval needed):
  *   - openid: Required for userinfo endpoint
  *   - profile: User's name and picture
  *   - w_member_social: Create, edit, delete posts
- *   - r_member_postAnalytics: Read post analytics (impressions, reactions, etc.)
+ *
+ * Optional scopes (require partner approval):
+ *   - r_member_postAnalytics: Read post analytics
  *
  * Note: LinkedIn does NOT support PKCE — no codeVerifier needed.
  */
-export function generateAuthUrl(client: LinkedIn): {
+export function generateAuthUrl(
+	client: LinkedIn,
+	options?: { scopes?: string[] },
+): {
 	url: string;
 	state: string;
 } {
 	const state = generateState();
-	const scopes = ["openid", "profile", "w_member_social", "r_member_postAnalytics"];
+	const scopes = options?.scopes ?? DEFAULT_LINKEDIN_SCOPES;
 	const url = client.createAuthorizationURL(state, scopes);
 	return { url: url.toString(), state };
 }
@@ -35,15 +51,22 @@ export function generateAuthUrl(client: LinkedIn): {
  * Called after user authorizes via the auth URL and provides the code.
  *
  * LinkedIn tokens expire in 60 days (not 2 hours like X).
+ * Dev apps may not return refresh tokens — returns null in that case.
  */
 export async function exchangeCode(
 	client: LinkedIn,
 	code: string,
-): Promise<{ accessToken: string; refreshToken: string; expiresAt: Date }> {
+): Promise<{ accessToken: string; refreshToken: string | null; expiresAt: Date }> {
 	const tokens = await client.validateAuthorizationCode(code);
+	let refreshToken: string | null = null;
+	try {
+		refreshToken = tokens.refreshToken();
+	} catch {
+		// Dev apps don't return refresh tokens
+	}
 	return {
 		accessToken: tokens.accessToken(),
-		refreshToken: tokens.refreshToken(),
+		refreshToken,
 		expiresAt: tokens.accessTokenExpiresAt(),
 	};
 }
@@ -56,11 +79,17 @@ export async function exchangeCode(
 export async function refreshAccessToken(
 	client: LinkedIn,
 	refreshToken: string,
-): Promise<{ accessToken: string; refreshToken: string; expiresAt: Date }> {
+): Promise<{ accessToken: string; refreshToken: string | null; expiresAt: Date }> {
 	const tokens = await client.refreshAccessToken(refreshToken);
+	let newRefreshToken: string | null = null;
+	try {
+		newRefreshToken = tokens.refreshToken();
+	} catch {
+		// Refresh may not return a new refresh token
+	}
 	return {
 		accessToken: tokens.accessToken(),
-		refreshToken: tokens.refreshToken(),
+		refreshToken: newRefreshToken,
 		expiresAt: tokens.accessTokenExpiresAt(),
 	};
 }

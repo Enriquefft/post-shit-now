@@ -6,9 +6,14 @@ import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { refreshInstagramToken } from "../platforms/instagram/oauth.ts";
 import {
 	createLinkedInOAuthClient,
+	LINKEDIN_CALLBACK_URL,
 	refreshAccessToken as refreshLinkedInToken,
 } from "../platforms/linkedin/oauth.ts";
-import { createTikTokOAuthClient, refreshTikTokToken } from "../platforms/tiktok/oauth.ts";
+import {
+	createTikTokOAuthClient,
+	refreshTikTokToken,
+	TIKTOK_CALLBACK_URL,
+} from "../platforms/tiktok/oauth.ts";
 import {
 	createXOAuthClient,
 	refreshAccessToken as refreshXToken,
@@ -107,7 +112,7 @@ export const tokenRefresher = schedules.task({
 				// Decrypt the stored refresh token (for X and LinkedIn)
 				const decryptedRefresh = token.refresh_token ? decrypt(token.refresh_token, encKey) : "";
 
-				let newTokens: { accessToken: string; refreshToken: string; expiresAt: Date };
+				let newTokens: { accessToken: string; refreshToken: string | null; expiresAt: Date };
 
 				if (token.platform === "x") {
 					// ─── X Token Refresh ──────────────────────────────────────
@@ -131,7 +136,7 @@ export const tokenRefresher = schedules.task({
 						linkedInOAuthClient = createLinkedInOAuthClient({
 							clientId: liEnv.LINKEDIN_CLIENT_ID,
 							clientSecret: liEnv.LINKEDIN_CLIENT_SECRET,
-							callbackUrl: "https://example.com/callback",
+							callbackUrl: LINKEDIN_CALLBACK_URL,
 						});
 					}
 
@@ -148,7 +153,7 @@ export const tokenRefresher = schedules.task({
 						tikTokOAuthClient = createTikTokOAuthClient({
 							clientKey: ttEnv.TIKTOK_CLIENT_KEY,
 							clientSecret: ttEnv.TIKTOK_CLIENT_SECRET,
-							callbackUrl: "https://example.com/callback",
+							callbackUrl: TIKTOK_CALLBACK_URL,
 						});
 					}
 
@@ -166,7 +171,7 @@ export const tokenRefresher = schedules.task({
 					const expiresAt = new Date(Date.now() + igResult.expiresIn * 1000);
 					newTokens = {
 						accessToken: igResult.accessToken,
-						refreshToken: "", // Instagram has no refresh token
+						refreshToken: null, // Instagram has no refresh token
 						expiresAt,
 					};
 

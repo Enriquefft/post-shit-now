@@ -38,11 +38,17 @@ export async function exchangeCode(
 	client: Twitter,
 	code: string,
 	codeVerifier: string,
-): Promise<{ accessToken: string; refreshToken: string; expiresAt: Date }> {
+): Promise<{ accessToken: string; refreshToken: string | null; expiresAt: Date }> {
 	const tokens = await client.validateAuthorizationCode(code, codeVerifier);
+	let refreshToken: string | null = null;
+	try {
+		refreshToken = tokens.refreshToken();
+	} catch {
+		// Token exchange may not return a refresh token
+	}
 	return {
 		accessToken: tokens.accessToken(),
-		refreshToken: tokens.refreshToken(),
+		refreshToken,
 		expiresAt: tokens.accessTokenExpiresAt(),
 	};
 }
@@ -56,11 +62,17 @@ export async function exchangeCode(
 export async function refreshAccessToken(
 	client: Twitter,
 	refreshToken: string,
-): Promise<{ accessToken: string; refreshToken: string; expiresAt: Date }> {
+): Promise<{ accessToken: string; refreshToken: string | null; expiresAt: Date }> {
 	const tokens = await client.refreshAccessToken(refreshToken);
+	let newRefreshToken: string | null = null;
+	try {
+		newRefreshToken = tokens.refreshToken();
+	} catch {
+		// Refresh may not return a new refresh token
+	}
 	return {
 		accessToken: tokens.accessToken(),
-		refreshToken: tokens.refreshToken(),
+		refreshToken: newRefreshToken,
 		expiresAt: tokens.accessTokenExpiresAt(),
 	};
 }
