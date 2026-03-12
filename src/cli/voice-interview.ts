@@ -414,6 +414,34 @@ if (import.meta.main) {
 				break;
 			}
 			case "submit": {
+				const answersIdx = args.indexOf("--answers");
+				if (answersIdx !== -1 && args[answersIdx + 1]) {
+					// Non-interactive: parse answers JSON and apply directly
+					let answers: Record<string, string>;
+					try {
+						answers = JSON.parse(args[answersIdx + 1] as string);
+					} catch {
+						console.error(JSON.stringify({ error: "Invalid JSON for --answers" }));
+						process.exit(1);
+					}
+					const state = await loadInterviewState();
+					if (!state) {
+						console.error(
+							JSON.stringify({ error: "No interview in progress. Run 'start' first." }),
+						);
+						process.exit(1);
+					}
+					const result = submitAnswers(state, answers);
+					await saveInterviewState(result.state);
+					console.log(
+						JSON.stringify({
+							complete: result.complete,
+							phase: result.state.phase,
+							questions: result.questions,
+						}),
+					);
+					break;
+				}
 				const result = await submitAnswersInteractive();
 				if (result.complete) {
 					console.log("\n=== Interview Complete ===");
@@ -431,6 +459,34 @@ if (import.meta.main) {
 				break;
 			}
 			case "complete": {
+				const entityFlag = args.indexOf("--entity");
+				if (entityFlag !== -1 && args[entityFlag + 1]) {
+					// Non-interactive: skip readline, use first available interview
+					const entitySlug = args[entityFlag + 1] as string;
+					const interviews = await listInterviews();
+					if (interviews.length === 0) {
+						throw new Error("No interview in progress. Run 'start' to begin.");
+					}
+					const firstInterview = interviews[0];
+					const interviewId = firstInterview?.id === "default" ? undefined : firstInterview?.id;
+					const state = await loadInterviewState(interviewId);
+					if (!state) {
+						throw new Error("No interview in progress. Run 'start' to begin.");
+					}
+					const profilePath = `content/voice/${entitySlug}.yaml`;
+					const result = await completeInterview(state, { profilePath });
+					await deleteInterviewState(interviewId);
+					console.log(
+						JSON.stringify({
+							success: true,
+							profilePath: result.profilePath,
+							strategyPath: result.strategyPath,
+							entitySlug,
+						}),
+					);
+					break;
+				}
+
 				// Check if there are multiple interviews
 				const interviews = await listInterviews();
 				let interviewId: string | undefined;

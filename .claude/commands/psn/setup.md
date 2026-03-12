@@ -109,6 +109,36 @@ bun run src/cli/setup.ts voice
 
 Preserves existing /psn:voice interview functionality through unified entry point.
 
+### Exact CLI Sequence for Voice Interviews
+
+When `setupVoice` returns `need_input` with `data.action: "interview"` or `"first-run-interview"`, follow these exact steps. Do NOT use `src/cli/voice.ts` (it does not exist).
+
+**Step 1 — Start the interview (get questions):**
+```bash
+bun run src/cli/voice-interview.ts start
+# or for a specific entity:
+bun run src/cli/voice-interview.ts start --entity <entitySlug>
+```
+Output: `{ phase, questions, isBlankSlate, interviewId }`
+
+**Step 2 — Submit answers (non-interactive, Claude-driven):**
+Present each question to the user and collect their answers, then submit all at once:
+```bash
+bun run src/cli/voice-interview.ts submit --answers '{"q1": "Answer one", "q2": "Answer two"}'
+```
+The `--answers` value is a JSON object mapping question IDs to answers.
+Output: `{ complete, phase, questions }` — if `complete` is false, repeat with remaining questions.
+
+**Step 3 — Complete and save profile:**
+```bash
+bun run src/cli/voice-interview.ts complete --entity <entitySlug>
+```
+The `--entity` flag skips the readline picker and saves to `content/voice/<entitySlug>.yaml`.
+Output: `{ success, profilePath, strategyPath, entitySlug }`
+
+> **Note:** The `data.command`, `data.submitCommand`, and `data.completeCommand` fields returned by
+> `setupVoice` always contain the exact commands to run — use them directly.
+
 ---
 
 ## /psn:setup entity -- Entity Management

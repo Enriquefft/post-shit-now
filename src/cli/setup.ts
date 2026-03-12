@@ -647,6 +647,19 @@ export async function runSetup(configDir = "config", dryRun = false): Promise<Se
 		return { steps, validation: null, completed: false };
 	}
 
+	// Step 2.5: Auto-create default personal entity (idempotent)
+	try {
+		const connection = await getHubConnection(".", "personal");
+		if (connection) {
+			const db = getHubDb(connection);
+			await createEntity(db, "default", "Personal", "Your personal posting identity");
+		}
+		steps.push({ step: "entity", status: "success", message: "Personal entity created" });
+	} catch {
+		// Entity already exists or DB not ready — skip silently
+		steps.push({ step: "entity", status: "success", message: "Personal entity already exists" });
+	}
+
 	// Step 4: Set up Trigger.dev
 	const triggerResult = await setupTrigger(configDir);
 	steps.push(triggerResult);

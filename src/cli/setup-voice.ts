@@ -155,6 +155,9 @@ export async function setupVoice(options: SetupVoiceOptions): Promise<SetupResul
 			data: {
 				action: "interview",
 				entitySlug,
+				command: `bun run src/cli/voice-interview.ts start --entity ${entitySlug}`,
+				submitCommand: "bun run src/cli/voice-interview.ts submit --answers '<json>'",
+				completeCommand: `bun run src/cli/voice-interview.ts complete --entity ${entitySlug}`,
 				instructions: "Run voice interview with entity context",
 			},
 		};
@@ -171,6 +174,8 @@ export async function setupVoice(options: SetupVoiceOptions): Promise<SetupResul
 			message: "No voice profiles found. Starting first-run interview.",
 			data: {
 				action: "first-run-interview",
+				command: "bun run src/cli/voice-interview.ts start",
+				submitCommand: "bun run src/cli/voice-interview.ts submit --answers '<json>'",
 				instructions: "Create your first entity and complete voice interview",
 			},
 		};
@@ -246,8 +251,14 @@ if (import.meta.main) {
 
 		return {
 			step: "setup-voice",
-			status: "error",
-			message: `Unknown command: ${command}`,
+			status: "success",
+			message: "Post Shit Now — voice setup",
+			data: {
+				usage: {
+					status: "bun run src/cli/setup-voice.ts status",
+				},
+				commands: ["status"],
+			},
 		};
 	};
 
