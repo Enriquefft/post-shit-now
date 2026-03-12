@@ -10,7 +10,7 @@
  * - All platforms failed → markFailed path
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import type { Platform } from "../core/types/index.ts";
 import type { PlatformPublisher, RateLimitInfo } from "../core/types/publisher.ts";
 import { registerHandler, unregisterHandler } from "../core/utils/publisher-factory.ts";
@@ -18,42 +18,38 @@ import { registerHandler, unregisterHandler } from "../core/utils/publisher-fact
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
 // Mock Trigger.dev SDK — task() must be intercepted before publish-post.ts runs
-vi.mock("@trigger.dev/sdk", () => ({
+mock.module("@trigger.dev/sdk", () => ({
 	logger: {
-		info: vi.fn(),
-		warn: vi.fn(),
-		error: vi.fn(),
+		info: mock(() => undefined),
+		warn: mock(() => undefined),
+		error: mock(() => undefined),
 	},
-	task: vi.fn((config: { id: string; run: (...args: unknown[]) => unknown }) => config),
-	wait: { until: vi.fn() },
+	task: mock((config: { id: string; run: (...args: unknown[]) => unknown }) => config),
+	wait: { until: mock(() => undefined) },
+	retry: { onThrow: async (fn: () => Promise<unknown>) => fn() },
+	schedules: { task: mock((config: unknown) => config) },
 }));
 
 // Mock notification dispatcher (fire-and-forget side effect)
-vi.mock("./notification-dispatcher.ts", () => ({
-	notificationDispatcherTask: { trigger: vi.fn().mockResolvedValue(undefined) },
+mock.module("./notification-dispatcher.ts", () => ({
+	notificationDispatcherTask: { trigger: mock(() => Promise.resolve(undefined)) },
 }));
 
 // Mock the handler barrel exports to prevent real handler registration side-effects.
 // Tests register their own mock handlers via registerHandler() instead.
-vi.mock("../platforms/handlers/index.ts", () => ({}));
+mock.module("../platforms/handlers/index.ts", () => ({}));
 
 // Mock publish-helpers (DB side effects isolated from unit tests)
-vi.mock("./publish-helpers.ts", () => ({
-	markFailed: vi.fn().mockResolvedValue(undefined),
-	advanceSeriesState: vi.fn().mockResolvedValue(undefined),
-	updateBrandPreferenceIfCompany: vi.fn().mockResolvedValue(undefined),
+mock.module("./publish-helpers.ts", () => ({
+	markPartiallyPosted: mock(() => Promise.resolve(undefined)),
+	markFailed: mock(() => Promise.resolve(undefined)),
+	advanceSeriesState: mock(() => Promise.resolve(undefined)),
+	updateBrandPreferenceIfCompany: mock(() => Promise.resolve(undefined)),
 }));
 
 // Mock DB connection
-vi.mock("../core/db/connection.ts", () => ({
-	createHubConnection: vi.fn(),
-}));
-
-// Mock crypto
-vi.mock("../core/utils/crypto.ts", () => ({
-	keyFromHex: vi.fn(() => Buffer.from("0".repeat(64), "hex")),
-	decrypt: vi.fn((val: string) => val),
-	encrypt: vi.fn((val: string) => val),
+mock.module("../core/db/connection.ts", () => ({
+	createHubConnection: mock(() => undefined),
 }));
 
 // ─── Fixture Helpers ─────────────────────────────────────────────────────────
@@ -127,13 +123,13 @@ function buildPost(overrides: Partial<Record<string, unknown>> = {}) {
 
 /** Build a mock DB that returns a given post row */
 function buildMockDb(post: ReturnType<typeof buildPost> | null) {
-	const mockLimit = vi.fn().mockResolvedValue(post ? [post] : []);
-	const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
-	const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
-	const mockSelect = vi.fn().mockReturnValue({ from: mockFrom });
-	const mockSetWhere = vi.fn().mockResolvedValue(undefined);
-	const mockSet = vi.fn().mockReturnValue({ where: mockSetWhere });
-	const mockUpdate = vi.fn().mockReturnValue({ set: mockSet });
+	const mockLimit = mock(() => Promise.resolve(post ? [post] : []));
+	const mockWhere = mock(() => ({ limit: mockLimit }));
+	const mockFrom = mock(() => ({ where: mockWhere }));
+	const mockSelect = mock(() => ({ from: mockFrom }));
+	const mockSetWhere = mock(() => Promise.resolve(undefined));
+	const mockSet = mock(() => ({ where: mockSetWhere }));
+	const mockUpdate = mock(() => ({ set: mockSet }));
 
 	return { select: mockSelect, update: mockUpdate } as unknown as ReturnType<
 		typeof import("../core/db/connection.ts").createHubConnection
@@ -153,7 +149,6 @@ describe("publish-post orchestration layer", () => {
 
 	afterEach(() => {
 		for (const p of ALL_PLATFORMS) unregisterHandler(p);
-		vi.clearAllMocks();
 	});
 
 	it("dispatches to handler via factory and returns published", async () => {
@@ -161,7 +156,7 @@ describe("publish-post orchestration layer", () => {
 
 		const { createHubConnection } = await import("../core/db/connection.ts");
 		const post = buildPost();
-		vi.mocked(createHubConnection).mockReturnValue(
+		(createHubConnection as ReturnType<typeof mock>).mockReturnValue(
 			buildMockDb(post) as ReturnType<typeof createHubConnection>,
 		);
 
@@ -176,7 +171,7 @@ describe("publish-post orchestration layer", () => {
 
 	it("skips post not found", async () => {
 		const { createHubConnection } = await import("../core/db/connection.ts");
-		vi.mocked(createHubConnection).mockReturnValue(
+		(createHubConnection as ReturnType<typeof mock>).mockReturnValue(
 			buildMockDb(null) as ReturnType<typeof createHubConnection>,
 		);
 
@@ -191,7 +186,7 @@ describe("publish-post orchestration layer", () => {
 	it("skips post with non-publishable status (idempotency check)", async () => {
 		const { createHubConnection } = await import("../core/db/connection.ts");
 		const post = buildPost({ status: "published" });
-		vi.mocked(createHubConnection).mockReturnValue(
+		(createHubConnection as ReturnType<typeof mock>).mockReturnValue(
 			buildMockDb(post) as ReturnType<typeof createHubConnection>,
 		);
 
@@ -209,7 +204,7 @@ describe("publish-post orchestration layer", () => {
 
 		const { createHubConnection } = await import("../core/db/connection.ts");
 		const post = buildPost();
-		vi.mocked(createHubConnection).mockReturnValue(
+		(createHubConnection as ReturnType<typeof mock>).mockReturnValue(
 			buildMockDb(post) as ReturnType<typeof createHubConnection>,
 		);
 
@@ -235,7 +230,7 @@ describe("publish-post orchestration layer", () => {
 
 		const { createHubConnection } = await import("../core/db/connection.ts");
 		const post = buildPost();
-		vi.mocked(createHubConnection).mockReturnValue(
+		(createHubConnection as ReturnType<typeof mock>).mockReturnValue(
 			buildMockDb(post) as ReturnType<typeof createHubConnection>,
 		);
 
@@ -253,7 +248,7 @@ describe("publish-post orchestration layer", () => {
 	it("skips company post not yet approved (submitted status)", async () => {
 		const { createHubConnection } = await import("../core/db/connection.ts");
 		const post = buildPost({ approvalStatus: "submitted", metadata: { hubId: "hub-789" } });
-		vi.mocked(createHubConnection).mockReturnValue(
+		(createHubConnection as ReturnType<typeof mock>).mockReturnValue(
 			buildMockDb(post) as ReturnType<typeof createHubConnection>,
 		);
 
@@ -265,3 +260,5 @@ describe("publish-post orchestration layer", () => {
 		expect(result).toMatchObject({ status: "skipped", reason: "unapproved_at_scheduled_time" });
 	});
 });
+
+afterAll(() => mock.restore());

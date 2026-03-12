@@ -6,26 +6,22 @@
  * Tests go through the public publish() method only.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { unlinkSync, writeFileSync } from "fs";
+import { encrypt } from "../../core/utils/crypto.ts";
+import { LinkedInClient } from "../linkedin/client.ts";
 
 // ─── Module Mocks ────────────────────────────────────────────────────────────
 
-vi.mock("@trigger.dev/sdk", () => ({
+mock.module("@trigger.dev/sdk", () => ({
 	wait: { until: async () => {} },
 	logger: { info: () => {}, warn: () => {}, error: () => {} },
+	retry: { onThrow: async (fn: () => Promise<unknown>) => fn() },
+	task: (_config: unknown) => _config,
+	schedules: { task: (_config: unknown) => _config },
 }));
 
-vi.mock("../../core/utils/publisher-factory.ts", () => ({
-	registerHandler: () => {},
-}));
-
-vi.mock("../../core/utils/crypto.ts", () => ({
-	decrypt: (val: string) => val,
-	encrypt: (val: string) => val,
-	keyFromHex: (hex: string) => Buffer.from(hex, "hex"),
-}));
-
-vi.mock("../linkedin/oauth.ts", () => ({
+mock.module("../linkedin/oauth.ts", () => ({
 	createLinkedInOAuthClient: () => ({}),
 	refreshAccessToken: async () => ({
 		accessToken: "new_access",
@@ -36,24 +32,18 @@ vi.mock("../linkedin/oauth.ts", () => ({
 }));
 
 // Track which author URN is passed to createTextPost and initializeImageUpload
-const createTextPostSpy = vi.fn().mockResolvedValue("urn:li:share:text123");
-const createImagePostSpy = vi.fn().mockResolvedValue("urn:li:share:img123");
-const initImageUploadSpy = vi.fn().mockResolvedValue({
-	uploadUrl: "https://upload.example.com",
-	imageUrn: "urn:li:image:uploaded1",
-	expiresAt: Date.now() + 60_000,
-});
+const createTextPostSpy = mock(() => Promise.resolve("urn:li:share:text123"));
+const createImagePostSpy = mock(() => Promise.resolve("urn:li:share:img123"));
+const initImageUploadSpy = mock((_token: string, _ownerUrn: string) =>
+	Promise.resolve({
+		uploadUrl: "https://upload.example.com",
+		imageUrn: "urn:li:image:uploaded1",
+		expiresAt: Date.now() + 60_000,
+	}),
+);
 
-vi.mock("../linkedin/client.ts", () => {
-	class MockLinkedInClient {
-		createTextPost = createTextPostSpy;
-		createImagePost = createImagePostSpy;
-	}
-	return { LinkedInClient: MockLinkedInClient };
-});
-
-vi.mock("../linkedin/media.ts", () => ({
-	initializeImageUpload: (...args: unknown[]) => initImageUploadSpy(...args),
+mock.module("../linkedin/media.ts", () => ({
+	initializeImageUpload: (token: string, ownerUrn: string) => initImageUploadSpy(token, ownerUrn),
 	uploadImageBinary: async () => {},
 	initializeDocumentUpload: async () => ({
 		uploadUrl: "https://upload.example.com",
@@ -66,12 +56,16 @@ vi.mock("../linkedin/media.ts", () => ({
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+const TEST_ENC_KEY = Buffer.alloc(32);
+const ENCRYPTED_ACCESS_TOKEN = encrypt("test_access_token", TEST_ENC_KEY);
+const ENCRYPTED_REFRESH_TOKEN = encrypt("test_refresh_token", TEST_ENC_KEY);
+
 const DEFAULT_OAUTH_TOKEN = {
 	id: "token-001",
 	userId: "user-001",
 	platform: "linkedin",
-	accessToken: "encrypted_access_token",
-	refreshToken: "encrypted_refresh_token",
+	accessToken: ENCRYPTED_ACCESS_TOKEN,
+	refreshToken: ENCRYPTED_REFRESH_TOKEN,
 	expiresAt: new Date(Date.now() + 3600_000),
 	scopes: "openid profile w_member_social",
 	metadata: { personUrn: "urn:li:person:abc123" },
@@ -111,19 +105,19 @@ function buildPost(overrides: Partial<Record<string, unknown>> = {}) {
 
 function buildMockDb() {
 	return {
-		select: vi.fn().mockReturnValue({
-			from: vi.fn().mockReturnValue({
-				where: vi.fn().mockReturnValue({
-					limit: vi.fn().mockResolvedValue([DEFAULT_OAUTH_TOKEN]),
-				}),
-			}),
-		}),
-		update: vi.fn().mockReturnValue({
-			set: vi.fn().mockReturnValue({
-				where: vi.fn().mockResolvedValue(undefined),
-			}),
-		}),
-		execute: vi.fn().mockResolvedValue(undefined),
+		select: mock(() => ({
+			from: mock(() => ({
+				where: mock(() => ({
+					limit: mock(() => Promise.resolve([DEFAULT_OAUTH_TOKEN])),
+				})),
+			})),
+		})),
+		update: mock(() => ({
+			set: mock(() => ({
+				where: mock(() => Promise.resolve(undefined)),
+			})),
+		})),
+		execute: mock(() => Promise.resolve(undefined)),
 	};
 }
 
@@ -136,6 +130,12 @@ describe("LinkedInHandler", () => {
 		process.env.LINKEDIN_CLIENT_ID = "test_client_id";
 		process.env.LINKEDIN_CLIENT_SECRET = "test_client_secret";
 
+		// Patch LinkedInClient prototype so the handler picks up mock methods
+		LinkedInClient.prototype.createTextPost =
+			createTextPostSpy as unknown as typeof LinkedInClient.prototype.createTextPost;
+		LinkedInClient.prototype.createImagePost =
+			createImagePostSpy as unknown as typeof LinkedInClient.prototype.createImagePost;
+
 		createTextPostSpy.mockClear();
 		createImagePostSpy.mockClear();
 		initImageUploadSpy.mockClear();
@@ -147,7 +147,6 @@ describe("LinkedInHandler", () => {
 	afterEach(() => {
 		delete process.env.LINKEDIN_CLIENT_ID;
 		delete process.env.LINKEDIN_CLIENT_SECRET;
-		vi.restoreAllMocks();
 	});
 
 	it("uses personUrn when no linkedinAuthorUrn in metadata (personal post)", async () => {
@@ -169,27 +168,27 @@ describe("LinkedInHandler", () => {
 	it("uses linkedinAuthorUrn from metadata for page posts, including media uploads", async () => {
 		const handler = new LinkedInHandler();
 		const db = buildMockDb();
+
+		// Write a temporary image file so Bun.file() can read it (globalThis.Bun is readonly)
+		const tmpPath = "/tmp/psn-test-image.png";
+		writeFileSync(tmpPath, Buffer.alloc(100));
+
 		const post = buildPost({
 			metadata: {
 				linkedinAuthorUrn: "urn:li:organization:99999",
 				linkedinFormat: "image",
 			},
-			mediaUrls: ["/tmp/test-image.png"],
+			mediaUrls: [tmpPath],
 		});
 
-		// Mock Bun.file for media read (vitest runs in Node, not Bun)
-		const mockFile = {
-			arrayBuffer: async () => new ArrayBuffer(100),
-		};
-		(globalThis as any).Bun = { file: () => mockFile };
-
 		const result = await handler.publish(db as any, post as any, Buffer.alloc(32));
+		unlinkSync(tmpPath);
 
 		expect(result.status).toBe("published");
 
 		// Media upload should use org URN as owner (not person URN)
 		expect(initImageUploadSpy).toHaveBeenCalledWith(
-			"encrypted_access_token", // decrypted access token (mock decrypt returns input)
+			"test_access_token", // decrypted access token
 			"urn:li:organization:99999",
 		);
 
@@ -201,7 +200,11 @@ describe("LinkedInHandler", () => {
 			undefined, // altText
 			"PUBLIC",
 		);
-
-		delete (globalThis as any).Bun;
 	});
+});
+
+afterAll(() => {
+	delete (LinkedInClient.prototype as unknown as Record<string, unknown>).createTextPost;
+	delete (LinkedInClient.prototype as unknown as Record<string, unknown>).createImagePost;
+	mock.restore();
 });

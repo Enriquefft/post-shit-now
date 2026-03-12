@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { countTweetChars, validateTweet } from "./tweet-validator.ts";
 
 describe("countTweetChars", () => {

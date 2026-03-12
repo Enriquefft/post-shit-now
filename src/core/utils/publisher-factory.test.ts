@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import type { Platform } from "../types/index.ts";
 import type { PlatformPublisher, RateLimitInfo } from "../types/publisher.ts";
 import {

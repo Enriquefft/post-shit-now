@@ -7,37 +7,32 @@
  * Tests go through the public publish() method only -- no private method access.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { encrypt } from "../../core/utils/crypto.ts";
 
 // ─── Module Mocks ────────────────────────────────────────────────────────────
 
-vi.mock("@trigger.dev/sdk", () => ({
+mock.module("@trigger.dev/sdk", () => ({
 	wait: { until: async () => {} },
 	logger: { info: () => {}, warn: () => {}, error: () => {} },
+	retry: { onThrow: async (fn: () => Promise<unknown>) => fn() },
+	task: (_config: unknown) => _config,
+	schedules: { task: (_config: unknown) => _config },
 }));
 
-vi.mock("../../core/utils/publisher-factory.ts", () => ({
-	registerHandler: () => {},
-}));
-
-vi.mock("../instagram/client.ts", async () => {
+mock.module("../instagram/client.ts", async () => {
 	const { MockInstagramClient } = await import("../__mocks__/clients.ts");
 	return { InstagramClient: MockInstagramClient };
 });
 
-vi.mock("../instagram/oauth.ts", () => ({
+mock.module("../instagram/oauth.ts", () => ({
 	refreshInstagramToken: async () => ({
 		accessToken: "refreshed",
 		expiresIn: 5184000,
 	}),
 }));
 
-vi.mock("../../core/utils/crypto.ts", () => ({
-	decrypt: (val: string) => val,
-	encrypt: (val: string) => val,
-}));
-
-vi.mock("../instagram/media.ts", () => ({
+mock.module("../instagram/media.ts", () => ({
 	createImageContainer: async (_client: unknown, _url: string, _caption: string) => ({
 		id: "container_1",
 	}),
@@ -85,11 +80,14 @@ function buildPost(overrides: Partial<Record<string, unknown>> = {}) {
 	};
 }
 
+const TEST_ENC_KEY = Buffer.from("0".repeat(64), "hex");
+const ENCRYPTED_ACCESS_TOKEN = encrypt("test_access_token", TEST_ENC_KEY);
+
 const DEFAULT_OAUTH_TOKEN = {
 	id: "token-001",
 	userId: "user-001",
 	platform: "instagram",
-	accessToken: "encrypted_access_token",
+	accessToken: ENCRYPTED_ACCESS_TOKEN,
 	refreshToken: null,
 	expiresAt: new Date(Date.now() + 3600_000), // not expired
 	scopes: "instagram_basic,instagram_content_publish",
@@ -126,27 +124,27 @@ function buildMockDb(
 	let selectCallCount = 0;
 
 	const mockDb = {
-		select: vi.fn().mockImplementation(() => {
+		select: mock(() => {
 			selectCallCount++;
 			const callNum = selectCallCount;
 			return {
-				from: vi.fn().mockImplementation(() => {
+				from: mock(() => {
 					if (callNum === 1) {
 						// OAuth token query
 						return {
-							where: vi.fn().mockReturnValue({
-								limit: vi.fn().mockResolvedValue(tokenRow),
-							}),
+							where: mock(() => ({
+								limit: mock(() => Promise.resolve(tokenRow)),
+							})),
 						};
 					}
 					// Posts query (daily limit check) — no .limit()
 					return {
-						where: vi.fn().mockResolvedValue(todayPosts),
+						where: mock(() => Promise.resolve(todayPosts)),
 					};
 				}),
 			};
 		}),
-		execute: vi.fn().mockResolvedValue(undefined),
+		execute: mock(() => Promise.resolve(undefined)),
 	};
 
 	return mockDb;
@@ -179,7 +177,6 @@ describe("InstagramHandler", () => {
 	afterEach(() => {
 		delete process.env.INSTAGRAM_APP_ID;
 		delete process.env.INSTAGRAM_APP_SECRET;
-		vi.clearAllMocks();
 	});
 
 	describe("single post publish", () => {
@@ -305,3 +302,5 @@ describe("InstagramHandler", () => {
 		});
 	});
 });
+
+afterAll(() => mock.restore());

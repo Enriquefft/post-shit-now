@@ -1,25 +1,25 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, describe, expect, it, mock } from "bun:test";
 
 // Mock the connection module before importing watchdog functions
-vi.mock("../core/db/connection.ts", () => ({
-	createHubConnection: vi.fn(),
+mock.module("../core/db/connection.ts", () => ({
+	createHubConnection: mock(() => undefined),
 }));
 
 import { findStuckPublishing, findStuckScheduled } from "./watchdog.ts";
 
 // Helper to create a mock db that returns specified results for select queries
 function createMockDb(results: unknown[]) {
-	const mockWhere = vi.fn().mockResolvedValue(results);
-	const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
-	const mockSelect = vi.fn().mockReturnValue({ from: mockFrom });
+	const mockWhere = mock(() => Promise.resolve(results));
+	const mockFrom = mock(() => ({ where: mockWhere }));
+	const mockSelect = mock(() => ({ from: mockFrom }));
 
 	return {
 		select: mockSelect,
-		update: vi.fn().mockReturnValue({
-			set: vi.fn().mockReturnValue({
-				where: vi.fn().mockResolvedValue(undefined),
-			}),
-		}),
+		update: mock(() => ({
+			set: mock(() => ({
+				where: mock(() => Promise.resolve(undefined)),
+			})),
+		})),
 	} as unknown as ReturnType<typeof import("../core/db/connection.ts").createHubConnection>;
 }
 
@@ -94,3 +94,5 @@ describe("Watchdog: result shape", () => {
 		expect(result.failed).toBe(1);
 	});
 });
+
+afterAll(() => mock.restore());

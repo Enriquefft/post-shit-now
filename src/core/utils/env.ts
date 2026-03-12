@@ -72,18 +72,33 @@ export async function loadHubEnv(
 export async function loadKeysEnv(
 	configDir = "config",
 ): Promise<{ success: true; data: Record<string, string> } | { success: false; error: string }> {
-	const filePath = join(configDir, "keys.env");
-	const file = Bun.file(filePath);
+	let keys: Record<string, string> = {};
 
-	if (!(await file.exists())) {
-		return {
-			success: false,
-			error: `API keys not found at ${filePath}. Run /psn:setup to configure.`,
-		};
+	// Primary: config/keys.env
+	const keysEnvPath = join(configDir, "keys.env");
+	const keysFile = Bun.file(keysEnvPath);
+	if (await keysFile.exists()) {
+		const content = await keysFile.text();
+		keys = parseEnvFile(content);
 	}
 
-	const content = await file.text();
-	const keys = parseEnvFile(content);
+	// Fallback: .env at project root
+	const dotenvFile = Bun.file(".env");
+	if (await dotenvFile.exists()) {
+		const content = await dotenvFile.text();
+		const dotenvKeys = parseEnvFile(content);
+		// .env fills gaps — config/keys.env takes precedence
+		for (const [k, v] of Object.entries(dotenvKeys)) {
+			if (!keys[k]) keys[k] = v;
+		}
+	}
+
+	if (Object.keys(keys).length === 0) {
+		return {
+			success: false,
+			error: `API keys not found at ${keysEnvPath} or .env. Run /psn:setup to configure.`,
+		};
+	}
 
 	return { success: true, data: keys };
 }

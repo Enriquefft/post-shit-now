@@ -1,5 +1,5 @@
+import { describe, expect, it } from "bun:test";
 import sharp from "sharp";
-import { describe, expect, it } from "vitest";
 import { ensureSizeLimit, getImageMetadata, processImageForPlatform } from "./processor.ts";
 
 // ─── Helper: Create test image buffer ────────────────────────────────────────

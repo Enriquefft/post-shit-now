@@ -246,6 +246,16 @@ export async function setupKeys(configDir = "config"): Promise<SetupResult | Set
 		existingKeys = parseEnvFile(content);
 	}
 
+	// Also check .env at project root for keys
+	const dotenvFile = Bun.file(".env");
+	if (await dotenvFile.exists()) {
+		const content = await dotenvFile.text();
+		const dotenvKeys = parseEnvFile(content);
+		for (const [k, v] of Object.entries(dotenvKeys)) {
+			if (!existingKeys[k]) existingKeys[k] = v;
+		}
+	}
+
 	const missingKeys: SetupResult[] = [];
 	for (const keyDef of REQUIRED_KEYS_PHASE1) {
 		if (!existingKeys[keyDef.name]) {

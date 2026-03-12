@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { decrypt, encrypt, generateEncryptionKey, keyFromHex } from "../utils/crypto.ts";
 import { parseEnvFile } from "../utils/env.ts";
 import { apiKeys, hubUser, oauthTokens, posts, users } from "./schema.ts";

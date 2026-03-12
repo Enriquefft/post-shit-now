@@ -3,7 +3,7 @@
  * Verifies correct API call, response parsing, and graceful org name lookup failure.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { LinkedInClient } from "./client.ts";
 
 // Build a mock Response with the headers LinkedIn's request() method expects
@@ -20,16 +20,15 @@ function linkedInResponse(body: unknown, status = 200): Response {
 
 describe("LinkedInClient", () => {
 	const originalFetch = globalThis.fetch;
-	let fetchSpy: ReturnType<typeof vi.fn>;
+	let fetchSpy: ReturnType<typeof mock>;
 
 	beforeEach(() => {
-		fetchSpy = vi.fn();
+		fetchSpy = mock(() => Promise.resolve(new Response()));
 		globalThis.fetch = fetchSpy as unknown as typeof fetch;
 	});
 
 	afterEach(() => {
 		globalThis.fetch = originalFetch;
-		vi.restoreAllMocks();
 	});
 
 	describe("getAdminOrganizations()", () => {

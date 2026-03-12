@@ -7,29 +7,28 @@
  * Tests go through the public publish() method only -- no private method access.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { encrypt } from "../../core/utils/crypto.ts";
 import { XApiError } from "../x/types.ts";
 
 // ─── Module Mocks ────────────────────────────────────────────────────────────
 
-vi.mock("@trigger.dev/sdk", () => ({
+mock.module("@trigger.dev/sdk", () => ({
 	retry: {
 		onThrow: async (fn: () => Promise<unknown>) => fn(),
 	},
 	wait: { until: async () => {} },
 	logger: { info: () => {}, warn: () => {}, error: () => {} },
+	task: (_config: unknown) => _config,
+	schedules: { task: (_config: unknown) => _config },
 }));
 
-vi.mock("../../core/utils/publisher-factory.ts", () => ({
-	registerHandler: () => {},
-}));
-
-vi.mock("../x/client.ts", async () => {
+mock.module("../x/client.ts", async () => {
 	const { MockXClient } = await import("../__mocks__/clients.ts");
 	return { XClient: MockXClient };
 });
 
-vi.mock("../x/oauth.ts", () => ({
+mock.module("../x/oauth.ts", () => ({
 	createXOAuthClient: () => ({}),
 	refreshAccessToken: async () => ({
 		accessToken: "new_access",
@@ -39,13 +38,7 @@ vi.mock("../x/oauth.ts", () => ({
 	X_CALLBACK_URL: "http://127.0.0.1:18923/callback",
 }));
 
-vi.mock("../../core/utils/crypto.ts", () => ({
-	decrypt: (val: string) => val,
-	encrypt: (val: string) => val,
-	keyFromHex: (hex: string) => Buffer.from(hex, "hex"),
-}));
-
-vi.mock("../x/media.ts", () => ({
+mock.module("../x/media.ts", () => ({
 	uploadMedia: async () => ({ mediaId: "media_1" }),
 }));
 
@@ -85,12 +78,16 @@ function buildPost(overrides: Partial<Record<string, unknown>> = {}) {
  * Build a mock DB that supports the Drizzle chained query pattern used by XHandler.
  * Tracks update().set() calls for checkpoint verification.
  */
+const TEST_ENC_KEY = Buffer.from("0".repeat(64), "hex");
+const ENCRYPTED_ACCESS_TOKEN = encrypt("test_access_token", TEST_ENC_KEY);
+const ENCRYPTED_REFRESH_TOKEN = encrypt("test_refresh_token", TEST_ENC_KEY);
+
 const DEFAULT_OAUTH_TOKEN = {
 	id: "token-001",
 	userId: "user-001",
 	platform: "x",
-	accessToken: "encrypted_access_token",
-	refreshToken: "encrypted_refresh_token",
+	accessToken: ENCRYPTED_ACCESS_TOKEN,
+	refreshToken: ENCRYPTED_REFRESH_TOKEN,
 	expiresAt: new Date(Date.now() + 3600_000), // not expired
 	scopes: "tweet.read tweet.write",
 	metadata: null,
@@ -111,39 +108,39 @@ function buildMockDb(
 	// Distinguish by select() arguments: select() with no args = oauth, select({content}) = posts
 	const mockDb = {
 		_setCalls: setCalls,
-		select: vi.fn().mockImplementation((...selectArgs: unknown[]) => {
+		select: mock((...selectArgs: unknown[]) => {
 			// If select is called with field mapping (e.g. { content: posts.content }), it's the duplicate check
 			const isFieldSelect =
 				selectArgs.length > 0 && typeof selectArgs[0] === "object" && selectArgs[0] !== null;
 
 			return {
-				from: vi.fn().mockImplementation(() => {
+				from: mock(() => {
 					if (isFieldSelect) {
 						// Duplicate check query: select({ content: posts.content }).from(posts)
 						return {
-							where: vi.fn().mockReturnValue({
-								limit: vi.fn().mockResolvedValue(recentPosts),
-							}),
+							where: mock(() => ({
+								limit: mock(() => Promise.resolve(recentPosts)),
+							})),
 						};
 					}
 					// OAuth token query: select().from(oauthTokens)
 					return {
-						where: vi.fn().mockReturnValue({
-							limit: vi.fn().mockResolvedValue(tokenResult),
-						}),
+						where: mock(() => ({
+							limit: mock(() => Promise.resolve(tokenResult)),
+						})),
 					};
 				}),
 			};
 		}),
-		update: vi.fn().mockReturnValue({
-			set: vi.fn().mockImplementation((...args: unknown[]) => {
+		update: mock(() => ({
+			set: mock((...args: unknown[]) => {
 				setCalls.push({ args, table: "posts" });
 				return {
-					where: vi.fn().mockResolvedValue(undefined),
+					where: mock(() => Promise.resolve(undefined)),
 				};
 			}),
-		}),
-		execute: vi.fn().mockResolvedValue(undefined),
+		})),
+		execute: mock(() => Promise.resolve(undefined)),
 	};
 
 	return mockDb;
@@ -171,7 +168,6 @@ describe("XHandler", () => {
 	afterEach(() => {
 		delete process.env.X_CLIENT_ID;
 		delete process.env.X_CLIENT_SECRET;
-		vi.clearAllMocks();
 	});
 
 	describe("publish() - single tweet", () => {
@@ -323,7 +319,7 @@ describe("XHandler", () => {
 			const encKey = Buffer.from("0".repeat(64), "hex");
 
 			// We need to make the second createTweet call throw a duplicate error
-			// The MockXClient is injected via vi.mock, so we need to access it
+			// The MockXClient is injected via mock.module, so we need to access it
 			// We'll set up the failure after the first tweet posts
 			// Since MockXClient is used via the XClient mock, we need to intercept it
 			// The handler creates a new XClient internally, so we hook into the mock
@@ -413,3 +409,5 @@ describe("XHandler", () => {
 		});
 	});
 });
+
+afterAll(() => mock.restore());

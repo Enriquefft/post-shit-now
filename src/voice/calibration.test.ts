@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test } from "bun:test";
 import { computeCalibrationFromEdits, computeEditDistance } from "./calibration.ts";
 
 describe("computeEditDistance", () => {
