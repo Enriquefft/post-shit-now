@@ -957,7 +957,7 @@ export function getInterviewStatePath(interviewId?: string): string {
 	if (interviewId) {
 		return `content/voice/.interview-${interviewId}.json`;
 	}
-	return "content/voice/.interview.json";
+	return "content/voice/.interview-default.json";
 }
 
 /**
@@ -1109,4 +1109,19 @@ export async function cleanupOldInterviews(
 export async function deleteInterviewState(interviewId?: string): Promise<void> {
 	const path = getInterviewStatePath(interviewId);
 	await rm(path);
+}
+
+/**
+ * Load the default interview state.
+ * Returns null if no default interview exists.
+ */
+export async function loadDefaultInterview(): Promise<InterviewState | null> {
+	return await loadInterviewState("default");
+}
+
+/**
+ * Save interview state to the default interview file.
+ */
+export async function saveDefaultInterview(state: InterviewState): Promise<void> {
+	await saveInterviewState(state, "default");
 }

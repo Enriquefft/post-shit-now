@@ -39,12 +39,12 @@ export interface CreateEntityOptions {
 
 /**
  * Detect current setup status for returning user flow.
- * @param configDir Config directory path
+ * @param configDir Config directory path (legacy, for file checks)
  * @param db Optional database connection for entity/platform detection
  * @param userId Optional user ID for DB queries
  */
 export async function getSetupStatus(
-	configDir: string,
+	_configDir: string,
 	db?: DbClient,
 	userId?: string,
 ): Promise<SetupStatus> {
@@ -59,9 +59,9 @@ export async function getSetupStatus(
 		recommendedAction: "",
 	};
 
-	// Check hub.env exists -> hasHub
-	const hubEnvPath = join(configDir, "hub.env");
-	status.hasHub = existsSync(hubEnvPath);
+	// Check .hubs/personal.json exists -> hasHub (new system)
+	const personalHubPath = join(".", ".hubs", "personal.json");
+	status.hasHub = existsSync(personalHubPath);
 
 	// Check content/voice/personal.yaml (legacy path) OR entities in DB
 	const personalYamlPath = join("content/voice/personal.yaml");
@@ -107,7 +107,7 @@ export async function getSetupStatus(
 		status.entityCount = hasLegacyProfile ? 1 : 0;
 	}
 
-	// Build incompleteSteps array from missing items
+	// Build incompleteSteps array from missing items (prioritized: hub → voice → platforms)
 	if (!status.hasHub) {
 		status.incompleteSteps.push("hub");
 	}

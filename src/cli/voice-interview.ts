@@ -18,7 +18,6 @@ import {
 	deleteInterviewState as deleteState,
 	ensureVoiceDirectories,
 	finalizeProfile,
-	generateInterviewId,
 	generateQuestions,
 	type InterviewQuestion,
 	type InterviewState,
@@ -27,6 +26,12 @@ import {
 	processAnswer,
 	saveInterviewState as saveState,
 } from "../voice/interview.ts";
+
+// ─── Constants ─────────────────────────────────────────────────────────────
+
+/** Default interview file name for single-interview flows */
+const DEFAULT_INTERVIEW_ID = "default";
+
 import { generateStrategy, loadProfile, saveProfile, saveStrategy } from "../voice/profile.ts";
 import type { VoiceProfile } from "../voice/types.ts";
 
@@ -40,6 +45,22 @@ const PHASE_ORDER = ["identity", "style", "platforms", "language", "review"] as 
  * Load interview state (defaults to default interview)
  */
 async function loadInterviewState(interviewId?: string): Promise<InterviewState | null> {
+	// If a specific interview ID is requested and not found, check if default exists
+	if (interviewId && interviewId !== DEFAULT_INTERVIEW_ID) {
+		const specific = await loadState(interviewId);
+		if (!specific) {
+			// Check if default interview exists and offer to use it
+			const defaultInterview = await loadState(DEFAULT_INTERVIEW_ID);
+			if (defaultInterview) {
+				console.warn(`Interview '${interviewId}' not found. Using default interview instead.`);
+				return defaultInterview;
+			}
+			throw new Error(
+				`Interview '${interviewId}' not found. Run 'start' to begin a new interview, or use 'list' to see available interviews.`,
+			);
+		}
+		return specific;
+	}
 	return await loadState(interviewId);
 }
 
@@ -112,8 +133,8 @@ export async function startInterview(options?: {
 
 	const questions = generateQuestions(state);
 
-	// Generate interview ID and save initial state
-	const interviewId = generateInterviewId();
+	// Always save to default interview for single-interview flow
+	const interviewId = DEFAULT_INTERVIEW_ID;
 	await saveInterviewState(state, interviewId);
 
 	return { state, questions, interviewId };
@@ -144,13 +165,15 @@ export async function submitAnswersInteractive(interviewId?: string): Promise<{
 	phase: string;
 	questions: InterviewQuestion[];
 }> {
+	// Use default interview if no ID specified
+	const targetInterviewId = interviewId ?? DEFAULT_INTERVIEW_ID;
+
 	// Load existing state or start fresh
-	let stateOrNull = await loadInterviewState(interviewId);
+	let stateOrNull = await loadInterviewState(targetInterviewId);
 	if (!stateOrNull) {
 		stateOrNull = createInterviewState();
 		// Save initial state if we're creating it fresh
-		const newId = interviewId ?? generateInterviewId();
-		await saveInterviewState(stateOrNull, newId);
+		await saveInterviewState(stateOrNull, targetInterviewId);
 	}
 
 	let state: InterviewState = stateOrNull;
@@ -265,13 +288,28 @@ export async function completeInterviewInteractive(interviewId?: string): Promis
 	profilePath: string;
 	strategyPath: string | undefined;
 }> {
-	const state = await loadInterviewState(interviewId);
+	// Use default interview if no ID specified
+	const targetInterviewId = interviewId ?? DEFAULT_INTERVIEW_ID;
+
+	const state = await loadInterviewState(targetInterviewId);
 	if (!state) {
-		throw new Error("No interview in progress. Run 'start' to begin.");
+		const interviews = await listInterviews();
+		if (interviews.length > 0) {
+			console.error("No interview found at the specified path. Available interviews:");
+			interviews.forEach((interview, idx) => {
+				const idDisplay = interview.id === "default" ? "default" : interview.id;
+				console.error(`  ${idx + 1}. ${idDisplay}`);
+			});
+			console.error(
+				`Use 'voice-interview.ts select <id>' to choose one, or run 'start' to begin a new interview.`,
+			);
+		} else {
+			throw new Error("No interview in progress. Run 'start' to begin.");
+		}
 	}
 
 	// Validate interview is complete
-	if (state.phase !== "review") {
+	if (state?.phase !== "review") {
 		throw new Error("Interview not complete. Run 'submit' to finish answering questions.");
 	}
 
@@ -285,7 +323,7 @@ export async function completeInterviewInteractive(interviewId?: string): Promis
 		const profilePath = profilePathInput.trim() || defaultProfilePath;
 
 		// Complete interview and save
-		const result = await completeInterview(state, { profilePath });
+		const result = await completeInterview(state!, { profilePath });
 
 		console.log(`\n=== Success ===`);
 		console.log(`Voice profile saved to: ${result.profilePath}`);
@@ -294,7 +332,7 @@ export async function completeInterviewInteractive(interviewId?: string): Promis
 		}
 
 		// Clean up interview state
-		await deleteInterviewState(interviewId);
+		await deleteInterviewState(interviewId ?? DEFAULT_INTERVIEW_ID);
 		console.log("Interview state cleaned up.");
 
 		return {
@@ -352,7 +390,13 @@ if (import.meta.main) {
 			case "start": {
 				await ensureVoiceDirectories();
 				const recalibration = args.includes("--recalibrate");
-				const result = await startInterview({ recalibration });
+				const interviewIdIdx = args.indexOf("--interview-id");
+				const interviewId =
+					interviewIdIdx !== -1 && args[interviewIdIdx + 1] ? args[interviewIdIdx + 1] : undefined;
+				const result = await startInterview({
+					recalibration,
+					profilePath: `content/voice/${interviewId || DEFAULT_INTERVIEW_ID}.yaml`,
+				});
 				console.log(
 					JSON.stringify({
 						phase: result.state.phase,
@@ -415,6 +459,10 @@ if (import.meta.main) {
 			}
 			case "submit": {
 				const answersIdx = args.indexOf("--answers");
+				const interviewIdIdx = args.indexOf("--interview-id");
+				const interviewId =
+					interviewIdIdx !== -1 && args[interviewIdIdx + 1] ? args[interviewIdIdx + 1] : undefined;
+
 				if (answersIdx !== -1 && args[answersIdx + 1]) {
 					// Non-interactive: parse answers JSON and apply directly
 					let answers: Record<string, string>;
@@ -424,7 +472,7 @@ if (import.meta.main) {
 						console.error(JSON.stringify({ error: "Invalid JSON for --answers" }));
 						process.exit(1);
 					}
-					const state = await loadInterviewState();
+					const state = await loadInterviewState(interviewId);
 					if (!state) {
 						console.error(
 							JSON.stringify({ error: "No interview in progress. Run 'start' first." }),
@@ -432,7 +480,7 @@ if (import.meta.main) {
 						process.exit(1);
 					}
 					const result = submitAnswers(state, answers);
-					await saveInterviewState(result.state);
+					await saveInterviewState(result.state, interviewId);
 					console.log(
 						JSON.stringify({
 							complete: result.complete,
@@ -442,7 +490,7 @@ if (import.meta.main) {
 					);
 					break;
 				}
-				const result = await submitAnswersInteractive();
+				const result = await submitAnswersInteractive(interviewId);
 				if (result.complete) {
 					console.log("\n=== Interview Complete ===");
 					console.log("All questions answered. Run 'complete' to save your voice profile.");
@@ -460,12 +508,16 @@ if (import.meta.main) {
 			}
 			case "complete": {
 				const entityFlag = args.indexOf("--entity");
+				const interviewIdIdx = args.indexOf("--interview-id");
+				const _interviewIdFromArgs =
+					interviewIdIdx !== -1 && args[interviewIdIdx + 1] ? args[interviewIdIdx + 1] : undefined;
+
 				if (entityFlag !== -1 && args[entityFlag + 1]) {
 					// Non-interactive: skip readline, use first available interview
 					const entitySlug = args[entityFlag + 1] as string;
 					const interviews = await listInterviews();
 					if (interviews.length === 0) {
-						throw new Error("No interview in progress. Run 'start' to begin.");
+						throw new Error("No interview found. Run 'start' to begin a new interview.");
 					}
 					const firstInterview = interviews[0];
 					const interviewId = firstInterview?.id === "default" ? undefined : firstInterview?.id;
@@ -474,8 +526,8 @@ if (import.meta.main) {
 						throw new Error("No interview in progress. Run 'start' to begin.");
 					}
 					const profilePath = `content/voice/${entitySlug}.yaml`;
-					const result = await completeInterview(state, { profilePath });
-					await deleteInterviewState(interviewId);
+					const result = await completeInterview(state!, { profilePath });
+					await deleteInterviewState(interviewId ?? DEFAULT_INTERVIEW_ID);
 					console.log(
 						JSON.stringify({
 							success: true,
@@ -493,6 +545,12 @@ if (import.meta.main) {
 
 				if (interviews.length === 0) {
 					throw new Error("No interview in progress. Run 'start' to begin.");
+				}
+
+				// Always try to use default interview first
+				const defaultInterview = interviews.find((i) => i.id === DEFAULT_INTERVIEW_ID);
+				if (defaultInterview) {
+					interviewId = undefined; // LoadState treats undefined as default interview
 				}
 
 				if (interviews.length > 1) {
@@ -548,14 +606,47 @@ if (import.meta.main) {
 					console.log("No interviews in progress.");
 				} else {
 					console.log(`\n${interviews.length} interview(s) in progress:\n`);
-					interviews.forEach((interview) => {
+					interviews.forEach((interview, idx) => {
 						const ageHours = interview.ageMs / 1000 / 60 / 60;
 						const ageDays = ageHours / 24;
 						const ageDisplay = ageDays >= 1 ? `${ageDays.toFixed(1)}d` : `${ageHours.toFixed(1)}h`;
 						const idDisplay = interview.id === "default" ? "default" : interview.id;
-						console.log(`  • ${idDisplay}: ${interview.path} (${ageDisplay} old)`);
+						const stateIcon = interview.id === "default" ? "◉" : "○";
+						console.log(`  ${stateIcon} ${idx + 1}. ${idDisplay} (${ageDisplay} old)`);
 					});
+					console.log("\nUse 'voice-interview.ts select <id>' to choose an interview to work on.");
+					console.log(
+						"Use 'voice-interview.ts submit' or 'voice-interview.ts complete' to work on the default interview.",
+					);
 				}
+				break;
+			}
+			case "select": {
+				const targetId = args[1];
+				if (!targetId) {
+					throw new Error(
+						"Please specify an interview ID to select. Use 'list' to see available interviews.",
+					);
+				}
+
+				const interviews = await listInterviews();
+				const interview = interviews.find((i) => i.id === targetId);
+
+				if (!interview) {
+					throw new Error(
+						`Interview '${targetId}' not found. Available interviews: ${interviews.map((i) => i.id).join(", ")}`,
+					);
+				}
+
+				console.log(`Selected interview: ${targetId}`);
+				console.log(`Path: ${interview.path}`);
+				console.log(`Age: ${(interview.ageMs / 1000 / 60 / 60).toFixed(1)} hours ago`);
+
+				// Provide next steps
+				console.log("\nNext steps:");
+				console.log(`- Run 'submit' to continue answering questions`);
+				console.log(`- Run 'complete' to finish and save the profile`);
+
 				break;
 			}
 			case "timezone": {
@@ -584,7 +675,8 @@ if (import.meta.main) {
 			default:
 				console.log(
 					JSON.stringify({
-						error: "Unknown command. Use: start, submit, import, complete, cleanup, list, timezone",
+						error:
+							"Unknown command. Use: start, submit, import, complete, cleanup, list, select, timezone",
 					}),
 				);
 		}

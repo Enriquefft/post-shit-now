@@ -7,7 +7,7 @@
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
-import { unlinkSync, writeFileSync } from "fs";
+import { unlinkSync, writeFileSync } from "node:fs";
 import { encrypt } from "../../core/utils/crypto.ts";
 import { LinkedInClient } from "../linkedin/client.ts";
 
