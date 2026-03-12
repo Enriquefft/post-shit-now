@@ -40,22 +40,46 @@ function parseEnvFile(content: string): Record<string, string> {
 
 export async function loadHubEnv(
 	configDir = "config",
+	projectRoot = ".",
 ): Promise<{ success: true; data: HubEnv } | { success: false; error: string }> {
 	const filePath = join(configDir, "hub.env");
 	const file = Bun.file(filePath);
 
 	if (!(await file.exists())) {
-		return {
-			success: false,
-			error: `Hub config not found at ${filePath}. Run /psn:setup to create it.`,
-		};
+		// hub.env doesn't exist — check if migration was done (.hubs/personal.json exists)
+		const hubsDir = join(projectRoot, ".hubs");
+		const personalHubPath = join(hubsDir, "personal.json");
+
+		try {
+			const personalHub = Bun.file(personalHubPath);
+			if (await personalHub.exists()) {
+				// Migration already done — read from personal.json
+				const content = await personalHub.text();
+				const connection = JSON.parse(content);
+				return {
+					success: true,
+					data: {
+						databaseUrl: connection.databaseUrl,
+						triggerProjectRef: connection.triggerProjectId ?? "",
+						encryptionKey: connection.encryptionKey,
+						hubId: connection.hubId,
+					},
+				};
+			}
+		} catch {
+			// personal.json doesn't exist either
+			return {
+				success: false,
+				error: `Hub config not found at ${filePath}. Run /psn:setup to create it.`,
+			};
+		}
 	}
 
 	const content = await file.text();
 	const env = parseEnvFile(content);
 
 	if (!env.DATABASE_URL) {
-		return { success: false, error: "DATABASE_URL not found in hub.env" };
+		return { success: false, error: "DATABASE_URL not found" };
 	}
 
 	return {

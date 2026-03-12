@@ -510,6 +510,58 @@ export async function runSetupSubcommand(
 				completed: result.allPassed,
 			};
 		}
+		case "platform": {
+			// Platform OAuth setup - routes to appropriate OAuth setup file
+			const platform = params.platform;
+			if (!platform) {
+				return {
+					steps: [
+						{
+							step: "platform",
+							status: "error",
+							message: "Missing required flag: --platform <x|linkedin|instagram|tiktok>",
+							data: {
+								availablePlatforms: ["x", "linkedin", "instagram", "tiktok"],
+							},
+						},
+					],
+					validation: null,
+					completed: false,
+				};
+			}
+
+			switch (platform.toLowerCase()) {
+				case "x": {
+					const result = await setupXOAuth(configDir);
+					return { steps: [result], validation: null, completed: result.status === "success" };
+				}
+				case "linkedin": {
+					const result = await setupLinkedInOAuth(configDir);
+					return { steps: [result], validation: null, completed: result.status === "success" };
+				}
+				case "instagram": {
+					const result = await setupInstagramOAuth(configDir);
+					return { steps: [result], validation: null, completed: result.status === "success" };
+				}
+				case "tiktok": {
+					const result = await setupTikTokOAuth(configDir);
+					return { steps: [result], validation: null, completed: result.status === "success" };
+				}
+				default: {
+					return {
+						steps: [
+							{
+								step: "platform",
+								status: "error",
+								message: `Unknown platform: "${platform}". Available platforms: x, linkedin, instagram, tiktok`,
+							},
+						],
+						validation: null,
+						completed: false,
+					};
+				}
+			}
+		}
 		case "trigger": {
 			if (params.verify === "true") {
 				const result = await verifyTriggerSetup(configDir);

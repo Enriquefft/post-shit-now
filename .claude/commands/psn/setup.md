@@ -24,6 +24,7 @@ When `/psn:setup` is invoked with no arguments:
 - `/psn:setup status` -- show what's configured and recommended next action
 - `/psn:setup voice` -- voice profile setup (absorbs /psn:voice interview)
 - `/psn:setup voice --entity <slug>` -- update specific entity voice
+- `/psn:setup platform --platform <x|linkedin|instagram|tiktok>` -- connect a platform via OAuth
 - `/psn:setup entity` -- list entities or create new one
 - `/psn:setup entity --list` -- list all entities
 - `/psn:setup entity --create "My Project"` -- create new entity
@@ -35,6 +36,47 @@ When `/psn:setup` is invoked with no arguments:
 - `/psn:setup team <slug>` -- list team members of a Company Hub
 - `/psn:setup promote <slug> <userId>` -- promote a member to admin (admin only)
 - `/psn:setup notifications` -- configure WhatsApp notification preferences
+- `/psn:setup platform --platform <x|linkedin|instagram|tiktok>` -- connect a platform via OAuth
+
+---
+
+## /psn:setup platform -- Platform Connection
+
+Connect to social media platforms via OAuth for posting access.
+
+### Usage
+
+```bash
+bun run src/cli/setup.ts platform --platform <x|linkedin|instagram|tiktok>
+```
+
+### Flow
+
+1. **Check credentials**: Validates that required platform credentials exist in `config/keys.env`
+   - Missing: Returns `need_input` with instructions to get credentials
+   - Present: Returns instructions for the specific platform
+
+2. **Check existing token**: Queries database for valid, unexpired OAuth token
+   - Valid token: Returns `skipped` — no re-auth needed
+   - Expired/missing: Proceeds to OAuth flow
+
+3. **OAuth flow** (if needed):
+   - Starts a local callback server on port 18923
+   - Generates authorization URL with PKCE
+   - Opens browser (if possible) for user to authorize
+   - Captures authorization code automatically
+   - Exchanges code for access/refresh tokens
+   - Encrypts and stores tokens in database
+   - Tokens auto-refresh via Trigger.dev job
+
+4. **Success**: Token stored and ready for posting
+
+### Error Handling
+
+- **Missing credentials**: Clear instructions to get X_CLIENT_ID/X_CLIENT_SECRET or LinkedIn credentials
+- **Invalid platform**: Shows available platforms (x, linkedin, instagram, tiktok)
+
+> **Note**: Each platform uses separate credential environment variables. See `/psn:setup status` for overall connection status.
 
 ---
 
@@ -70,6 +112,8 @@ Setup Status
 
 All set! You're ready to post.
 ```
+
+> **Alternative**: Platform connections can also be added individually via `/psn:setup platform --platform <x|linkedin|instagram|tiktok>`
 
 Offer shortcuts: "Want to [add voice] / [connect platform] / [create entity]?"
 

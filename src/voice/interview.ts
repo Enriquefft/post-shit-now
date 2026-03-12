@@ -43,7 +43,7 @@ export interface InterviewQuestion {
 const interviewStateSchema = z.object({
 	phase: z.enum(["identity", "style", "platforms", "language", "review"]),
 	questionIndex: z.number().int().min(0),
-	answers: z.record(z.string(), z.string()),
+	answers: z.record(z.string(), z.union([z.string(), z.number()]).transform(String)),
 	detectedExperience: z.enum(["beginner", "intermediate", "advanced"]).nullable(),
 	maturityLevel: z.enum(["never_posted", "sporadic", "consistent", "very_active"]).nullable(),
 	languages: z.array(z.enum(["en", "es"])),
