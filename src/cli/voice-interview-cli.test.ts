@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const CLI_PATH = "/nix/store/ffgyf7g2n4gbhi1zgbcphssivfah1c4s-bun-1.3.10/bin/bun";
+const CLI_PATH = process.execPath;
 const CLI_SCRIPT = "src/cli/voice-interview.ts";
 
 describe("Voice Interview CLI Tests", () => {

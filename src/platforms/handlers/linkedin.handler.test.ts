@@ -8,6 +8,8 @@
 
 import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { unlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { encrypt } from "../../core/utils/crypto.ts";
 import { LinkedInClient } from "../linkedin/client.ts";
 
@@ -170,7 +172,7 @@ describe("LinkedInHandler", () => {
 		const db = buildMockDb();
 
 		// Write a temporary image file so Bun.file() can read it (globalThis.Bun is readonly)
-		const tmpPath = "/tmp/psn-test-image.png";
+		const tmpPath = join(tmpdir(), `psn-test-image-${Date.now()}.png`);
 		writeFileSync(tmpPath, Buffer.alloc(100));
 
 		const post = buildPost({
