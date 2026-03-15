@@ -27,7 +27,7 @@ interface PreferenceRow {
 
 const PreferenceRowSchema = z.object({
 	user_id: z.string(),
-	provider: z.enum(["waha", "twilio"]),
+	provider: z.enum(["waha", "twilio", "kapso"]),
 	digest_enabled: z.number(),
 	digest_frequency: z.enum(["daily", "twice_daily", "weekly"]),
 	digest_time: z.string(),
@@ -216,8 +216,12 @@ function calculateSinceDate(frequency: string): Date {
 	}
 }
 
-function createProviderFromEnv(providerType: "waha" | "twilio") {
+function createProviderFromEnv(providerType: "waha" | "twilio" | "kapso") {
 	const { createWhatsAppProvider: create } = { createWhatsAppProvider };
+
+	if (providerType === "kapso") {
+		return create({ provider: "kapso" });
+	}
 
 	if (providerType === "waha") {
 		const baseUrl = process.env.WAHA_BASE_URL;

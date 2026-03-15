@@ -69,7 +69,7 @@ export interface WhatsAppProvider {
 
 export interface NotificationPreference {
 	userId: string;
-	provider: "waha" | "twilio";
+	provider: "waha" | "twilio" | "kapso";
 	pushEnabled: boolean;
 	digestEnabled: boolean;
 	digestFrequency: "daily" | "twice_daily" | "weekly";

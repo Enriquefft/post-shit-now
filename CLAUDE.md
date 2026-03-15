@@ -8,9 +8,20 @@ Post Shit Now (PSN) is a Claude Code-first social media growth system — no web
 slash command → trigger task → publisher-factory → platform handler → platform client → API
                                       ↓
                                Neon Postgres (analytics, posts, series, teams)
+
+External orchestrator → bridge CLI → PSN CLI → platform APIs
 ```
 
 Users interact through slash commands in Claude Code. Commands schedule Trigger.dev tasks that call the publisher-factory to resolve the right platform handler. Each handler holds a platform client that talks to the external API. All results (post records, analytics, series state) are written to Neon Postgres via Drizzle ORM.
+
+### External Orchestrator Integration
+
+PSN can be driven by external orchestrators (e.g., ZeroClaw/OpenClaw) via CLI entry points in `src/cli/`.
+
+- **Bridge contract**: JSON in/out, exit 0/1, errors classified (TRANSIENT_NETWORK, RATE_LIMITED, AUTH_EXPIRED, VALIDATION, CONTENT_POLICY)
+- **Notifications**: Kapso provider (`src/notifications/kapso.ts`) is the default WhatsApp bridge
+- **Voice sync**: External voice profiles sync one-way to PSN, preserving calibration data
+- **Intelligence split**: The orchestrator handles content decisions; PSN provides voice context and platform APIs
 
 ## Module Map
 

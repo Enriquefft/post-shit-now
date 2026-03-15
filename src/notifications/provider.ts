@@ -1,13 +1,14 @@
+import { KapsoProvider } from "./kapso.ts";
 import { type TwilioConfig, TwilioProvider } from "./twilio.ts";
 import type { WhatsAppProvider } from "./types.ts";
 import { type WahaConfig, WahaProvider } from "./waha.ts";
 
 // ─── Provider Factory ──────────────────────────────────────────────────────
 // Creates a WhatsAppProvider based on config. WAHA for self-hosted,
-// Twilio for managed. Both implement the same interface.
+// Twilio for managed, Kapso for ZeroClaw bridge. All implement the same interface.
 
 export interface WhatsAppProviderConfig {
-	provider: "waha" | "twilio";
+	provider: "waha" | "twilio" | "kapso";
 	waha?: WahaConfig;
 	twilio?: TwilioConfig;
 }
@@ -25,6 +26,10 @@ export function createWhatsAppProvider(config: WhatsAppProviderConfig): WhatsApp
 			throw new Error("Twilio config required when provider is 'twilio'");
 		}
 		return new TwilioProvider(config.twilio);
+	}
+
+	if (config.provider === "kapso") {
+		return new KapsoProvider();
 	}
 
 	throw new Error(`Unknown WhatsApp provider: ${config.provider}`);

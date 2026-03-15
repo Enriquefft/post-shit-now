@@ -238,9 +238,10 @@ export async function runSetupSubcommand(
 						status: "need_input",
 						message: "WhatsApp notification setup requires interactive configuration",
 						data: {
-							providers: ["waha", "twilio"],
+							providers: ["kapso", "waha", "twilio"],
 							preferences: ["pushEnabled", "digestFrequency", "quietHoursStart", "quietHoursEnd"],
 							instructions: {
+								kapso: "No configuration needed — uses ZeroClaw's WhatsApp bridge",
 								waha: "Provide WAHA server URL and session name",
 								twilio: "Provide Account SID, Auth Token, and From number",
 							},

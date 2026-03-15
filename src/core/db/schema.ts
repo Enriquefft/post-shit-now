@@ -634,7 +634,7 @@ export const notificationPreferences = pgTable(
 	{
 		id: uuid("id").defaultRandom().primaryKey(),
 		userId: text("user_id").notNull().unique(),
-		provider: text("provider").notNull().default("waha"), // waha | twilio
+		provider: text("provider").notNull().default("kapso"), // kapso | waha | twilio
 		pushEnabled: integer("push_enabled").notNull().default(1),
 		digestEnabled: integer("digest_enabled").notNull().default(1),
 		digestFrequency: text("digest_frequency").notNull().default("daily"), // daily | twice_daily | weekly
@@ -666,7 +666,7 @@ export const notificationLog = pgTable(
 		userId: text("user_id").notNull(),
 		eventType: text("event_type").notNull(),
 		tier: text("tier").notNull(), // push | digest | standard
-		provider: text("provider").notNull(), // waha | twilio
+		provider: text("provider").notNull(), // kapso | waha | twilio
 		recipient: text("recipient").notNull(), // phone number
 		status: text("status").notNull().default("pending"), // pending | sent | failed | skipped
 		messageId: text("message_id"), // provider's message ID
@@ -786,7 +786,7 @@ export const whatsappSessions = pgTable(
 		id: uuid("id").defaultRandom().primaryKey(),
 		userId: text("user_id").notNull().unique(),
 		phone: text("phone").notNull(),
-		provider: text("provider").notNull(), // waha | twilio
+		provider: text("provider").notNull(), // kapso | waha | twilio
 		sessionState: text("session_state").notNull().default("inactive"), // inactive | active | expired
 		conversationContext: jsonb("conversation_context").$type<Record<string, unknown>>(),
 		lastActivityAt: timestamp("last_activity_at", { withTimezone: true }),

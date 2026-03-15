@@ -26,14 +26,14 @@ interface DispatchPayload {
 
 const SessionRowSchema = z.object({
 	phone: z.string(),
-	provider: z.enum(["waha", "twilio"]),
+	provider: z.enum(["waha", "twilio", "kapso"]),
 	session_state: z.string(),
 	conversation_context: z.record(z.string(), z.unknown()).nullable(),
 });
 
 const PreferenceRowSchema = z.object({
 	user_id: z.string(),
-	provider: z.enum(["waha", "twilio"]),
+	provider: z.enum(["waha", "twilio", "kapso"]),
 	push_enabled: z.number(),
 	digest_enabled: z.number(),
 	digest_frequency: z.enum(["daily", "twice_daily", "weekly"]),
@@ -112,7 +112,7 @@ export const notificationDispatcherTask = task({
 						}
 					: {
 							userId: targetUserId,
-							provider: session.provider ?? "waha",
+							provider: session.provider ?? "kapso",
 							pushEnabled: true,
 							digestEnabled: true,
 							digestFrequency: "daily",
@@ -176,7 +176,11 @@ export const notificationDispatcherTask = task({
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
-function createProviderFromEnv(providerType: "waha" | "twilio") {
+function createProviderFromEnv(providerType: "waha" | "twilio" | "kapso") {
+	if (providerType === "kapso") {
+		return createWhatsAppProvider({ provider: "kapso" });
+	}
+
 	if (providerType === "waha") {
 		const baseUrl = process.env.WAHA_BASE_URL;
 		if (!baseUrl) return null;
