@@ -1,9 +1,11 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
+import * as schema from "../core/db/schema.ts";
 import { oauthTokens } from "../core/db/schema.ts";
 import type { SetupResult } from "../core/types/index.ts";
+import { resolveCredentials } from "../core/utils/credentials.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
-import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
+import { loadHubEnv } from "../core/utils/env.ts";
 import { exchangeInstagramCode, generateInstagramAuthUrl } from "../platforms/instagram/oauth.ts";
 import { OAUTH_CALLBACK_HOSTNAME, OAUTH_CALLBACK_PORT } from "../platforms/x/oauth.ts";
 
@@ -11,7 +13,7 @@ const INSTAGRAM_CALLBACK_URL = `http://${OAUTH_CALLBACK_HOSTNAME}:${OAUTH_CALLBA
 
 /**
  * Instagram OAuth setup step for /psn:setup.
- * Checks for Meta Developer Portal credentials, validates existing tokens,
+ * Checks for Meta Developer Portal credentials in DB, validates existing tokens,
  * or initiates the Instagram Direct Login OAuth flow.
  *
  * Instagram setup is optional — skip gracefully if no credentials provided.
@@ -26,20 +28,18 @@ export async function setupInstagramOAuth(configDir = "config"): Promise<SetupRe
 			message: hubResult.error,
 		};
 	}
-	const { databaseUrl, encryptionKey } = hubResult.data;
+	const { databaseUrl, encryptionKey, hubId } = hubResult.data;
 
-	// Load keys.env for Instagram credentials
-	const keysResult = await loadKeysEnv(configDir);
-	if (!keysResult.success) {
-		return {
-			step: "instagram-oauth",
-			status: "error",
-			message: keysResult.error,
-		};
+	if (!hubId) {
+		return { step: "instagram-oauth", status: "error", message: "Hub ID not found in hub config" };
 	}
 
-	const appId = keysResult.data.INSTAGRAM_APP_ID;
-	const appSecret = keysResult.data.INSTAGRAM_APP_SECRET;
+	// Load Instagram credentials from DB
+	const db = drizzle(databaseUrl, { schema });
+	const creds = await resolveCredentials(db, hubId, "instagram", ["app_id", "app_secret"]);
+
+	const appId = creds?.app_id;
+	const appSecret = creds?.app_secret;
 
 	// If Instagram credentials not found, skip gracefully (Instagram is optional)
 	if (!appId || !appSecret) {
@@ -49,9 +49,9 @@ export async function setupInstagramOAuth(configDir = "config"): Promise<SetupRe
 			message: "Instagram credentials not found — skipping (optional platform)",
 			data: {
 				instructions: [
-					"To enable Instagram, add these to config/keys.env:",
-					"  INSTAGRAM_APP_ID=<your app id>",
-					"  INSTAGRAM_APP_SECRET=<your app secret>",
+					"To enable Instagram, run `/psn:setup platform instagram` with:",
+					"  app_id: <your app id>",
+					"  app_secret: <your app secret>",
 					"",
 					"Setup steps:",
 					"1. Go to https://developers.facebook.com/apps -> Create App -> Other -> Consumer",
@@ -131,31 +131,33 @@ export async function completeInstagramOAuth(
 	if (!hubResult.success) {
 		return { step: "instagram-oauth", status: "error", message: hubResult.error };
 	}
-	const { databaseUrl, encryptionKey } = hubResult.data;
+	const { databaseUrl, encryptionKey, hubId } = hubResult.data;
 
 	if (!encryptionKey) {
 		return {
 			step: "instagram-oauth",
 			status: "error",
-			message: "HUB_ENCRYPTION_KEY not found in hub.env",
+			message: "HUB_ENCRYPTION_KEY not found in hub config",
 		};
 	}
 
-	// Load Instagram credentials
-	const keysResult = await loadKeysEnv(configDir);
-	if (!keysResult.success) {
-		return { step: "instagram-oauth", status: "error", message: keysResult.error };
+	if (!hubId) {
+		return { step: "instagram-oauth", status: "error", message: "Hub ID not found in hub config" };
 	}
 
-	const appId = keysResult.data.INSTAGRAM_APP_ID;
-	const appSecret = keysResult.data.INSTAGRAM_APP_SECRET;
-	if (!appId || !appSecret) {
+	// Load Instagram credentials from DB
+	const db = drizzle(databaseUrl, { schema });
+	const creds = await resolveCredentials(db, hubId, "instagram", ["app_id", "app_secret"]);
+	if (!creds) {
 		return {
 			step: "instagram-oauth",
 			status: "error",
-			message: "INSTAGRAM_APP_ID and INSTAGRAM_APP_SECRET must be in keys.env",
+			message: "Instagram credentials not configured. Run `/psn:setup platform instagram` first.",
 		};
 	}
+
+	const appId = creds.app_id!;
+	const appSecret = creds.app_secret!;
 
 	// Exchange code for long-lived token
 	const tokens = await exchangeInstagramCode({
@@ -174,8 +176,6 @@ export async function completeInstagramOAuth(
 	const expiresAt = new Date(Date.now() + tokens.expiresIn * 1000);
 
 	// Upsert into oauth_tokens
-	const db = drizzle(databaseUrl);
-
 	const existing = await db
 		.select()
 		.from(oauthTokens)

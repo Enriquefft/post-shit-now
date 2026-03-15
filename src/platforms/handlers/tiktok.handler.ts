@@ -9,6 +9,7 @@ import type {
 	PostRow,
 	RateLimitInfo,
 } from "../../core/types/publisher.ts";
+import { resolveCredentials } from "../../core/utils/credentials.ts";
 import { decrypt, encrypt } from "../../core/utils/crypto.ts";
 import { registerHandler } from "../../core/utils/publisher-factory.ts";
 import { TikTokClient } from "../tiktok/client.ts";
@@ -35,15 +36,22 @@ export class TikTokHandler implements PlatformPublisher {
 		const mediaUrls = post.mediaUrls ?? [];
 		const metadata = (post.metadata ?? {}) as PostMetadata;
 
-		const tiktokClientKey = process.env.TIKTOK_CLIENT_KEY;
-		const tiktokClientSecret = process.env.TIKTOK_CLIENT_SECRET;
-		if (!tiktokClientKey || !tiktokClientSecret) {
+		const hubId = metadata.hubId ?? process.env.PSN_HUB_ID;
+		if (!hubId) {
+			return { platform: "tiktok", status: "failed", error: "No hub ID for credential lookup" };
+		}
+
+		const creds = await resolveCredentials(db, hubId, "tiktok", ["client_key", "client_secret"]);
+		if (!creds) {
 			return {
 				platform: "tiktok",
 				status: "failed",
-				error: "TIKTOK_CLIENT_KEY or TIKTOK_CLIENT_SECRET not set",
+				error: "TikTok credentials not configured for this hub",
 			};
 		}
+
+		const tiktokClientKey = creds.client_key!;
+		const tiktokClientSecret = creds.client_secret!;
 
 		// Fetch OAuth token
 		const [token] = await db

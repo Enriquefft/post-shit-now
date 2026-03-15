@@ -9,6 +9,7 @@ import type {
 	PostRow,
 	RateLimitInfo,
 } from "../../core/types/publisher.ts";
+import { resolveCredentials } from "../../core/utils/credentials.ts";
 import { decrypt, encrypt } from "../../core/utils/crypto.ts";
 import { registerHandler } from "../../core/utils/publisher-factory.ts";
 import { InstagramClient } from "../instagram/client.ts";
@@ -38,13 +39,17 @@ export class InstagramHandler implements PlatformPublisher {
 		const mediaUrls = post.mediaUrls ?? [];
 		const metadata = (post.metadata ?? {}) as PostMetadata;
 
-		const instagramAppId = process.env.INSTAGRAM_APP_ID;
-		const instagramAppSecret = process.env.INSTAGRAM_APP_SECRET;
-		if (!instagramAppId || !instagramAppSecret) {
+		const hubId = metadata.hubId ?? process.env.PSN_HUB_ID;
+		if (!hubId) {
+			return { platform: "instagram", status: "failed", error: "No hub ID for credential lookup" };
+		}
+
+		const creds = await resolveCredentials(db, hubId, "instagram", ["app_id", "app_secret"]);
+		if (!creds) {
 			return {
 				platform: "instagram",
 				status: "failed",
-				error: "INSTAGRAM_APP_ID or INSTAGRAM_APP_SECRET not set",
+				error: "Instagram credentials not configured for this hub",
 			};
 		}
 

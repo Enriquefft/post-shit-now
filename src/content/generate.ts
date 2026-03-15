@@ -1,13 +1,13 @@
 import { isTopicFatigued } from "../analytics/fatigue.ts";
-import { resolveHub } from "../cli/post-finish.ts";
 import { createHubConnection } from "../core/db/connection.ts";
 import type { Platform } from "../core/types/index.ts";
+import { resolveHub } from "../core/utils/resolve-hub.ts";
 import { getLockedSettings, isSettingLocked } from "../learning/locks.ts";
 import { getPreferenceModel } from "../learning/preference-model.ts";
 import { loadProfile } from "../voice/profile.ts";
 import type { VoiceProfile } from "../voice/types.ts";
 import { saveDraft } from "./drafts.ts";
-import { type FormatSuggestion, type PostFormat, pickFormat } from "./format-picker.ts";
+import { type FormatOptions, getFormatOptions, type PostFormat } from "./format-picker.ts";
 import { checkIdeaBank, suggestTopics, type TopicSuggestion } from "./topic-suggest.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -29,7 +29,7 @@ export interface GeneratePostOptions {
 export interface GeneratedDraft {
 	content: string;
 	format: PostFormat;
-	formatSuggestion: FormatSuggestion;
+	formatOptions: FormatOptions;
 	platform: Platform;
 	persona: string;
 	language: string;
@@ -303,7 +303,7 @@ export function adaptContentForPlatform(
 			"", // Line break after hook (LinkedIn pattern)
 			...lines.slice(1),
 			"", // Space before hashtags
-			"#ContentCreation #SocialMedia", // Placeholder hashtags
+			"", // Hashtags generated via voice context
 		];
 		return adapted.join("\n");
 	}
@@ -430,14 +430,17 @@ export async function generatePost(options: GeneratePostOptions): Promise<Genera
 		});
 	}
 
-	// Pick format
-	const formatSuggestion = pickFormat({
+	// Get format options (data for Claude to decide)
+	const formatOptions = getFormatOptions({
 		platform: options.platform,
-		contentType: options.topic,
 		hasMedia: options.mediaType !== "none" && options.mediaType !== undefined,
 		voicePreferences: profile.platforms[options.platform]?.formatPreferences,
 	});
-	const format = options.format ?? formatSuggestion.recommended;
+	const format =
+		options.format ??
+		formatOptions.voicePreference ??
+		formatOptions.available[0]?.format ??
+		"short-post";
 
 	// Build voice context
 	const voiceContext = buildVoicePromptContext(profile, options.platform, language);
@@ -486,7 +489,7 @@ export async function generatePost(options: GeneratePostOptions): Promise<Genera
 	return {
 		content,
 		format,
-		formatSuggestion,
+		formatOptions,
 		platform: options.platform,
 		persona,
 		language,

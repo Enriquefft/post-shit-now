@@ -9,6 +9,7 @@ import type {
 	PostRow,
 	RateLimitInfo,
 } from "../../core/types/publisher.ts";
+import { resolveCredentials } from "../../core/utils/credentials.ts";
 import { decrypt, encrypt } from "../../core/utils/crypto.ts";
 import { registerHandler } from "../../core/utils/publisher-factory.ts";
 import { LinkedInClient } from "../linkedin/client.ts";
@@ -36,15 +37,22 @@ export class LinkedInHandler implements PlatformPublisher {
 		const mediaUrls = post.mediaUrls ?? [];
 		const metadata = (post.metadata ?? {}) as PostMetadata;
 
-		const linkedInClientId = process.env.LINKEDIN_CLIENT_ID;
-		const linkedInClientSecret = process.env.LINKEDIN_CLIENT_SECRET;
-		if (!linkedInClientId || !linkedInClientSecret) {
+		const hubId = metadata.hubId ?? process.env.PSN_HUB_ID;
+		if (!hubId) {
+			return { platform: "linkedin", status: "failed", error: "No hub ID for credential lookup" };
+		}
+
+		const creds = await resolveCredentials(db, hubId, "linkedin", ["client_id", "client_secret"]);
+		if (!creds) {
 			return {
 				platform: "linkedin",
 				status: "failed",
-				error: "LINKEDIN_CLIENT_ID or LINKEDIN_CLIENT_SECRET not set",
+				error: "LinkedIn credentials not configured for this hub",
 			};
 		}
+
+		const linkedInClientId = creds.client_id!;
+		const linkedInClientSecret = creds.client_secret!;
 
 		// Fetch OAuth token
 		const [token] = await db

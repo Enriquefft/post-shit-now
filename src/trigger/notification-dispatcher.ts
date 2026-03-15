@@ -2,6 +2,7 @@ import { logger, task } from "@trigger.dev/sdk";
 import { sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
+import { resolveCredentials } from "../core/utils/credentials.ts";
 import { dispatchNotification, routeCompanyNotification } from "../notifications/dispatcher.ts";
 import { createWhatsAppProvider } from "../notifications/provider.ts";
 import type {
@@ -9,7 +10,7 @@ import type {
 	NotificationEventType,
 	NotificationPreference,
 } from "../notifications/types.ts";
-import { CORE_ENV_VARS, requireEnvVars } from "./env-validation.ts";
+import { CRYPTO_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 
 // ─── Notification Dispatcher Task ──────────────────────────────────────────
 // Trigger.dev task for async notification dispatch.
@@ -48,9 +49,10 @@ export const notificationDispatcherTask = task({
 	id: "notification-dispatcher",
 	maxDuration: 60,
 	run: async (input: DispatchPayload) => {
-		const env = requireEnvVars(CORE_ENV_VARS, "notification-dispatcher");
+		const env = requireEnvVars(CRYPTO_ENV_VARS, "notification-dispatcher");
 
 		const db = createHubConnection(env.DATABASE_URL);
+		const hubId = input.hubId ?? env.PSN_HUB_ID;
 		const result = { dispatched: 0, skipped: 0, downgraded: 0 };
 
 		// Determine target users
@@ -120,10 +122,10 @@ export const notificationDispatcherTask = task({
 							maxPushPerDay: 3,
 						};
 
-				// Create provider from env
-				const provider = createProviderFromEnv(preferences.provider);
+				// Create provider from DB
+				const provider = await createProviderFromDb(db, hubId, preferences.provider);
 				if (!provider) {
-					logger.warn("Cannot create WhatsApp provider — missing env vars", {
+					logger.warn("Cannot create WhatsApp provider — missing credentials in DB", {
 						userId: targetUserId,
 						provider: preferences.provider,
 					});
@@ -176,30 +178,40 @@ export const notificationDispatcherTask = task({
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
-function createProviderFromEnv(providerType: "waha" | "twilio" | "kapso") {
+async function createProviderFromDb(
+	db: ReturnType<typeof createHubConnection>,
+	hubId: string,
+	providerType: "waha" | "twilio" | "kapso",
+) {
 	if (providerType === "kapso") {
 		return createWhatsAppProvider({ provider: "kapso" });
 	}
 
 	if (providerType === "waha") {
-		const baseUrl = process.env.WAHA_BASE_URL;
-		if (!baseUrl) return null;
+		const creds = await resolveCredentials(db, hubId, "waha", ["base_url", "api_key", "session"]);
+		if (!creds) return null;
 		return createWhatsAppProvider({
 			provider: "waha",
 			waha: {
-				baseUrl,
-				session: process.env.WAHA_SESSION ?? "default",
-				apiKey: process.env.WAHA_API_KEY,
+				baseUrl: creds.base_url!,
+				session: creds.session ?? "default",
+				apiKey: creds.api_key!,
 			},
 		});
 	}
 
-	const accountSid = process.env.TWILIO_ACCOUNT_SID;
-	const authToken = process.env.TWILIO_AUTH_TOKEN;
-	const fromNumber = process.env.TWILIO_FROM_NUMBER;
-	if (!accountSid || !authToken || !fromNumber) return null;
+	const creds = await resolveCredentials(db, hubId, "twilio", [
+		"account_sid",
+		"auth_token",
+		"from_number",
+	]);
+	if (!creds) return null;
 	return createWhatsAppProvider({
 		provider: "twilio",
-		twilio: { accountSid, authToken, fromNumber },
+		twilio: {
+			accountSid: creds.account_sid!,
+			authToken: creds.auth_token!,
+			fromNumber: creds.from_number!,
+		},
 	});
 }

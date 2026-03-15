@@ -2,6 +2,7 @@ import { logger, schedules } from "@trigger.dev/sdk";
 import { sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { createHubConnection } from "../core/db/connection.ts";
+import { resolveCredentials } from "../core/utils/credentials.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { refreshInstagramToken } from "../platforms/instagram/oauth.ts";
 import {
@@ -19,13 +20,7 @@ import {
 	refreshAccessToken as refreshXToken,
 	X_CALLBACK_URL,
 } from "../platforms/x/oauth.ts";
-import {
-	CRYPTO_ENV_VARS,
-	LINKEDIN_ENV_VARS,
-	requireEnvVars,
-	TIKTOK_ENV_VARS,
-	X_ENV_VARS,
-} from "./env-validation.ts";
+import { CRYPTO_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 import { notificationDispatcherTask } from "./notification-dispatcher.ts";
 
 export interface TokenRefresherResult {
@@ -96,6 +91,7 @@ export const tokenRefresher = schedules.task({
 		result.total = rows.length;
 
 		// Build platform-specific OAuth clients lazily
+		const hubId = env.PSN_HUB_ID;
 		let xOAuthClient: ReturnType<typeof createXOAuthClient> | null = null;
 		let linkedInOAuthClient: ReturnType<typeof createLinkedInOAuthClient> | null = null;
 		let tikTokOAuthClient: ReturnType<typeof createTikTokOAuthClient> | null = null;
@@ -116,12 +112,16 @@ export const tokenRefresher = schedules.task({
 
 				if (token.platform === "x") {
 					// ─── X Token Refresh ──────────────────────────────────────
-					const xEnv = requireEnvVars(X_ENV_VARS, "token-refresher/x");
+					const xCreds = await resolveCredentials(db, hubId, "x", ["client_id", "client_secret"]);
+					if (!xCreds) {
+						result.skipped++;
+						continue;
+					}
 
 					if (!xOAuthClient) {
 						xOAuthClient = createXOAuthClient({
-							clientId: xEnv.X_CLIENT_ID,
-							clientSecret: xEnv.X_CLIENT_SECRET,
+							clientId: xCreds.client_id!,
+							clientSecret: xCreds.client_secret!,
 							callbackUrl: X_CALLBACK_URL,
 						});
 					}
@@ -130,12 +130,19 @@ export const tokenRefresher = schedules.task({
 					newTokens = await refreshXToken(xOAuthClient, decryptedRefresh);
 				} else if (token.platform === "linkedin") {
 					// ─── LinkedIn Token Refresh ───────────────────────────────
-					const liEnv = requireEnvVars(LINKEDIN_ENV_VARS, "token-refresher/linkedin");
+					const liCreds = await resolveCredentials(db, hubId, "linkedin", [
+						"client_id",
+						"client_secret",
+					]);
+					if (!liCreds) {
+						result.skipped++;
+						continue;
+					}
 
 					if (!linkedInOAuthClient) {
 						linkedInOAuthClient = createLinkedInOAuthClient({
-							clientId: liEnv.LINKEDIN_CLIENT_ID,
-							clientSecret: liEnv.LINKEDIN_CLIENT_SECRET,
+							clientId: liCreds.client_id!,
+							clientSecret: liCreds.client_secret!,
 							callbackUrl: LINKEDIN_CALLBACK_URL,
 						});
 					}
@@ -147,12 +154,19 @@ export const tokenRefresher = schedules.task({
 					logLinkedInExpiryWarnings(token);
 				} else if (token.platform === "tiktok") {
 					// ─── TikTok Token Refresh ────────────────────────────────
-					const ttEnv = requireEnvVars(TIKTOK_ENV_VARS, "token-refresher/tiktok");
+					const ttCreds = await resolveCredentials(db, hubId, "tiktok", [
+						"client_key",
+						"client_secret",
+					]);
+					if (!ttCreds) {
+						result.skipped++;
+						continue;
+					}
 
 					if (!tikTokOAuthClient) {
 						tikTokOAuthClient = createTikTokOAuthClient({
-							clientKey: ttEnv.TIKTOK_CLIENT_KEY,
-							clientSecret: ttEnv.TIKTOK_CLIENT_SECRET,
+							clientKey: ttCreds.client_key!,
+							clientSecret: ttCreds.client_secret!,
 							callbackUrl: TIKTOK_CALLBACK_URL,
 						});
 					}

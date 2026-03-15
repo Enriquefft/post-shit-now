@@ -203,7 +203,7 @@ export const apiKeys = pgTable(
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
-		uniqueIndex("api_keys_user_service_idx").on(table.userId, table.service),
+		uniqueIndex("api_keys_user_service_key_idx").on(table.userId, table.service, table.keyName),
 		pgPolicy("api_keys_isolation", {
 			as: "permissive",
 			to: hubUser,

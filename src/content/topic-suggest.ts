@@ -13,64 +13,7 @@ export interface TopicSuggestion {
 	suggestedFormat: PostFormat;
 }
 
-// ─── Angle Templates ────────────────────────────────────────────────────────
-
-export const ANGLES = [
-	{ name: "hot-take", template: "Hot take: {pillar}", format: "short-post" },
-	{ name: "how-to", template: "How to {pillar}", format: "thread" },
-	{
-		name: "story",
-		template: "A lesson I learned about {pillar}",
-		format: "short-post",
-	},
-	{
-		name: "trend",
-		template: "What's changing in {pillar} right now",
-		format: "thread",
-	},
-	{
-		name: "myth-busting",
-		template: "The biggest myth about {pillar}",
-		format: "short-post",
-	},
-	{
-		name: "comparison",
-		template: "{pillar}: what most people get wrong",
-		format: "carousel",
-	},
-	{
-		name: "prediction",
-		template: "Where {pillar} is headed in the next year",
-		format: "thread",
-	},
-	{
-		name: "behind-the-scenes",
-		template: "Behind the scenes of my {pillar} work",
-		format: "image-post",
-	},
-	{
-		name: "tool-recommendation",
-		template: "Best tools for {pillar}",
-		format: "carousel",
-	},
-	{
-		name: "quick-tip",
-		template: "Quick {pillar} tip that changed everything",
-		format: "short-post",
-	},
-] as const;
-
-// Platform-specific format overrides
-const PLATFORM_FORMAT_MAP: Record<Platform, Partial<Record<string, PostFormat>>> = {
-	x: { "how-to": "thread", story: "thread" },
-	linkedin: { "how-to": "carousel", comparison: "carousel", "tool-recommendation": "carousel" },
-	instagram: { "hot-take": "reel-script", trend: "reel-script" },
-	tiktok: { "hot-take": "reel-script", "how-to": "reel-script", story: "reel-script" },
-};
-
 // ─── Topic Suggestion ────────────────────────────────────────────────────────
-
-let angleRotationIndex = 0;
 
 export interface IdeaBankStatus {
 	hasReadyIdeas: boolean;
@@ -78,6 +21,10 @@ export interface IdeaBankStatus {
 	ideas: Array<{ id: string; title: string; pillar: string | null }>;
 }
 
+/**
+ * Aggregates raw pillars, fatigue data, and idea bank items into TopicSuggestion[].
+ * Does NOT decide angles or formats — the caller (Claude) handles creative decisions.
+ */
 export function suggestTopics(params: {
 	profile: VoiceProfile;
 	platform: Platform;
@@ -85,11 +32,11 @@ export function suggestTopics(params: {
 	fatiguedTopics?: string[];
 	ideaBankStatus?: IdeaBankStatus;
 }): TopicSuggestion[] {
-	const { profile, platform, count = 3, fatiguedTopics = [], ideaBankStatus } = params;
+	const { profile, count = 3, fatiguedTopics = [], ideaBankStatus } = params;
 	const pillars = profile.identity.pillars;
 
 	// POST-11: Mix in ready ideas from bank if available
-	// Ready ideas appear first in suggestions, prioritized over AI-generated topics
+	// Ready ideas appear first in suggestions, prioritized over pillar-based topics
 	const suggestions: TopicSuggestion[] = [];
 	if (ideaBankStatus?.hasReadyIdeas && ideaBankStatus.readyCount > 0) {
 		for (const idea of ideaBankStatus.ideas) {
@@ -105,40 +52,23 @@ export function suggestTopics(params: {
 	if (pillars.length === 0) {
 		return suggestions.length > 0
 			? suggestions
-			: [
-					{
-						topic: "Share something you learned this week",
-						pillar: "general",
-						angle: "story",
-						suggestedFormat: platform === "tiktok" ? "reel-script" : "short-post",
-					},
-				];
+			: [{ topic: "general", pillar: "general", angle: "raw", suggestedFormat: "short-post" }];
 	}
 
+	// Emit raw pillars — caller decides angle and format
 	for (let i = suggestions.length; i < count; i++) {
-		// Rotate through pillars and angles
 		const pillar = pillars[(i - suggestions.length) % pillars.length] ?? pillars[0];
 		if (!pillar) continue;
 
-		const angle = ANGLES[(angleRotationIndex + i) % ANGLES.length];
-		if (!angle) continue;
-
-		// Apply platform-specific format override
-		const platformOverride = PLATFORM_FORMAT_MAP[platform]?.[angle.name];
-		const format = platformOverride ?? angle.format;
-
 		suggestions.push({
-			topic: angle.template.replace("{pillar}", pillar),
+			topic: pillar,
 			pillar,
-			angle: angle.name,
-			suggestedFormat: format,
+			angle: "raw",
+			suggestedFormat: "short-post",
 		});
 	}
 
-	// Advance rotation to avoid repeating on next call
-	angleRotationIndex = (angleRotationIndex + count) % ANGLES.length;
-
-	// Deprioritize fatigued topics: move them to end with "cooling" label
+	// Deprioritize fatigued pillars: move them to end with "cooling" label
 	if (fatiguedTopics.length > 0) {
 		const fatiguedSet = new Set(fatiguedTopics.map((t) => t.toLowerCase()));
 		const fresh: TopicSuggestion[] = [];
@@ -149,10 +79,7 @@ export function suggestTopics(params: {
 				fatiguedSet.has(s.pillar.toLowerCase()) ||
 				fatiguedTopics.some((ft) => s.topic.toLowerCase().includes(ft.toLowerCase()));
 			if (isFatigued) {
-				cooling.push({
-					...s,
-					topic: `${s.topic} (cooling)`,
-				});
+				cooling.push({ ...s, topic: `${s.topic} (cooling)` });
 			} else {
 				fresh.push(s);
 			}

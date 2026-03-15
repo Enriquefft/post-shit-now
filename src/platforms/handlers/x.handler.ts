@@ -2,13 +2,14 @@ import { logger, retry, wait } from "@trigger.dev/sdk";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod/v4";
 import { oauthTokens, posts } from "../../core/db/schema.ts";
-import type { PlatformPublishResult } from "../../core/types/index.ts";
+import type { PlatformPublishResult, PostMetadata } from "../../core/types/index.ts";
 import type {
 	DbConnection,
 	PlatformPublisher,
 	PostRow,
 	RateLimitInfo,
 } from "../../core/types/publisher.ts";
+import { resolveCredentials } from "../../core/utils/credentials.ts";
 import { decrypt, encrypt } from "../../core/utils/crypto.ts";
 import { registerHandler } from "../../core/utils/publisher-factory.ts";
 import { splitIntoThread } from "../../core/utils/thread-splitter.ts";
@@ -97,11 +98,22 @@ export class XHandler implements PlatformPublisher {
 		const { id: postId, userId, content, metadata } = post;
 		const mediaUrls = post.mediaUrls ?? [];
 
-		const xClientId = process.env.X_CLIENT_ID;
-		const xClientSecret = process.env.X_CLIENT_SECRET;
-		if (!xClientId || !xClientSecret) {
-			return { platform: "x", status: "failed", error: "X_CLIENT_ID or X_CLIENT_SECRET not set" };
+		const hubId = (post.metadata as PostMetadata)?.hubId ?? process.env.PSN_HUB_ID;
+		if (!hubId) {
+			return { platform: "x", status: "failed", error: "No hub ID for credential lookup" };
 		}
+
+		const creds = await resolveCredentials(db, hubId, "x", ["client_id", "client_secret"]);
+		if (!creds) {
+			return {
+				platform: "x",
+				status: "failed",
+				error: "X credentials not configured for this hub",
+			};
+		}
+
+		const xClientId = creds.client_id!;
+		const xClientSecret = creds.client_secret!;
 
 		// Fetch OAuth token
 		const [token] = await db

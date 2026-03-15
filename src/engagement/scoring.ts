@@ -134,72 +134,15 @@ export function fromBasisPoints(bps: number): number {
 // ─── Suggest Engagement Type ────────────────────────────────────────────────
 
 /**
- * Based on platform capabilities and post context, suggest best engagement type.
- * X: reply for conversations, quote for hot takes
- * LinkedIn: comment for thought leadership
- * Instagram: comment
- * TikTok: duet for visual responses, stitch for educational, comment otherwise
+ * Returns the default engagement type for a platform.
+ * The real engagement-type decision is made by the LLM agent (engagement-scout);
+ * this just provides a safe fallback so the caller always gets a valid type.
  */
 export function suggestEngagementType(
 	platform: string,
 	_score: number,
-	postContext: string,
+	_postContext: string,
 ): SuggestedEngagement {
-	const availableTypes = PLATFORM_ENGAGEMENT_TYPES[platform];
-	if (!availableTypes || availableTypes.length === 0) return "comment";
-
-	const lowerContext = postContext.toLowerCase();
-
-	switch (platform) {
-		case "x": {
-			// Quote for strong opinions / hot takes
-			if (
-				lowerContext.includes("opinion") ||
-				lowerContext.includes("hot take") ||
-				lowerContext.includes("unpopular") ||
-				lowerContext.includes("debate")
-			) {
-				return "quote";
-			}
-			// Reply for conversational posts / questions
-			if (
-				lowerContext.includes("?") ||
-				lowerContext.includes("what do you think") ||
-				lowerContext.includes("discussion")
-			) {
-				return "reply";
-			}
-			return "reply"; // default for X
-		}
-
-		case "linkedin":
-			return "comment"; // comment for thought leadership
-
-		case "instagram":
-			return "comment";
-
-		case "tiktok": {
-			// Duet for visual responses
-			if (
-				lowerContext.includes("reaction") ||
-				lowerContext.includes("respond") ||
-				lowerContext.includes("challenge")
-			) {
-				return "duet";
-			}
-			// Stitch for educational content
-			if (
-				lowerContext.includes("explain") ||
-				lowerContext.includes("tutorial") ||
-				lowerContext.includes("how to") ||
-				lowerContext.includes("learn")
-			) {
-				return "stitch";
-			}
-			return "comment";
-		}
-
-		default:
-			return availableTypes[0] ?? "comment";
-	}
+	const available = PLATFORM_ENGAGEMENT_TYPES[platform];
+	return available?.[0] ?? "comment";
 }

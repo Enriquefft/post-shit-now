@@ -44,6 +44,13 @@ const initImageUploadSpy = mock((_token: string, _ownerUrn: string) =>
 	}),
 );
 
+mock.module("../../core/utils/credentials.ts", () => ({
+	resolveCredentials: async () => ({
+		client_id: "test_client_id",
+		client_secret: "test_client_secret",
+	}),
+}));
+
 mock.module("../linkedin/media.ts", () => ({
 	initializeImageUpload: (token: string, ownerUrn: string) => initImageUploadSpy(token, ownerUrn),
 	uploadImageBinary: async () => {},
@@ -129,8 +136,7 @@ describe("LinkedInHandler", () => {
 	let LinkedInHandler: typeof import("./linkedin.handler.ts").LinkedInHandler;
 
 	beforeEach(async () => {
-		process.env.LINKEDIN_CLIENT_ID = "test_client_id";
-		process.env.LINKEDIN_CLIENT_SECRET = "test_client_secret";
+		process.env.PSN_HUB_ID = "test-hub";
 
 		// Patch LinkedInClient prototype so the handler picks up mock methods
 		LinkedInClient.prototype.createTextPost =
@@ -147,8 +153,7 @@ describe("LinkedInHandler", () => {
 	});
 
 	afterEach(() => {
-		delete process.env.LINKEDIN_CLIENT_ID;
-		delete process.env.LINKEDIN_CLIENT_SECRET;
+		delete process.env.PSN_HUB_ID;
 	});
 
 	it("uses personUrn when no linkedinAuthorUrn in metadata (personal post)", async () => {

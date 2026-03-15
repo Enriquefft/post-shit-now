@@ -1,9 +1,11 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
+import * as schema from "../core/db/schema.ts";
 import { oauthTokens } from "../core/db/schema.ts";
 import type { SetupResult } from "../core/types/index.ts";
+import { resolveCredentials } from "../core/utils/credentials.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
-import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
+import { loadHubEnv } from "../core/utils/env.ts";
 import {
 	createLinkedInOAuthClient,
 	exchangeCode,
@@ -14,7 +16,7 @@ import { LinkedInUserInfoSchema } from "../platforms/linkedin/types.ts";
 
 /**
  * LinkedIn OAuth setup step for /psn:setup.
- * Checks for LinkedIn Developer Portal credentials, validates existing tokens,
+ * Checks for LinkedIn Developer Portal credentials in DB, validates existing tokens,
  * or initiates the OAuth 2.0 authorization flow.
  *
  * LinkedIn setup is optional — skip gracefully if no credentials provided.
@@ -29,20 +31,18 @@ export async function setupLinkedInOAuth(configDir = "config"): Promise<SetupRes
 			message: hubResult.error,
 		};
 	}
-	const { databaseUrl, encryptionKey } = hubResult.data;
+	const { databaseUrl, encryptionKey, hubId } = hubResult.data;
 
-	// Load keys.env for LinkedIn credentials
-	const keysResult = await loadKeysEnv(configDir);
-	if (!keysResult.success) {
-		return {
-			step: "linkedin-oauth",
-			status: "error",
-			message: keysResult.error,
-		};
+	if (!hubId) {
+		return { step: "linkedin-oauth", status: "error", message: "Hub ID not found in hub config" };
 	}
 
-	const clientId = keysResult.data.LINKEDIN_CLIENT_ID;
-	const clientSecret = keysResult.data.LINKEDIN_CLIENT_SECRET;
+	// Load LinkedIn credentials from DB
+	const db = drizzle(databaseUrl, { schema });
+	const creds = await resolveCredentials(db, hubId, "linkedin", ["client_id", "client_secret"]);
+
+	const clientId = creds?.client_id;
+	const clientSecret = creds?.client_secret;
 
 	// If LinkedIn credentials not found, skip gracefully (LinkedIn is optional)
 	if (!clientId || !clientSecret) {
@@ -52,9 +52,9 @@ export async function setupLinkedInOAuth(configDir = "config"): Promise<SetupRes
 			message: "LinkedIn credentials not found — skipping (optional platform)",
 			data: {
 				instructions: [
-					"To enable LinkedIn, add these to config/keys.env:",
-					"  LINKEDIN_CLIENT_ID=<your client id>",
-					"  LINKEDIN_CLIENT_SECRET=<your client secret>",
+					"To enable LinkedIn, run `/psn:setup platform linkedin` with:",
+					"  client_id: <your client id>",
+					"  client_secret: <your client secret>",
 					"",
 					"Setup steps:",
 					"1. Go to https://www.linkedin.com/developers/apps -> Create App",
@@ -69,7 +69,7 @@ export async function setupLinkedInOAuth(configDir = "config"): Promise<SetupRes
 	// Check for existing valid token in DB
 	if (encryptionKey && databaseUrl) {
 		try {
-			const db = drizzle(databaseUrl);
+			const db = drizzle(databaseUrl, { schema });
 			const existing = await db
 				.select()
 				.from(oauthTokens)
@@ -133,31 +133,33 @@ export async function completeLinkedInOAuth(
 	if (!hubResult.success) {
 		return { step: "linkedin-oauth", status: "error", message: hubResult.error };
 	}
-	const { databaseUrl, encryptionKey } = hubResult.data;
+	const { databaseUrl, encryptionKey, hubId } = hubResult.data;
 
 	if (!encryptionKey) {
 		return {
 			step: "linkedin-oauth",
 			status: "error",
-			message: "HUB_ENCRYPTION_KEY not found in hub.env",
+			message: "HUB_ENCRYPTION_KEY not found in hub config",
 		};
 	}
 
-	// Load LinkedIn credentials
-	const keysResult = await loadKeysEnv(configDir);
-	if (!keysResult.success) {
-		return { step: "linkedin-oauth", status: "error", message: keysResult.error };
+	if (!hubId) {
+		return { step: "linkedin-oauth", status: "error", message: "Hub ID not found in hub config" };
 	}
 
-	const clientId = keysResult.data.LINKEDIN_CLIENT_ID;
-	const clientSecret = keysResult.data.LINKEDIN_CLIENT_SECRET;
-	if (!clientId || !clientSecret) {
+	// Load LinkedIn credentials from DB
+	const db = drizzle(databaseUrl, { schema });
+	const creds = await resolveCredentials(db, hubId, "linkedin", ["client_id", "client_secret"]);
+	if (!creds) {
 		return {
 			step: "linkedin-oauth",
 			status: "error",
-			message: "LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET must be in keys.env",
+			message: "LinkedIn credentials not configured. Run `/psn:setup platform linkedin` first.",
 		};
 	}
+
+	const clientId = creds.client_id!;
+	const clientSecret = creds.client_secret!;
 
 	// Create client and exchange code (no codeVerifier for LinkedIn)
 	const client = createLinkedInOAuthClient({
@@ -193,8 +195,6 @@ export async function completeLinkedInOAuth(
 	const encryptedRefresh = tokens.refreshToken ? encrypt(tokens.refreshToken, key) : null;
 
 	// Upsert into oauth_tokens
-	const db = drizzle(databaseUrl);
-
 	const existing = await db
 		.select()
 		.from(oauthTokens)

@@ -42,6 +42,13 @@ mock.module("../x/media.ts", () => ({
 	uploadMedia: async () => ({ mediaId: "media_1" }),
 }));
 
+mock.module("../../core/utils/credentials.ts", () => ({
+	resolveCredentials: async () => ({
+		client_id: "test_id",
+		client_secret: "test_secret",
+	}),
+}));
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function buildPost(overrides: Partial<Record<string, unknown>> = {}) {
@@ -158,16 +165,14 @@ describe("XHandler", () => {
 	};
 
 	beforeEach(async () => {
-		process.env.X_CLIENT_ID = "test_id";
-		process.env.X_CLIENT_SECRET = "test_secret";
+		process.env.PSN_HUB_ID = "test-hub";
 		// Dynamic import to get fresh module after mocks are set
 		const mod = await import("./x.handler.ts");
 		XHandler = mod.XHandler as typeof XHandler;
 	});
 
 	afterEach(() => {
-		delete process.env.X_CLIENT_ID;
-		delete process.env.X_CLIENT_SECRET;
+		delete process.env.PSN_HUB_ID;
 	});
 
 	describe("publish() - single tweet", () => {
@@ -199,9 +204,8 @@ describe("XHandler", () => {
 			expect(result.error).toContain("280");
 		});
 
-		it("returns failed when X credentials are missing", async () => {
-			delete process.env.X_CLIENT_ID;
-			delete process.env.X_CLIENT_SECRET;
+		it("returns failed when hub ID is missing", async () => {
+			delete process.env.PSN_HUB_ID;
 
 			const handler = new XHandler();
 			const post = buildPost();
@@ -211,7 +215,7 @@ describe("XHandler", () => {
 			const result = await handler.publish(db as unknown as never, post as never, encKey);
 
 			expect(result.status).toBe("failed");
-			expect(result.error).toBe("X_CLIENT_ID or X_CLIENT_SECRET not set");
+			expect(result.error).toBe("No hub ID for credential lookup");
 		});
 
 		it("returns failed when no OAuth token exists", async () => {

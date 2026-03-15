@@ -1,6 +1,18 @@
+import { readFileSync } from "node:fs";
 import { syncEnvVars } from "@trigger.dev/build/extensions/core";
 import { defineConfig } from "@trigger.dev/sdk";
 import { SYNC_ENV_VAR_NAMES } from "./src/trigger/env-validation.ts";
+
+/** Read hubId from .hubs/personal.json for Trigger.dev env sync */
+function readHubId(): string | undefined {
+	try {
+		const content = readFileSync(".hubs/personal.json", "utf-8");
+		const parsed = JSON.parse(content);
+		return parsed.hubId;
+	} catch {
+		return undefined;
+	}
+}
 
 export default defineConfig({
 	runtime: "bun",
@@ -29,6 +41,14 @@ export default defineConfig({
 						synced.push({ name, value });
 					} else {
 						skipped.push(name);
+					}
+				}
+
+				// Sync PSN_HUB_ID from .hubs/personal.json if not already in env
+				if (!synced.find((v) => v.name === "PSN_HUB_ID")) {
+					const hubId = readHubId();
+					if (hubId) {
+						synced.push({ name: "PSN_HUB_ID", value: hubId });
 					}
 				}
 

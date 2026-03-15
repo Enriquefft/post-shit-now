@@ -6,11 +6,5 @@
   "version": "8",
   "dialect": "postgres",
   "ddl": [],
-  "enums": [],
-  "schemas": {},
-  "_meta": {
-    "columns": {},
-    "enums": {},
-    "schemas": {}
-  }
+  "renames": []
 }

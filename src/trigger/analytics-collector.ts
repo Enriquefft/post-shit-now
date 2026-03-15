@@ -9,6 +9,7 @@ import {
 } from "../analytics/collector.ts";
 import { createHubConnection } from "../core/db/connection.ts";
 import { oauthTokens } from "../core/db/schema.ts";
+import { resolveCredentials } from "../core/utils/credentials.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
 import { InstagramClient } from "../platforms/instagram/client.ts";
 import { refreshInstagramToken } from "../platforms/instagram/oauth.ts";
@@ -30,14 +31,7 @@ import {
 	refreshAccessToken as refreshXToken,
 	X_CALLBACK_URL,
 } from "../platforms/x/oauth.ts";
-import {
-	CRYPTO_ENV_VARS,
-	INSTAGRAM_ENV_VARS,
-	LINKEDIN_ENV_VARS,
-	requireEnvVars,
-	TIKTOK_ENV_VARS,
-	X_ENV_VARS,
-} from "./env-validation.ts";
+import { CRYPTO_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 
 /**
  * Daily analytics collector.
@@ -131,7 +125,11 @@ async function collectXAnalytics(
 	encKey: Buffer,
 	userId: string,
 ): Promise<CollectionSummary> {
-	const xEnv = requireEnvVars(X_ENV_VARS, "analytics-collector/x");
+	const hubId = process.env.PSN_HUB_ID;
+	if (!hubId) throw new Error("PSN_HUB_ID not set");
+
+	const xCreds = await resolveCredentials(db, hubId, "x", ["client_id", "client_secret"]);
+	if (!xCreds) throw new Error("X credentials not configured for this hub");
 
 	// Fetch OAuth token
 	const [token] = await db
@@ -154,8 +152,8 @@ async function collectXAnalytics(
 		}
 
 		const xOAuthClient = createXOAuthClient({
-			clientId: xEnv.X_CLIENT_ID,
-			clientSecret: xEnv.X_CLIENT_SECRET,
+			clientId: xCreds.client_id!,
+			clientSecret: xCreds.client_secret!,
 			callbackUrl: X_CALLBACK_URL,
 		});
 
@@ -200,7 +198,14 @@ async function collectLinkedInAnalyticsTask(
 	encKey: Buffer,
 	userId: string,
 ): Promise<CollectionSummary | null> {
-	const liEnv = requireEnvVars(LINKEDIN_ENV_VARS, "analytics-collector/linkedin");
+	const hubId = process.env.PSN_HUB_ID;
+	if (!hubId) return null;
+
+	const liCreds = await resolveCredentials(db, hubId, "linkedin", ["client_id", "client_secret"]);
+	if (!liCreds) {
+		logger.info("LinkedIn credentials not configured — skipping LinkedIn analytics", { userId });
+		return null;
+	}
 
 	// Fetch OAuth token
 	const [token] = await db
@@ -223,8 +228,8 @@ async function collectLinkedInAnalyticsTask(
 		}
 
 		const linkedInOAuthClient = createLinkedInOAuthClient({
-			clientId: liEnv.LINKEDIN_CLIENT_ID,
-			clientSecret: liEnv.LINKEDIN_CLIENT_SECRET,
+			clientId: liCreds.client_id!,
+			clientSecret: liCreds.client_secret!,
 			callbackUrl: LINKEDIN_CALLBACK_URL,
 		});
 
@@ -270,7 +275,7 @@ async function collectInstagramAnalyticsTask(
 	encKey: Buffer,
 	userId: string,
 ): Promise<CollectionSummary | null> {
-	const _igEnv = requireEnvVars(INSTAGRAM_ENV_VARS, "analytics-collector/instagram");
+	// Instagram token refresh doesn't need app credentials (uses access token itself)
 
 	// Fetch OAuth token
 	const [token] = await db
@@ -346,7 +351,14 @@ async function collectTikTokAnalyticsTask(
 	encKey: Buffer,
 	userId: string,
 ): Promise<CollectionSummary | null> {
-	const ttEnv = requireEnvVars(TIKTOK_ENV_VARS, "analytics-collector/tiktok");
+	const hubId = process.env.PSN_HUB_ID;
+	if (!hubId) return null;
+
+	const ttCreds = await resolveCredentials(db, hubId, "tiktok", ["client_key", "client_secret"]);
+	if (!ttCreds) {
+		logger.info("TikTok credentials not configured — skipping TikTok analytics", { userId });
+		return null;
+	}
 
 	// Fetch OAuth token
 	const [token] = await db
@@ -370,8 +382,8 @@ async function collectTikTokAnalyticsTask(
 		}
 
 		const tiktokOAuthClient = createTikTokOAuthClient({
-			clientKey: ttEnv.TIKTOK_CLIENT_KEY,
-			clientSecret: ttEnv.TIKTOK_CLIENT_SECRET,
+			clientKey: ttCreds.client_key!,
+			clientSecret: ttCreds.client_secret!,
 			callbackUrl: TIKTOK_CALLBACK_URL,
 		});
 

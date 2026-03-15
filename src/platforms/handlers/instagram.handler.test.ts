@@ -32,6 +32,13 @@ mock.module("../instagram/oauth.ts", () => ({
 	}),
 }));
 
+mock.module("../../core/utils/credentials.ts", () => ({
+	resolveCredentials: async () => ({
+		app_id: "test_app_id",
+		app_secret: "test_app_secret",
+	}),
+}));
+
 mock.module("../instagram/media.ts", () => ({
 	createImageContainer: async (_client: unknown, _url: string, _caption: string) => ({
 		id: "container_1",
@@ -168,15 +175,13 @@ describe("InstagramHandler", () => {
 	};
 
 	beforeEach(async () => {
-		process.env.INSTAGRAM_APP_ID = "test_app_id";
-		process.env.INSTAGRAM_APP_SECRET = "test_app_secret";
+		process.env.PSN_HUB_ID = "test-hub";
 		const mod = await import("./instagram.handler.ts");
 		InstagramHandler = mod.InstagramHandler as typeof InstagramHandler;
 	});
 
 	afterEach(() => {
-		delete process.env.INSTAGRAM_APP_ID;
-		delete process.env.INSTAGRAM_APP_SECRET;
+		delete process.env.PSN_HUB_ID;
 	});
 
 	describe("single post publish", () => {
@@ -229,9 +234,8 @@ describe("InstagramHandler", () => {
 	});
 
 	describe("error paths", () => {
-		it("fails when INSTAGRAM_APP_ID missing", async () => {
-			delete process.env.INSTAGRAM_APP_ID;
-			delete process.env.INSTAGRAM_APP_SECRET;
+		it("fails when hub ID is missing", async () => {
+			delete process.env.PSN_HUB_ID;
 
 			const handler = new InstagramHandler();
 			const post = buildPost();
@@ -241,7 +245,7 @@ describe("InstagramHandler", () => {
 			const result = await handler.publish(db as unknown as never, post as never, encKey);
 
 			expect(result.status).toBe("failed");
-			expect(result.error).toContain("not set");
+			expect(result.error).toBe("No hub ID for credential lookup");
 		});
 
 		it("fails when no OAuth token found", async () => {

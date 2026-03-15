@@ -1,18 +1,5 @@
 import type { Pillar, RawTrend, ScoredTrend } from "./types.ts";
 
-// ─── Angle Templates (reused from topic-suggest.ts pattern) ─────────────────
-
-const ANGLE_TEMPLATES = [
-	{ name: "hot-take", template: "Hot take: {topic}" },
-	{ name: "how-to", template: "How to leverage {topic}" },
-	{ name: "trend", template: "What's changing with {topic} right now" },
-	{ name: "myth-busting", template: "The biggest myth about {topic}" },
-	{ name: "comparison", template: "What most people get wrong about {topic}" },
-	{ name: "prediction", template: "Where {topic} is headed next" },
-	{ name: "behind-the-scenes", template: "Behind the scenes: {topic}" },
-	{ name: "quick-tip", template: "Quick {topic} tip that changed everything" },
-];
-
 // ─── Source Score Normalization Ranges ───────────────────────────────────────
 
 const SOURCE_SCORE_RANGES: Record<string, { max: number }> = {
@@ -95,20 +82,9 @@ export function computeOverallScore(
 }
 
 /**
- * Generate 2-3 angle stubs for a trend title.
- * Uses the ANGLES template pattern from topic-suggest.ts.
- */
-export function generateAngleStubs(trendTitle: string): string[] {
-	// Pick 2-3 random angles from the template list
-	const shuffled = [...ANGLE_TEMPLATES].sort(() => Math.random() - 0.5);
-	const count = 2 + Math.round(Math.random()); // 2 or 3 angles
-
-	return shuffled.slice(0, count).map((angle) => angle.template.replace("{topic}", trendTitle));
-}
-
-/**
  * Score an array of raw trends against content pillars.
- * Returns ScoredTrend[] with IDs, timestamps, and angle stubs for high-scoring trends.
+ * Returns ScoredTrend[] with IDs and timestamps. Angle generation is handled
+ * downstream by Claude with full voice/brand context.
  */
 export function scoreTrends(rawTrends: RawTrend[], pillars: Pillar[]): ScoredTrend[] {
 	const thirtyDaysFromNow = new Date();
@@ -134,11 +110,6 @@ export function scoreTrends(rawTrends: RawTrend[], pillars: Pillar[]): ScoredTre
 			detectedAt: new Date(),
 			expiresAt: thirtyDaysFromNow,
 		};
-
-		// Generate angle stubs for high-scoring trends (70+)
-		if (overallScore >= 70) {
-			scored.suggestedAngles = generateAngleStubs(raw.title);
-		}
 
 		return scored;
 	});

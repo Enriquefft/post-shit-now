@@ -3,41 +3,17 @@ import { logger } from "@trigger.dev/sdk";
 /** Core env vars required by all tasks */
 export const CORE_ENV_VARS = ["DATABASE_URL"] as const;
 
-/** Env vars for tasks that decrypt stored OAuth tokens */
-export const CRYPTO_ENV_VARS = [...CORE_ENV_VARS, "HUB_ENCRYPTION_KEY"] as const;
-
-/** X (Twitter) platform credentials */
-export const X_ENV_VARS = ["X_CLIENT_ID", "X_CLIENT_SECRET"] as const;
-
-/** LinkedIn platform credentials */
-export const LINKEDIN_ENV_VARS = ["LINKEDIN_CLIENT_ID", "LINKEDIN_CLIENT_SECRET"] as const;
-
-/** Instagram platform credentials */
-export const INSTAGRAM_ENV_VARS = ["INSTAGRAM_APP_ID", "INSTAGRAM_APP_SECRET"] as const;
-
-/** TikTok platform credentials */
-export const TIKTOK_ENV_VARS = ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET"] as const;
+/** Env vars for tasks that decrypt stored OAuth tokens and resolve hub credentials */
+export const CRYPTO_ENV_VARS = [...CORE_ENV_VARS, "HUB_ENCRYPTION_KEY", "PSN_HUB_ID"] as const;
 
 /**
  * All env var names that syncEnvVars pushes to Trigger.dev Cloud at deploy time.
- * Union of all groups + notification service vars.
+ * Platform and notification credentials now live in the database per-hub.
  *
  * NOTE: TRIGGER_SECRET_KEY is intentionally excluded -- Trigger.dev Cloud
  * sets it automatically and overwriting it causes task-to-task auth failures.
  */
-export const SYNC_ENV_VAR_NAMES = [
-	...CRYPTO_ENV_VARS,
-	...X_ENV_VARS,
-	...LINKEDIN_ENV_VARS,
-	...INSTAGRAM_ENV_VARS,
-	...TIKTOK_ENV_VARS,
-	"WAHA_BASE_URL",
-	"WAHA_API_KEY",
-	"WAHA_SESSION",
-	"TWILIO_ACCOUNT_SID",
-	"TWILIO_AUTH_TOKEN",
-	"TWILIO_FROM_NUMBER",
-] as const;
+export const SYNC_ENV_VAR_NAMES = [...CRYPTO_ENV_VARS] as const;
 
 /**
  * Validates that all required env vars are present and returns them as a typed record.

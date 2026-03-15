@@ -1,10 +1,12 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 import { z } from "zod/v4";
+import * as schema from "../core/db/schema.ts";
 import { oauthTokens } from "../core/db/schema.ts";
 import type { SetupResult } from "../core/types/index.ts";
+import { resolveCredentials } from "../core/utils/credentials.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
-import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
+import { loadHubEnv } from "../core/utils/env.ts";
 import {
 	createTikTokOAuthClient,
 	exchangeTikTokCode,
@@ -14,7 +16,7 @@ import {
 
 /**
  * TikTok OAuth setup step for /psn:setup.
- * Checks for TikTok Developer Portal credentials, validates existing tokens,
+ * Checks for TikTok Developer Portal credentials in DB, validates existing tokens,
  * or initiates the OAuth 2.0 PKCE authorization flow.
  *
  * TikTok setup is optional — skip gracefully if no credentials provided.
@@ -29,20 +31,18 @@ export async function setupTikTokOAuth(configDir = "config"): Promise<SetupResul
 			message: hubResult.error,
 		};
 	}
-	const { databaseUrl, encryptionKey } = hubResult.data;
+	const { databaseUrl, encryptionKey, hubId } = hubResult.data;
 
-	// Load keys.env for TikTok credentials
-	const keysResult = await loadKeysEnv(configDir);
-	if (!keysResult.success) {
-		return {
-			step: "tiktok-oauth",
-			status: "error",
-			message: keysResult.error,
-		};
+	if (!hubId) {
+		return { step: "tiktok-oauth", status: "error", message: "Hub ID not found in hub config" };
 	}
 
-	const clientKey = keysResult.data.TIKTOK_CLIENT_KEY;
-	const clientSecret = keysResult.data.TIKTOK_CLIENT_SECRET;
+	// Load TikTok credentials from DB
+	const db = drizzle(databaseUrl, { schema });
+	const creds = await resolveCredentials(db, hubId, "tiktok", ["client_key", "client_secret"]);
+
+	const clientKey = creds?.client_key;
+	const clientSecret = creds?.client_secret;
 
 	// If TikTok credentials not found, skip gracefully (TikTok is optional)
 	if (!clientKey || !clientSecret) {
@@ -52,9 +52,9 @@ export async function setupTikTokOAuth(configDir = "config"): Promise<SetupResul
 			message: "TikTok credentials not found — skipping (optional platform)",
 			data: {
 				instructions: [
-					"To enable TikTok, add these to config/keys.env:",
-					"  TIKTOK_CLIENT_KEY=<your app key>",
-					"  TIKTOK_CLIENT_SECRET=<your app secret>",
+					"To enable TikTok, run `/psn:setup platform tiktok` with:",
+					"  client_key: <your app key>",
+					"  client_secret: <your app secret>",
 					"",
 					"Setup steps:",
 					"1. Go to https://developers.tiktok.com -> Manage Apps -> Create",
@@ -137,31 +137,33 @@ export async function completeTikTokOAuth(
 	if (!hubResult.success) {
 		return { step: "tiktok-oauth", status: "error", message: hubResult.error };
 	}
-	const { databaseUrl, encryptionKey } = hubResult.data;
+	const { databaseUrl, encryptionKey, hubId } = hubResult.data;
 
 	if (!encryptionKey) {
 		return {
 			step: "tiktok-oauth",
 			status: "error",
-			message: "HUB_ENCRYPTION_KEY not found in hub.env",
+			message: "HUB_ENCRYPTION_KEY not found in hub config",
 		};
 	}
 
-	// Load TikTok credentials
-	const keysResult = await loadKeysEnv(configDir);
-	if (!keysResult.success) {
-		return { step: "tiktok-oauth", status: "error", message: keysResult.error };
+	if (!hubId) {
+		return { step: "tiktok-oauth", status: "error", message: "Hub ID not found in hub config" };
 	}
 
-	const clientKey = keysResult.data.TIKTOK_CLIENT_KEY;
-	const clientSecret = keysResult.data.TIKTOK_CLIENT_SECRET;
-	if (!clientKey || !clientSecret) {
+	// Load TikTok credentials from DB
+	const db = drizzle(databaseUrl, { schema });
+	const creds = await resolveCredentials(db, hubId, "tiktok", ["client_key", "client_secret"]);
+	if (!creds) {
 		return {
 			step: "tiktok-oauth",
 			status: "error",
-			message: "TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET must be in keys.env",
+			message: "TikTok credentials not configured. Run `/psn:setup platform tiktok` first.",
 		};
 	}
+
+	const clientKey = creds.client_key!;
+	const clientSecret = creds.client_secret!;
 
 	// Create client and exchange code with PKCE codeVerifier
 	const client = createTikTokOAuthClient({
@@ -210,8 +212,6 @@ export async function completeTikTokOAuth(
 	const encryptedRefresh = tokens.refreshToken ? encrypt(tokens.refreshToken, key) : null;
 
 	// Upsert into oauth_tokens
-	const db = drizzle(databaseUrl);
-
 	const existing = await db
 		.select()
 		.from(oauthTokens)

@@ -1,9 +1,11 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
+import * as schema from "../core/db/schema.ts";
 import { oauthTokens } from "../core/db/schema.ts";
 import type { SetupResult } from "../core/types/index.ts";
+import { resolveCredentials } from "../core/utils/credentials.ts";
 import { decrypt, encrypt, keyFromHex } from "../core/utils/crypto.ts";
-import { loadHubEnv, loadKeysEnv } from "../core/utils/env.ts";
+import { loadHubEnv } from "../core/utils/env.ts";
 import {
 	createXOAuthClient,
 	exchangeCode,
@@ -14,7 +16,7 @@ import { captureOAuthCallback } from "./oauth-callback-server.ts";
 
 /**
  * X OAuth setup step for /psn:setup.
- * Checks for X Developer Portal credentials, validates existing tokens,
+ * Checks for X Developer Portal credentials in DB, validates existing tokens,
  * or initiates the OAuth 2.0 PKCE authorization flow.
  */
 export async function setupXOAuth(configDir = "config"): Promise<SetupResult> {
@@ -27,20 +29,18 @@ export async function setupXOAuth(configDir = "config"): Promise<SetupResult> {
 			message: hubResult.error,
 		};
 	}
-	const { databaseUrl, encryptionKey } = hubResult.data;
+	const { databaseUrl, encryptionKey, hubId } = hubResult.data;
 
-	// Load keys.env for X credentials
-	const keysResult = await loadKeysEnv(configDir);
-	if (!keysResult.success) {
-		return {
-			step: "x-oauth",
-			status: "error",
-			message: keysResult.error,
-		};
+	if (!hubId) {
+		return { step: "x-oauth", status: "error", message: "Hub ID not found in hub config" };
 	}
 
-	const clientId = keysResult.data.X_CLIENT_ID;
-	const clientSecret = keysResult.data.X_CLIENT_SECRET;
+	// Load X credentials from DB
+	const db = drizzle(databaseUrl, { schema });
+	const creds = await resolveCredentials(db, hubId, "x", ["client_id", "client_secret"]);
+
+	const clientId = creds?.client_id;
+	const clientSecret = creds?.client_secret;
 
 	// If X credentials not found, guide user through Developer Portal setup
 	if (!clientId || !clientSecret) {
@@ -58,13 +58,11 @@ export async function setupXOAuth(configDir = "config"): Promise<SetupResult> {
 					"   - Set Callback URL to: http://127.0.0.1:18923/callback",
 					"   - Set Website URL to any valid URL",
 					"3. Go to Keys and tokens -> OAuth 2.0 Client ID and Client Secret",
-					"4. Add to config/keys.env:",
-					"   X_CLIENT_ID=<your client id>",
-					"   X_CLIENT_SECRET=<your client secret>",
+					"4. Run `/psn:setup platform x` to configure credentials in the database",
 				].join("\n"),
 				missingKeys: [
-					...(!clientId ? ["X_CLIENT_ID"] : []),
-					...(!clientSecret ? ["X_CLIENT_SECRET"] : []),
+					...(!clientId ? ["client_id"] : []),
+					...(!clientSecret ? ["client_secret"] : []),
 				],
 			},
 		};
@@ -73,7 +71,7 @@ export async function setupXOAuth(configDir = "config"): Promise<SetupResult> {
 	// Check for existing valid token in DB
 	if (encryptionKey && databaseUrl) {
 		try {
-			const db = drizzle(databaseUrl);
+			const db = drizzle(databaseUrl, { schema });
 			const existing = await db
 				.select()
 				.from(oauthTokens)
@@ -151,31 +149,33 @@ export async function completeXOAuth(
 	if (!hubResult.success) {
 		return { step: "x-oauth", status: "error", message: hubResult.error };
 	}
-	const { databaseUrl, encryptionKey } = hubResult.data;
+	const { databaseUrl, encryptionKey, hubId } = hubResult.data;
 
 	if (!encryptionKey) {
 		return {
 			step: "x-oauth",
 			status: "error",
-			message: "HUB_ENCRYPTION_KEY not found in hub.env",
+			message: "HUB_ENCRYPTION_KEY not found in hub config",
 		};
 	}
 
-	// Load X credentials
-	const keysResult = await loadKeysEnv(configDir);
-	if (!keysResult.success) {
-		return { step: "x-oauth", status: "error", message: keysResult.error };
+	if (!hubId) {
+		return { step: "x-oauth", status: "error", message: "Hub ID not found in hub config" };
 	}
 
-	const clientId = keysResult.data.X_CLIENT_ID;
-	const clientSecret = keysResult.data.X_CLIENT_SECRET;
-	if (!clientId || !clientSecret) {
+	// Load X credentials from DB
+	const db = drizzle(databaseUrl, { schema });
+	const creds = await resolveCredentials(db, hubId, "x", ["client_id", "client_secret"]);
+	if (!creds) {
 		return {
 			step: "x-oauth",
 			status: "error",
-			message: "X_CLIENT_ID and X_CLIENT_SECRET must be in keys.env",
+			message: "X credentials not configured. Run `/psn:setup platform x` first.",
 		};
 	}
+
+	const clientId = creds.client_id!;
+	const clientSecret = creds.client_secret!;
 
 	// Create client and exchange code
 	const client = createXOAuthClient({
@@ -192,8 +192,6 @@ export async function completeXOAuth(
 	const encryptedRefresh = tokens.refreshToken ? encrypt(tokens.refreshToken, key) : null;
 
 	// Upsert into oauth_tokens
-	const db = drizzle(databaseUrl);
-
 	const existing = await db
 		.select()
 		.from(oauthTokens)

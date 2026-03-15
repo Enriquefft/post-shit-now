@@ -14,6 +14,17 @@ const REQUIRED_KEYS_PHASE1 = [
 	},
 ];
 
+// ─── Platform Credential Definitions ─────────────────────────────────────────
+
+const PLATFORM_KEYS = [
+	{ service: "x", keys: ["client_id", "client_secret"], display: "X (Twitter)" },
+	{ service: "linkedin", keys: ["client_id", "client_secret"], display: "LinkedIn" },
+	{ service: "instagram", keys: ["app_id", "app_secret"], display: "Instagram" },
+	{ service: "tiktok", keys: ["client_key", "client_secret"], display: "TikTok" },
+	{ service: "waha", keys: ["base_url", "api_key", "session"], display: "WAHA" },
+	{ service: "twilio", keys: ["account_sid", "auth_token", "from_number"], display: "Twilio" },
+];
+
 // ─── Provider Key Definitions ────────────────────────────────────────────────
 
 const PROVIDER_KEYS = [
