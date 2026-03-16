@@ -679,7 +679,14 @@ export async function runSetup(configDir = "config", dryRun = false): Promise<Se
 	}
 	steps.push(keysResult);
 
-	// Step 1.5: Collect provider keys (DB-based)
+	// Step 2: Create database (includes Step 3: migrations)
+	const dbResult = await setupDatabase(configDir);
+	steps.push(dbResult);
+	if (dbResult.status === "error") {
+		return { steps, validation: null, completed: false };
+	}
+
+	// Step 2.5: Collect provider keys (DB-based — needs DB from previous step)
 	const providerKeysResult = await setupProviderKeys(configDir);
 	if (Array.isArray(providerKeysResult)) {
 		// Keys missing - collect interactively
@@ -691,13 +698,9 @@ export async function runSetup(configDir = "config", dryRun = false): Promise<Se
 		}
 	} else {
 		steps.push(providerKeysResult);
-	}
-
-	// Step 2: Create database (includes Step 3: migrations)
-	const dbResult = await setupDatabase(configDir);
-	steps.push(dbResult);
-	if (dbResult.status === "error") {
-		return { steps, validation: null, completed: false };
+		if (providerKeysResult.status === "error") {
+			return { steps, validation: null, completed: false };
+		}
 	}
 
 	// Step 2.5: Auto-create default personal entity (idempotent)

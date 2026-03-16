@@ -66,8 +66,13 @@ export async function loadHubEnv(
 					},
 				};
 			}
-		} catch {
 			// personal.json doesn't exist either
+			return {
+				success: false,
+				error: `Hub config not found at ${filePath}. Run /psn:setup to create it.`,
+			};
+		} catch {
+			// Failed to check/read personal.json
 			return {
 				success: false,
 				error: `Hub config not found at ${filePath}. Run /psn:setup to create it.`,

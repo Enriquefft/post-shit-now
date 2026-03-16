@@ -7,7 +7,7 @@ import { keyFromHex } from "../core/utils/crypto.ts";
 import { createHandler } from "../core/utils/publisher-factory.ts";
 // Side-effect imports: register all platform handlers with the factory
 import "../platforms/handlers/index.ts";
-import { CRYPTO_ENV_VARS, requireEnvVars } from "./env-validation.ts";
+import { CORE_ENV_VARS, requireEnvVars } from "./env-validation.ts";
 import { notificationDispatcherTask } from "./notification-dispatcher.ts";
 import {
 	advanceSeriesState,
@@ -43,7 +43,7 @@ export const publishPost = task({
 	maxDuration: 300,
 	run: async (payload: PublishPostPayload) => {
 		// 1. Load env
-		const env = requireEnvVars(CRYPTO_ENV_VARS, "publish-post");
+		const env = requireEnvVars([...CORE_ENV_VARS, "HUB_ENCRYPTION_KEY"] as const, "publish-post");
 
 		const encKey = keyFromHex(env.HUB_ENCRYPTION_KEY);
 		const db = createHubConnection(env.DATABASE_URL);
